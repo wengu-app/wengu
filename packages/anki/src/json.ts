@@ -63,3 +63,28 @@ export function idString(v: unknown): string | null {
   if (typeof v === "bigint") return v.toString();
   return null;
 }
+
+/** A JSON integer given as exact decimal text (for 64-bit ids that a JS number cannot hold). */
+export class JsonInt {
+  constructor(readonly text: string) {
+    if (!/^-?\d+$/.test(text)) throw new Error(`not an integer: ${text}`);
+  }
+}
+
+/**
+ * Compact JSON.stringify that writes `JsonInt` values as bare integers and
+ * `bigint`s exactly. Non-finite numbers become null (as JSON.stringify does);
+ * `undefined` object members are skipped.
+ */
+export function stringifyJson(value: unknown): string {
+  if (value instanceof JsonInt) return value.text;
+  if (typeof value === "bigint") return value.toString();
+  if (value === null || typeof value !== "object") return JSON.stringify(value) ?? "null";
+  if (Array.isArray(value)) return `[${value.map((v) => (v === undefined ? "null" : stringifyJson(v))).join(",")}]`;
+  const parts: string[] = [];
+  for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+    if (v === undefined || typeof v === "function") continue;
+    parts.push(`${JSON.stringify(k)}:${stringifyJson(v)}`);
+  }
+  return `{${parts.join(",")}}`;
+}

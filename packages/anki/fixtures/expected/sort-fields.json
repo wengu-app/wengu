@@ -1,0 +1,3128 @@
+{
+ "ankiVersion": "26.09.4",
+ "cases": [
+  {
+   "fields": [
+    "plain",
+    "plain"
+   ],
+   "sortf": 0,
+   "sfld": "plain",
+   "csum": 1757703812
+  },
+  {
+   "fields": [
+    "  lead and trail  ",
+    "<i>back</i>   lead and trail  "
+   ],
+   "sortf": 1,
+   "sfld": "back   lead and trail  ",
+   "csum": 4159236177
+  },
+  {
+   "fields": [
+    "<b>bold</b> text",
+    "<b>bold</b> text"
+   ],
+   "sortf": 0,
+   "sfld": "bold text",
+   "csum": 4040654722
+  },
+  {
+   "fields": [
+    "img <img src=\"a b.png\"> after",
+    "<i>back</i> img <img src=\"a b.png\"> after"
+   ],
+   "sortf": 1,
+   "sfld": "back img  a b.png  after",
+   "csum": 2252046281
+  },
+  {
+   "fields": [
+    "<img src='single.jpg'>",
+    "<img src='single.jpg'>"
+   ],
+   "sortf": 0,
+   "sfld": " single.jpg ",
+   "csum": 1309348012
+  },
+  {
+   "fields": [
+    "<img src=noquote.gif>",
+    "<i>back</i> <img src=noquote.gif>"
+   ],
+   "sortf": 1,
+   "sfld": "back  noquote.gif ",
+   "csum": 2675113831
+  },
+  {
+   "fields": [
+    "<img alt=\"x\" src=\"k&amp;v.png\" width=3>",
+    "<img alt=\"x\" src=\"k&amp;v.png\" width=3>"
+   ],
+   "sortf": 0,
+   "sfld": " k&v.png ",
+   "csum": 3460768595
+  },
+  {
+   "fields": [
+    "A &amp; B &lt;3 &gt; &quot;q&quot; &#39;s &nbsp;nb &#x4e2d; &copy;",
+    "<i>back</i> A &amp; B &lt;3 &gt; &quot;q&quot; &#39;s &nbsp;nb &#x4e2d; &copy;"
+   ],
+   "sortf": 1,
+   "sfld": "back A & B <3 > \"q\" 's  nb 中 ©",
+   "csum": 1336835229
+  },
+  {
+   "fields": [
+    "line<br>break<br/>x<div>d</div>",
+    "line<br>break<br/>x<div>d</div>"
+   ],
+   "sortf": 0,
+   "sfld": "linebreakxd",
+   "csum": 4236466976
+  },
+  {
+   "fields": [
+    "<!-- comment -->visible",
+    "<i>back</i> <!-- comment -->visible"
+   ],
+   "sortf": 1,
+   "sfld": "back visible",
+   "csum": 574129046
+  },
+  {
+   "fields": [
+    "<style>.x{}</style>after style",
+    "<style>.x{}</style>after style"
+   ],
+   "sortf": 0,
+   "sfld": "after style",
+   "csum": 552640896
+  },
+  {
+   "fields": [
+    "<script>var a=1</script>after script",
+    "<i>back</i> <script>var a=1</script>after script"
+   ],
+   "sortf": 1,
+   "sfld": "back after script",
+   "csum": 3972550635
+  },
+  {
+   "fields": [
+    "[sound:hello.mp3] text",
+    "[sound:hello.mp3] text"
+   ],
+   "sortf": 0,
+   "sfld": "[sound:hello.mp3] text",
+   "csum": 1284903540
+  },
+  {
+   "fields": [
+    "123",
+    "<i>back</i> 123"
+   ],
+   "sortf": 1,
+   "sfld": "back 123",
+   "csum": 1086128149
+  },
+  {
+   "fields": [
+    "  42 ",
+    "  42 "
+   ],
+   "sortf": 0,
+   "sfld": 42,
+   "csum": 887764404
+  },
+  {
+   "fields": [
+    "-7",
+    "<i>back</i> -7"
+   ],
+   "sortf": 1,
+   "sfld": "back -7",
+   "csum": 1449036753
+  },
+  {
+   "fields": [
+    "3.5",
+    "3.5"
+   ],
+   "sortf": 0,
+   "sfld": 3.5,
+   "csum": 3286658070
+  },
+  {
+   "fields": [
+    "007",
+    "<i>back</i> 007"
+   ],
+   "sortf": 1,
+   "sfld": "back 007",
+   "csum": 355756889
+  },
+  {
+   "fields": [
+    "1e3",
+    "1e3"
+   ],
+   "sortf": 0,
+   "sfld": 1000,
+   "csum": 560618534
+  },
+  {
+   "fields": [
+    "+5",
+    "<i>back</i> +5"
+   ],
+   "sortf": 1,
+   "sfld": "back +5",
+   "csum": 2942631550
+  },
+  {
+   "fields": [
+    ".5",
+    ".5"
+   ],
+   "sortf": 0,
+   "sfld": 0.5,
+   "csum": 1700410257
+  },
+  {
+   "fields": [
+    "5.",
+    "<i>back</i> 5."
+   ],
+   "sortf": 1,
+   "sfld": "back 5.",
+   "csum": 3531825103
+  },
+  {
+   "fields": [
+    "0x10",
+    "0x10"
+   ],
+   "sortf": 0,
+   "sfld": "0x10",
+   "csum": 2420298786
+  },
+  {
+   "fields": [
+    "🎉👨‍👩‍👧 emoji",
+    "<i>back</i> 🎉👨‍👩‍👧 emoji"
+   ],
+   "sortf": 1,
+   "sfld": "back 🎉👨‍👩‍👧 emoji",
+   "csum": 1984119643
+  },
+  {
+   "fields": [
+    "中文<i>斜</i>体",
+    "中文<i>斜</i>体"
+   ],
+   "sortf": 0,
+   "sfld": "中文斜体",
+   "csum": 3565820904
+  },
+  {
+   "fields": [
+    "\n\tnewline\ttab\n",
+    "<i>back</i> \n\tnewline\ttab\n"
+   ],
+   "sortf": 1,
+   "sfld": "back \n\tnewline\ttab\n",
+   "csum": 2399707968
+  },
+  {
+   "fields": [
+    "<audio src=\"snd.mp3\"></audio>",
+    "<audio src=\"snd.mp3\"></audio>"
+   ],
+   "sortf": 0,
+   "sfld": " snd.mp3 ",
+   "csum": 4144718091
+  },
+  {
+   "fields": [
+    "<video src=\"v.mp4\"></video>",
+    "<i>back</i> <video src=\"v.mp4\"></video>"
+   ],
+   "sortf": 1,
+   "sfld": "back  v.mp4 ",
+   "csum": 985886235
+  },
+  {
+   "fields": [
+    "x < y and y > z",
+    "x < y and y > z"
+   ],
+   "sortf": 0,
+   "sfld": "x  z",
+   "csum": 2538364550
+  },
+  {
+   "fields": [
+    "<<b>>",
+    "<i>back</i> <<b>>"
+   ],
+   "sortf": 1,
+   "sfld": "back >",
+   "csum": 152274366
+  },
+  {
+   "fields": [
+    "&amp;amp;",
+    "&amp;amp;"
+   ],
+   "sortf": 0,
+   "sfld": "&amp;",
+   "csum": 1425446817
+  },
+  {
+   "fields": [
+    "&unknown; entity",
+    "<i>back</i> &unknown; entity"
+   ],
+   "sortf": 1,
+   "sfld": "back &unknown; entity",
+   "csum": 3921992942
+  },
+  {
+   "fields": [
+    "<IMG SRC=\"UP.PNG\">",
+    "<IMG SRC=\"UP.PNG\">"
+   ],
+   "sortf": 0,
+   "sfld": " UP.PNG ",
+   "csum": 919950294
+  },
+  {
+   "fields": [
+    "<object data=\"o.svg\"></object>",
+    "<i>back</i> <object data=\"o.svg\"></object>"
+   ],
+   "sortf": 1,
+   "sfld": "back  o.svg ",
+   "csum": 2779220851
+  },
+  {
+   "fields": [
+    "",
+    ""
+   ],
+   "sortf": 0,
+   "sfld": "",
+   "csum": 3661210606
+  },
+  {
+   "fields": [
+    "<br>",
+    "<i>back</i> <br>"
+   ],
+   "sortf": 1,
+   "sfld": "back ",
+   "csum": 3661210606
+  },
+  {
+   "fields": [
+    "&nbsp;",
+    "&nbsp;"
+   ],
+   "sortf": 0,
+   "sfld": " ",
+   "csum": 3092826920
+  },
+  {
+   "fields": [
+    "Ａ fullwidth",
+    "<i>back</i> Ａ fullwidth"
+   ],
+   "sortf": 1,
+   "sfld": "back Ａ fullwidth",
+   "csum": 2489405096
+  },
+  {
+   "fields": [
+    "<span style=\"color: red\">red</span>",
+    "<span style=\"color: red\">red</span>"
+   ],
+   "sortf": 0,
+   "sfld": "red",
+   "csum": 2023260176
+  },
+  {
+   "fields": [
+    "a b literal",
+    "<i>back</i> a b literal"
+   ],
+   "sortf": 1,
+   "sfld": "back a b literal",
+   "csum": 2211561893
+  },
+  {
+   "fields": [
+    "&#160;x &#xA0;y &#xa0;z",
+    "&#160;x &#xA0;y &#xa0;z"
+   ],
+   "sortf": 0,
+   "sfld": " x  y  z",
+   "csum": 3065340803
+  },
+  {
+   "fields": [
+    "&NBSP; caps",
+    "<i>back</i> &NBSP; caps"
+   ],
+   "sortf": 1,
+   "sfld": "back &NBSP; caps",
+   "csum": 3886601985
+  },
+  {
+   "fields": [
+    "<a title=\"a>b\">x</a>",
+    "<a title=\"a>b\">x</a>"
+   ],
+   "sortf": 0,
+   "sfld": "b\">x",
+   "csum": 37538754
+  },
+  {
+   "fields": [
+    "<STYLE>p{}</STYLE>up",
+    "<i>back</i> <STYLE>p{}</STYLE>up"
+   ],
+   "sortf": 1,
+   "sfld": "back up",
+   "csum": 2081039808
+  },
+  {
+   "fields": [
+    "<img src=\"a.png\"/>",
+    "<img src=\"a.png\"/>"
+   ],
+   "sortf": 0,
+   "sfld": " a.png ",
+   "csum": 3341441178
+  },
+  {
+   "fields": [
+    "<img data-src=\"d.png\">",
+    "<i>back</i> <img data-src=\"d.png\">"
+   ],
+   "sortf": 1,
+   "sfld": "back  d.png ",
+   "csum": 1020358907
+  },
+  {
+   "fields": [
+    "<img src=\"\">e",
+    "<img src=\"\">e"
+   ],
+   "sortf": 0,
+   "sfld": " \"\" e",
+   "csum": 1618530907
+  },
+  {
+   "fields": [
+    "<img>",
+    "<i>back</i> <img>"
+   ],
+   "sortf": 1,
+   "sfld": "back ",
+   "csum": 3661210606
+  },
+  {
+   "fields": [
+    "<!-- a > b -->c",
+    "<!-- a > b -->c"
+   ],
+   "sortf": 0,
+   "sfld": "c",
+   "csum": 2225411716
+  },
+  {
+   "fields": [
+    "&eacute;&Eacute;&hellip;&mdash;&euro;&rarr;&lsquo;&trade;&alpha;&nbsp",
+    "<i>back</i> &eacute;&Eacute;&hellip;&mdash;&euro;&rarr;&lsquo;&trade;&alpha;&nbsp"
+   ],
+   "sortf": 1,
+   "sfld": "back &eacute;&Eacute;&hellip;&mdash;&euro;&rarr;&lsquo;&trade;&alpha;&nbsp",
+   "csum": 2195433272
+  },
+  {
+   "fields": [
+    "&#0; &#99999999; &#x110000;",
+    "&#0; &#99999999; &#x110000;"
+   ],
+   "sortf": 0,
+   "sfld": "&#0; &#99999999; &#x110000;",
+   "csum": 2405611274
+  },
+  {
+   "fields": [
+    "<source src=\"s.mp3\">",
+    "<i>back</i> <source src=\"s.mp3\">"
+   ],
+   "sortf": 1,
+   "sfld": "back  s.mp3 ",
+   "csum": 1291140021
+  },
+  {
+   "fields": [
+    "<embed src=\"e.swf\">",
+    "<embed src=\"e.swf\">"
+   ],
+   "sortf": 0,
+   "sfld": "",
+   "csum": 3661210606
+  },
+  {
+   "fields": [
+    "<iframe src=\"f.html\"></iframe>",
+    "<i>back</i> <iframe src=\"f.html\"></iframe>"
+   ],
+   "sortf": 1,
+   "sfld": "back ",
+   "csum": 3661210606
+  },
+  {
+   "fields": [
+    "<img src=\"a.png\"><img src=\"b.png\">",
+    "<img src=\"a.png\"><img src=\"b.png\">"
+   ],
+   "sortf": 0,
+   "sfld": " a.png  b.png ",
+   "csum": 13360382
+  },
+  {
+   "fields": [
+    "&lt;b&gt;not a tag&lt;/b&gt;",
+    "<i>back</i> &lt;b&gt;not a tag&lt;/b&gt;"
+   ],
+   "sortf": 1,
+   "sfld": "back <b>not a tag</b>",
+   "csum": 3495005067
+  },
+  {
+   "fields": [
+    "a&ampb",
+    "a&ampb"
+   ],
+   "sortf": 0,
+   "sfld": "a&ampb",
+   "csum": 2948720716
+  },
+  {
+   "fields": [
+    "&#65;&#x42;",
+    "<i>back</i> &#65;&#x42;"
+   ],
+   "sortf": 1,
+   "sfld": "back AB",
+   "csum": 114902420
+  },
+  {
+   "fields": [
+    "<img src=\"x.png\" src=\"y.png\">",
+    "<img src=\"x.png\" src=\"y.png\">"
+   ],
+   "sortf": 0,
+   "sfld": " x.png ",
+   "csum": 2926313888
+  },
+  {
+   "fields": [
+    "<img\nsrc=\"nl.png\">",
+    "<i>back</i> <img\nsrc=\"nl.png\">"
+   ],
+   "sortf": 1,
+   "sfld": "back  nl.png ",
+   "csum": 1927654905
+  },
+  {
+   "fields": [
+    "<img src = \"sp.png\">",
+    "<img src = \"sp.png\">"
+   ],
+   "sortf": 0,
+   "sfld": "",
+   "csum": 3661210606
+  },
+  {
+   "fields": [
+    "&amp;lt;",
+    "<i>back</i> &amp;lt;"
+   ],
+   "sortf": 1,
+   "sfld": "back &lt;",
+   "csum": 1563171456
+  },
+  {
+   "fields": [
+    "&lowast;&loz;&spades;&OElig;&fnof;&thetasym;&lang;&rang;&apos;",
+    "&lowast;&loz;&spades;&OElig;&fnof;&thetasym;&lang;&rang;&apos;"
+   ],
+   "sortf": 0,
+   "sfld": "&lowast;&loz;&spades;&OElig;&fnof;&thetasym;&lang;&rang;&apos;",
+   "csum": 3605711401
+  },
+  {
+   "fields": [
+    "&NotEqualTilde;&bigstar;",
+    "<i>back</i> &NotEqualTilde;&bigstar;"
+   ],
+   "sortf": 1,
+   "sfld": "back &NotEqualTilde;&bigstar;",
+   "csum": 2042682698
+  },
+  {
+   "fields": [
+    "A & B &amp; C",
+    "A & B &amp; C"
+   ],
+   "sortf": 0,
+   "sfld": "A & B &amp; C",
+   "csum": 415559100
+  },
+  {
+   "fields": [
+    "&amp; &bigstar;",
+    "<i>back</i> &amp; &bigstar;"
+   ],
+   "sortf": 1,
+   "sfld": "back &amp; &bigstar;",
+   "csum": 1085246671
+  },
+  {
+   "fields": [
+    "&amp; &#X41;",
+    "&amp; &#X41;"
+   ],
+   "sortf": 0,
+   "sfld": "&amp; &#X41;",
+   "csum": 312140136
+  },
+  {
+   "fields": [
+    "&amp; &#xD800;",
+    "<i>back</i> &amp; &#xD800;"
+   ],
+   "sortf": 1,
+   "sfld": "back &amp; &#xD800;",
+   "csum": 2669919890
+  },
+  {
+   "fields": [
+    "&amp;&",
+    "&amp;&"
+   ],
+   "sortf": 0,
+   "sfld": "&amp;&",
+   "csum": 876661173
+  },
+  {
+   "fields": [
+    "&amp; a&b",
+    "<i>back</i> &amp; a&b"
+   ],
+   "sortf": 1,
+   "sfld": "back &amp; a&b",
+   "csum": 1613471981
+  },
+  {
+   "fields": [
+    "&amp; &;",
+    "&amp; &;"
+   ],
+   "sortf": 0,
+   "sfld": "&amp; &;",
+   "csum": 97696277
+  },
+  {
+   "fields": [
+    "&amp; &1;",
+    "<i>back</i> &amp; &1;"
+   ],
+   "sortf": 1,
+   "sfld": "back &amp; &1;",
+   "csum": 3660508372
+  },
+  {
+   "fields": [
+    "&amp; &#;",
+    "&amp; &#;"
+   ],
+   "sortf": 0,
+   "sfld": "&amp; &#;",
+   "csum": 3008614385
+  },
+  {
+   "fields": [
+    "&amp; &AMP;",
+    "<i>back</i> &amp; &AMP;"
+   ],
+   "sortf": 1,
+   "sfld": "back &amp; &AMP;",
+   "csum": 3070961922
+  },
+  {
+   "fields": [
+    "&amp; &nbsp",
+    "&amp; &nbsp"
+   ],
+   "sortf": 0,
+   "sfld": "&amp; &nbsp",
+   "csum": 4006566342
+  },
+  {
+   "fields": [
+    "&amp; &#65x;",
+    "<i>back</i> &amp; &#65x;"
+   ],
+   "sortf": 1,
+   "sfld": "back &amp; &#65x;",
+   "csum": 3986265483
+  },
+  {
+   "fields": [
+    "&amp; &#0;",
+    "&amp; &#0;"
+   ],
+   "sortf": 0,
+   "sfld": "& \u0000",
+   "csum": 2948532581
+  },
+  {
+   "fields": [
+    "&amp; &#x110000;",
+    "<i>back</i> &amp; &#x110000;"
+   ],
+   "sortf": 1,
+   "sfld": "back &amp; &#x110000;",
+   "csum": 2219041050
+  },
+  {
+   "fields": [
+    "&amp; &#00000000065;",
+    "&amp; &#00000000065;"
+   ],
+   "sortf": 0,
+   "sfld": "& A",
+   "csum": 2586690145
+  },
+  {
+   "fields": [
+    "&amp; &#x0000041;",
+    "<i>back</i> &amp; &#x0000041;"
+   ],
+   "sortf": 1,
+   "sfld": "back & A",
+   "csum": 2586690145
+  },
+  {
+   "fields": [
+    "&amp; &copy;x",
+    "&amp; &copy;x"
+   ],
+   "sortf": 0,
+   "sfld": "& ©x",
+   "csum": 4223648915
+  },
+  {
+   "fields": [
+    "&nbsp;&nbsp;",
+    "<i>back</i> &nbsp;&nbsp;"
+   ],
+   "sortf": 1,
+   "sfld": "back   ",
+   "csum": 160825505
+  },
+  {
+   "fields": [
+    "&nbsp; &bad;",
+    "&nbsp; &bad;"
+   ],
+   "sortf": 0,
+   "sfld": "&nbsp; &bad;",
+   "csum": 1561769658
+  },
+  {
+   "fields": [
+    "<img src=\"a&b.png\"> &amp;",
+    "<i>back</i> <img src=\"a&b.png\"> &amp;"
+   ],
+   "sortf": 1,
+   "sfld": "back  a&b.png  &amp;",
+   "csum": 2517462474
+  },
+  {
+   "fields": [
+    "<audio src=\"x.mp3\" /> <video src=\"v\"></video><source src=s.ogg><object data=\"o.svg\">",
+    "<audio src=\"x.mp3\" /> <video src=\"v\"></video><source src=s.ogg><object data=\"o.svg\">"
+   ],
+   "sortf": 0,
+   "sfld": " x.mp3   v  s.ogg  o.svg ",
+   "csum": 615049553
+  },
+  {
+   "fields": [
+    "<b\n>multi\nline</b\n>",
+    "<i>back</i> <b\n>multi\nline</b\n>"
+   ],
+   "sortf": 1,
+   "sfld": "back multi\nline",
+   "csum": 1305375217
+  },
+  {
+   "fields": [
+    "<!---->x<!-- unterminated",
+    "<!---->x<!-- unterminated"
+   ],
+   "sortf": 0,
+   "sfld": "x<!-- unterminated",
+   "csum": 103440116
+  },
+  {
+   "fields": [
+    "<style>a</style>b<style>c</style>d",
+    "<i>back</i> <style>a</style>b<style>c</style>d"
+   ],
+   "sortf": 1,
+   "sfld": "back bd",
+   "csum": 3824321738
+  },
+  {
+   "fields": [
+    "<script src=\"x.js\"></script>s",
+    "<script src=\"x.js\"></script>s"
+   ],
+   "sortf": 0,
+   "sfld": "s",
+   "csum": 2700167434
+  },
+  {
+   "fields": [
+    "&#128512; &#9; &#127; &#150; &#xFFFE;",
+    "<i>back</i> &#128512; &#9; &#127; &#150; &#xFFFE;"
+   ],
+   "sortf": 1,
+   "sfld": "back 😀 \t   ￾",
+   "csum": 3017538692
+  },
+  {
+   "fields": [
+    "x&AElig;y",
+    "x&AElig;y"
+   ],
+   "sortf": 0,
+   "sfld": "xÆy",
+   "csum": 4159908692
+  },
+  {
+   "fields": [
+    "x&Aacute;y",
+    "<i>back</i> x&Aacute;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xÁy",
+   "csum": 3663164537
+  },
+  {
+   "fields": [
+    "x&Acirc;y",
+    "x&Acirc;y"
+   ],
+   "sortf": 0,
+   "sfld": "xÂy",
+   "csum": 2527655081
+  },
+  {
+   "fields": [
+    "x&Agrave;y",
+    "<i>back</i> x&Agrave;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xÀy",
+   "csum": 1451978571
+  },
+  {
+   "fields": [
+    "x&Alpha;y",
+    "x&Alpha;y"
+   ],
+   "sortf": 0,
+   "sfld": "xΑy",
+   "csum": 3361809274
+  },
+  {
+   "fields": [
+    "x&Aring;y",
+    "<i>back</i> x&Aring;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xÅy",
+   "csum": 1963298340
+  },
+  {
+   "fields": [
+    "x&Atilde;y",
+    "x&Atilde;y"
+   ],
+   "sortf": 0,
+   "sfld": "xÃy",
+   "csum": 2511627432
+  },
+  {
+   "fields": [
+    "x&Auml;y",
+    "<i>back</i> x&Auml;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xÄy",
+   "csum": 1421531678
+  },
+  {
+   "fields": [
+    "x&Beta;y",
+    "x&Beta;y"
+   ],
+   "sortf": 0,
+   "sfld": "xΒy",
+   "csum": 3770078220
+  },
+  {
+   "fields": [
+    "x&Ccedil;y",
+    "<i>back</i> x&Ccedil;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xÇy",
+   "csum": 947489304
+  },
+  {
+   "fields": [
+    "x&Chi;y",
+    "x&Chi;y"
+   ],
+   "sortf": 0,
+   "sfld": "xΧy",
+   "csum": 962357023
+  },
+  {
+   "fields": [
+    "x&Dagger;y",
+    "<i>back</i> x&Dagger;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x‡y",
+   "csum": 802983119
+  },
+  {
+   "fields": [
+    "x&Delta;y",
+    "x&Delta;y"
+   ],
+   "sortf": 0,
+   "sfld": "xΔy",
+   "csum": 2145535393
+  },
+  {
+   "fields": [
+    "x&ETH;y",
+    "<i>back</i> x&ETH;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xÐy",
+   "csum": 1435399454
+  },
+  {
+   "fields": [
+    "x&Eacute;y",
+    "x&Eacute;y"
+   ],
+   "sortf": 0,
+   "sfld": "xÉy",
+   "csum": 1928944882
+  },
+  {
+   "fields": [
+    "x&Ecirc;y",
+    "<i>back</i> x&Ecirc;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xÊy",
+   "csum": 1957168919
+  },
+  {
+   "fields": [
+    "x&Egrave;y",
+    "x&Egrave;y"
+   ],
+   "sortf": 0,
+   "sfld": "xÈy",
+   "csum": 1010523445
+  },
+  {
+   "fields": [
+    "x&Epsilon;y",
+    "<i>back</i> x&Epsilon;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xΕy",
+   "csum": 1111631879
+  },
+  {
+   "fields": [
+    "x&Eta;y",
+    "x&Eta;y"
+   ],
+   "sortf": 0,
+   "sfld": "xΗy",
+   "csum": 905390435
+  },
+  {
+   "fields": [
+    "x&Euml;y",
+    "<i>back</i> x&Euml;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xËy",
+   "csum": 3924140103
+  },
+  {
+   "fields": [
+    "x&Gamma;y",
+    "x&Gamma;y"
+   ],
+   "sortf": 0,
+   "sfld": "xΓy",
+   "csum": 2204942538
+  },
+  {
+   "fields": [
+    "x&Iacute;y",
+    "<i>back</i> x&Iacute;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xÍy",
+   "csum": 3847777955
+  },
+  {
+   "fields": [
+    "x&Icirc;y",
+    "x&Icirc;y"
+   ],
+   "sortf": 0,
+   "sfld": "xÎy",
+   "csum": 466304208
+  },
+  {
+   "fields": [
+    "x&Igrave;y",
+    "<i>back</i> x&Igrave;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xÌy",
+   "csum": 4237919214
+  },
+  {
+   "fields": [
+    "x&Iota;y",
+    "x&Iota;y"
+   ],
+   "sortf": 0,
+   "sfld": "xΙy",
+   "csum": 1351563451
+  },
+  {
+   "fields": [
+    "x&Iuml;y",
+    "<i>back</i> x&Iuml;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xÏy",
+   "csum": 2890687510
+  },
+  {
+   "fields": [
+    "x&Kappa;y",
+    "x&Kappa;y"
+   ],
+   "sortf": 0,
+   "sfld": "xΚy",
+   "csum": 1778839758
+  },
+  {
+   "fields": [
+    "x&Lambda;y",
+    "<i>back</i> x&Lambda;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xΛy",
+   "csum": 1260054104
+  },
+  {
+   "fields": [
+    "x&Mu;y",
+    "x&Mu;y"
+   ],
+   "sortf": 0,
+   "sfld": "xΜy",
+   "csum": 2540789078
+  },
+  {
+   "fields": [
+    "x&Ntilde;y",
+    "<i>back</i> x&Ntilde;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xÑy",
+   "csum": 2510394370
+  },
+  {
+   "fields": [
+    "x&Nu;y",
+    "x&Nu;y"
+   ],
+   "sortf": 0,
+   "sfld": "xΝy",
+   "csum": 4196117427
+  },
+  {
+   "fields": [
+    "x&OElig;y",
+    "<i>back</i> x&OElig;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xŒy",
+   "csum": 9078267
+  },
+  {
+   "fields": [
+    "x&Oacute;y",
+    "x&Oacute;y"
+   ],
+   "sortf": 0,
+   "sfld": "xÓy",
+   "csum": 1050212574
+  },
+  {
+   "fields": [
+    "x&Ocirc;y",
+    "<i>back</i> x&Ocirc;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xÔy",
+   "csum": 1338934659
+  },
+  {
+   "fields": [
+    "x&Ograve;y",
+    "x&Ograve;y"
+   ],
+   "sortf": 0,
+   "sfld": "xÒy",
+   "csum": 1286277662
+  },
+  {
+   "fields": [
+    "x&Omega;y",
+    "<i>back</i> x&Omega;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xΩy",
+   "csum": 3953686147
+  },
+  {
+   "fields": [
+    "x&Omicron;y",
+    "x&Omicron;y"
+   ],
+   "sortf": 0,
+   "sfld": "xΟy",
+   "csum": 1245778227
+  },
+  {
+   "fields": [
+    "x&Oslash;y",
+    "<i>back</i> x&Oslash;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xØy",
+   "csum": 2585095102
+  },
+  {
+   "fields": [
+    "x&Otilde;y",
+    "x&Otilde;y"
+   ],
+   "sortf": 0,
+   "sfld": "xÕy",
+   "csum": 2117428900
+  },
+  {
+   "fields": [
+    "x&Ouml;y",
+    "<i>back</i> x&Ouml;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xÖy",
+   "csum": 4006766878
+  },
+  {
+   "fields": [
+    "x&Phi;y",
+    "x&Phi;y"
+   ],
+   "sortf": 0,
+   "sfld": "xΦy",
+   "csum": 823309371
+  },
+  {
+   "fields": [
+    "x&Pi;y",
+    "<i>back</i> x&Pi;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xΠy",
+   "csum": 1324377432
+  },
+  {
+   "fields": [
+    "x&Prime;y",
+    "x&Prime;y"
+   ],
+   "sortf": 0,
+   "sfld": "x″y",
+   "csum": 197074142
+  },
+  {
+   "fields": [
+    "x&Psi;y",
+    "<i>back</i> x&Psi;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xΨy",
+   "csum": 355823547
+  },
+  {
+   "fields": [
+    "x&Rho;y",
+    "x&Rho;y"
+   ],
+   "sortf": 0,
+   "sfld": "xΡy",
+   "csum": 3504420865
+  },
+  {
+   "fields": [
+    "x&Scaron;y",
+    "<i>back</i> x&Scaron;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xŠy",
+   "csum": 1189802355
+  },
+  {
+   "fields": [
+    "x&Sigma;y",
+    "x&Sigma;y"
+   ],
+   "sortf": 0,
+   "sfld": "xΣy",
+   "csum": 1869158140
+  },
+  {
+   "fields": [
+    "x&THORN;y",
+    "<i>back</i> x&THORN;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xÞy",
+   "csum": 2317707074
+  },
+  {
+   "fields": [
+    "x&Tau;y",
+    "x&Tau;y"
+   ],
+   "sortf": 0,
+   "sfld": "xΤy",
+   "csum": 1041817775
+  },
+  {
+   "fields": [
+    "x&Theta;y",
+    "<i>back</i> x&Theta;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xΘy",
+   "csum": 3638145838
+  },
+  {
+   "fields": [
+    "x&Uacute;y",
+    "x&Uacute;y"
+   ],
+   "sortf": 0,
+   "sfld": "xÚy",
+   "csum": 3987604100
+  },
+  {
+   "fields": [
+    "x&Ucirc;y",
+    "<i>back</i> x&Ucirc;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xÛy",
+   "csum": 939948260
+  },
+  {
+   "fields": [
+    "x&Ugrave;y",
+    "x&Ugrave;y"
+   ],
+   "sortf": 0,
+   "sfld": "xÙy",
+   "csum": 1241345208
+  },
+  {
+   "fields": [
+    "x&Upsilon;y",
+    "<i>back</i> x&Upsilon;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xΥy",
+   "csum": 1384872852
+  },
+  {
+   "fields": [
+    "x&Uuml;y",
+    "x&Uuml;y"
+   ],
+   "sortf": 0,
+   "sfld": "xÜy",
+   "csum": 4220808604
+  },
+  {
+   "fields": [
+    "x&Xi;y",
+    "<i>back</i> x&Xi;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xΞy",
+   "csum": 1711850763
+  },
+  {
+   "fields": [
+    "x&Yacute;y",
+    "x&Yacute;y"
+   ],
+   "sortf": 0,
+   "sfld": "xÝy",
+   "csum": 2629913220
+  },
+  {
+   "fields": [
+    "x&Yuml;y",
+    "<i>back</i> x&Yuml;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xŸy",
+   "csum": 659984612
+  },
+  {
+   "fields": [
+    "x&Zeta;y",
+    "x&Zeta;y"
+   ],
+   "sortf": 0,
+   "sfld": "xΖy",
+   "csum": 2470104509
+  },
+  {
+   "fields": [
+    "x&aacute;y",
+    "<i>back</i> x&aacute;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xáy",
+   "csum": 1345795260
+  },
+  {
+   "fields": [
+    "x&acirc;y",
+    "x&acirc;y"
+   ],
+   "sortf": 0,
+   "sfld": "xây",
+   "csum": 3688805888
+  },
+  {
+   "fields": [
+    "x&acute;y",
+    "<i>back</i> x&acute;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x´y",
+   "csum": 28945357
+  },
+  {
+   "fields": [
+    "x&aelig;y",
+    "x&aelig;y"
+   ],
+   "sortf": 0,
+   "sfld": "xæy",
+   "csum": 236933240
+  },
+  {
+   "fields": [
+    "x&agrave;y",
+    "<i>back</i> x&agrave;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xày",
+   "csum": 3636430210
+  },
+  {
+   "fields": [
+    "x&alefsym;y",
+    "x&alefsym;y"
+   ],
+   "sortf": 0,
+   "sfld": "xℵy",
+   "csum": 2069940329
+  },
+  {
+   "fields": [
+    "x&alpha;y",
+    "<i>back</i> x&alpha;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xαy",
+   "csum": 743924990
+  },
+  {
+   "fields": [
+    "x&amp;y",
+    "x&amp;y"
+   ],
+   "sortf": 0,
+   "sfld": "x&y",
+   "csum": 3583501357
+  },
+  {
+   "fields": [
+    "x&and;y",
+    "<i>back</i> x&and;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x∧y",
+   "csum": 733261494
+  },
+  {
+   "fields": [
+    "x&ang;y",
+    "x&ang;y"
+   ],
+   "sortf": 0,
+   "sfld": "x∠y",
+   "csum": 327337800
+  },
+  {
+   "fields": [
+    "x&aring;y",
+    "<i>back</i> x&aring;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xåy",
+   "csum": 3520579472
+  },
+  {
+   "fields": [
+    "x&asymp;y",
+    "x&asymp;y"
+   ],
+   "sortf": 0,
+   "sfld": "x≈y",
+   "csum": 2807397994
+  },
+  {
+   "fields": [
+    "x&atilde;y",
+    "<i>back</i> x&atilde;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xãy",
+   "csum": 2860024257
+  },
+  {
+   "fields": [
+    "x&auml;y",
+    "x&auml;y"
+   ],
+   "sortf": 0,
+   "sfld": "xäy",
+   "csum": 1206046560
+  },
+  {
+   "fields": [
+    "x&bdquo;y",
+    "<i>back</i> x&bdquo;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x„y",
+   "csum": 338270139
+  },
+  {
+   "fields": [
+    "x&beta;y",
+    "x&beta;y"
+   ],
+   "sortf": 0,
+   "sfld": "xβy",
+   "csum": 3764897181
+  },
+  {
+   "fields": [
+    "x&brvbar;y",
+    "<i>back</i> x&brvbar;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x¦y",
+   "csum": 3633362553
+  },
+  {
+   "fields": [
+    "x&bull;y",
+    "x&bull;y"
+   ],
+   "sortf": 0,
+   "sfld": "x•y",
+   "csum": 2261612425
+  },
+  {
+   "fields": [
+    "x&cap;y",
+    "<i>back</i> x&cap;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x∩y",
+   "csum": 2123683164
+  },
+  {
+   "fields": [
+    "x&ccedil;y",
+    "x&ccedil;y"
+   ],
+   "sortf": 0,
+   "sfld": "xçy",
+   "csum": 780105705
+  },
+  {
+   "fields": [
+    "x&cedil;y",
+    "<i>back</i> x&cedil;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x¸y",
+   "csum": 3774121073
+  },
+  {
+   "fields": [
+    "x&cent;y",
+    "x&cent;y"
+   ],
+   "sortf": 0,
+   "sfld": "x¢y",
+   "csum": 3431240177
+  },
+  {
+   "fields": [
+    "x&chi;y",
+    "<i>back</i> x&chi;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xχy",
+   "csum": 3193439313
+  },
+  {
+   "fields": [
+    "x&circ;y",
+    "x&circ;y"
+   ],
+   "sortf": 0,
+   "sfld": "xˆy",
+   "csum": 2706753126
+  },
+  {
+   "fields": [
+    "x&clubs;y",
+    "<i>back</i> x&clubs;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x♣y",
+   "csum": 1863475979
+  },
+  {
+   "fields": [
+    "x&cong;y",
+    "x&cong;y"
+   ],
+   "sortf": 0,
+   "sfld": "x≅y",
+   "csum": 1951991719
+  },
+  {
+   "fields": [
+    "x&copy;y",
+    "<i>back</i> x&copy;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x©y",
+   "csum": 1815489407
+  },
+  {
+   "fields": [
+    "x&crarr;y",
+    "x&crarr;y"
+   ],
+   "sortf": 0,
+   "sfld": "x↵y",
+   "csum": 2095511174
+  },
+  {
+   "fields": [
+    "x&cup;y",
+    "<i>back</i> x&cup;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x∪y",
+   "csum": 228040063
+  },
+  {
+   "fields": [
+    "x&curren;y",
+    "x&curren;y"
+   ],
+   "sortf": 0,
+   "sfld": "x¤y",
+   "csum": 2031723062
+  },
+  {
+   "fields": [
+    "x&dArr;y",
+    "<i>back</i> x&dArr;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x⇓y",
+   "csum": 2341741769
+  },
+  {
+   "fields": [
+    "x&dagger;y",
+    "x&dagger;y"
+   ],
+   "sortf": 0,
+   "sfld": "x†y",
+   "csum": 626986600
+  },
+  {
+   "fields": [
+    "x&darr;y",
+    "<i>back</i> x&darr;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x↓y",
+   "csum": 1114511953
+  },
+  {
+   "fields": [
+    "x&deg;y",
+    "x&deg;y"
+   ],
+   "sortf": 0,
+   "sfld": "x°y",
+   "csum": 1237113185
+  },
+  {
+   "fields": [
+    "x&delta;y",
+    "<i>back</i> x&delta;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xδy",
+   "csum": 3435671670
+  },
+  {
+   "fields": [
+    "x&diams;y",
+    "x&diams;y"
+   ],
+   "sortf": 0,
+   "sfld": "x♦y",
+   "csum": 289894464
+  },
+  {
+   "fields": [
+    "x&divide;y",
+    "<i>back</i> x&divide;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x÷y",
+   "csum": 2678322279
+  },
+  {
+   "fields": [
+    "x&eacute;y",
+    "x&eacute;y"
+   ],
+   "sortf": 0,
+   "sfld": "xéy",
+   "csum": 1509084348
+  },
+  {
+   "fields": [
+    "x&ecirc;y",
+    "<i>back</i> x&ecirc;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xêy",
+   "csum": 1836061301
+  },
+  {
+   "fields": [
+    "x&egrave;y",
+    "x&egrave;y"
+   ],
+   "sortf": 0,
+   "sfld": "xèy",
+   "csum": 2242294054
+  },
+  {
+   "fields": [
+    "x&empty;y",
+    "<i>back</i> x&empty;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x∅y",
+   "csum": 4128953211
+  },
+  {
+   "fields": [
+    "x&emsp;y",
+    "x&emsp;y"
+   ],
+   "sortf": 0,
+   "sfld": "x y",
+   "csum": 1171275288
+  },
+  {
+   "fields": [
+    "x&ensp;y",
+    "<i>back</i> x&ensp;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x y",
+   "csum": 3123048026
+  },
+  {
+   "fields": [
+    "x&epsilon;y",
+    "x&epsilon;y"
+   ],
+   "sortf": 0,
+   "sfld": "xεy",
+   "csum": 2784005817
+  },
+  {
+   "fields": [
+    "x&equiv;y",
+    "<i>back</i> x&equiv;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x≡y",
+   "csum": 2322636827
+  },
+  {
+   "fields": [
+    "x&eta;y",
+    "x&eta;y"
+   ],
+   "sortf": 0,
+   "sfld": "xηy",
+   "csum": 2286155071
+  },
+  {
+   "fields": [
+    "x&eth;y",
+    "<i>back</i> x&eth;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xðy",
+   "csum": 2252585335
+  },
+  {
+   "fields": [
+    "x&euml;y",
+    "x&euml;y"
+   ],
+   "sortf": 0,
+   "sfld": "xëy",
+   "csum": 567575778
+  },
+  {
+   "fields": [
+    "x&euro;y",
+    "<i>back</i> x&euro;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x€y",
+   "csum": 2349444663
+  },
+  {
+   "fields": [
+    "x&exist;y",
+    "x&exist;y"
+   ],
+   "sortf": 0,
+   "sfld": "x∃y",
+   "csum": 1812181045
+  },
+  {
+   "fields": [
+    "x&fnof;y",
+    "<i>back</i> x&fnof;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xƒy",
+   "csum": 2102278751
+  },
+  {
+   "fields": [
+    "x&forall;y",
+    "x&forall;y"
+   ],
+   "sortf": 0,
+   "sfld": "x∀y",
+   "csum": 1451620766
+  },
+  {
+   "fields": [
+    "x&frac12;y",
+    "<i>back</i> x&frac12;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x½y",
+   "csum": 4108172194
+  },
+  {
+   "fields": [
+    "x&frac14;y",
+    "x&frac14;y"
+   ],
+   "sortf": 0,
+   "sfld": "x¼y",
+   "csum": 2784105224
+  },
+  {
+   "fields": [
+    "x&frac34;y",
+    "<i>back</i> x&frac34;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x¾y",
+   "csum": 1410810295
+  },
+  {
+   "fields": [
+    "x&frasl;y",
+    "x&frasl;y"
+   ],
+   "sortf": 0,
+   "sfld": "x⁄y",
+   "csum": 1439471026
+  },
+  {
+   "fields": [
+    "x&gamma;y",
+    "<i>back</i> x&gamma;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xγy",
+   "csum": 552439920
+  },
+  {
+   "fields": [
+    "x&ge;y",
+    "x&ge;y"
+   ],
+   "sortf": 0,
+   "sfld": "x≥y",
+   "csum": 4049365403
+  },
+  {
+   "fields": [
+    "x&gt;y",
+    "<i>back</i> x&gt;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x>y",
+   "csum": 3032470022
+  },
+  {
+   "fields": [
+    "x&hArr;y",
+    "x&hArr;y"
+   ],
+   "sortf": 0,
+   "sfld": "x⇔y",
+   "csum": 3462652469
+  },
+  {
+   "fields": [
+    "x&harr;y",
+    "<i>back</i> x&harr;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x↔y",
+   "csum": 1359839988
+  },
+  {
+   "fields": [
+    "x&hearts;y",
+    "x&hearts;y"
+   ],
+   "sortf": 0,
+   "sfld": "x♥y",
+   "csum": 4216983396
+  },
+  {
+   "fields": [
+    "x&hellip;y",
+    "<i>back</i> x&hellip;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x…y",
+   "csum": 1247475160
+  },
+  {
+   "fields": [
+    "x&iacute;y",
+    "x&iacute;y"
+   ],
+   "sortf": 0,
+   "sfld": "xíy",
+   "csum": 3314359615
+  },
+  {
+   "fields": [
+    "x&icirc;y",
+    "<i>back</i> x&icirc;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xîy",
+   "csum": 3213953780
+  },
+  {
+   "fields": [
+    "x&iexcl;y",
+    "x&iexcl;y"
+   ],
+   "sortf": 0,
+   "sfld": "x¡y",
+   "csum": 738965758
+  },
+  {
+   "fields": [
+    "x&igrave;y",
+    "<i>back</i> x&igrave;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xìy",
+   "csum": 3760856170
+  },
+  {
+   "fields": [
+    "x&image;y",
+    "x&image;y"
+   ],
+   "sortf": 0,
+   "sfld": "xℑy",
+   "csum": 1512115332
+  },
+  {
+   "fields": [
+    "x&infin;y",
+    "<i>back</i> x&infin;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x∞y",
+   "csum": 1594064929
+  },
+  {
+   "fields": [
+    "x&int;y",
+    "x&int;y"
+   ],
+   "sortf": 0,
+   "sfld": "x∫y",
+   "csum": 2686533445
+  },
+  {
+   "fields": [
+    "x&iota;y",
+    "<i>back</i> x&iota;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xιy",
+   "csum": 1277468619
+  },
+  {
+   "fields": [
+    "x&iquest;y",
+    "x&iquest;y"
+   ],
+   "sortf": 0,
+   "sfld": "x¿y",
+   "csum": 2783887214
+  },
+  {
+   "fields": [
+    "x&isin;y",
+    "<i>back</i> x&isin;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x∈y",
+   "csum": 4136995237
+  },
+  {
+   "fields": [
+    "x&iuml;y",
+    "x&iuml;y"
+   ],
+   "sortf": 0,
+   "sfld": "xïy",
+   "csum": 3355538442
+  },
+  {
+   "fields": [
+    "x&kappa;y",
+    "<i>back</i> x&kappa;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xκy",
+   "csum": 2457259198
+  },
+  {
+   "fields": [
+    "x&lArr;y",
+    "x&lArr;y"
+   ],
+   "sortf": 0,
+   "sfld": "x⇐y",
+   "csum": 197291024
+  },
+  {
+   "fields": [
+    "x&lambda;y",
+    "<i>back</i> x&lambda;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xλy",
+   "csum": 864200110
+  },
+  {
+   "fields": [
+    "x&lang;y",
+    "x&lang;y"
+   ],
+   "sortf": 0,
+   "sfld": "x〈y",
+   "csum": 2884793099
+  },
+  {
+   "fields": [
+    "x&laquo;y",
+    "<i>back</i> x&laquo;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x«y",
+   "csum": 1983950711
+  },
+  {
+   "fields": [
+    "x&larr;y",
+    "x&larr;y"
+   ],
+   "sortf": 0,
+   "sfld": "x←y",
+   "csum": 1494712463
+  },
+  {
+   "fields": [
+    "x&lceil;y",
+    "<i>back</i> x&lceil;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x⌈y",
+   "csum": 3098116075
+  },
+  {
+   "fields": [
+    "x&ldquo;y",
+    "x&ldquo;y"
+   ],
+   "sortf": 0,
+   "sfld": "x“y",
+   "csum": 2601815990
+  },
+  {
+   "fields": [
+    "x&le;y",
+    "<i>back</i> x&le;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x≤y",
+   "csum": 2699483368
+  },
+  {
+   "fields": [
+    "x&lfloor;y",
+    "x&lfloor;y"
+   ],
+   "sortf": 0,
+   "sfld": "x⌊y",
+   "csum": 2355372848
+  },
+  {
+   "fields": [
+    "x&lowast;y",
+    "<i>back</i> x&lowast;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x∗y",
+   "csum": 2146891721
+  },
+  {
+   "fields": [
+    "x&loz;y",
+    "x&loz;y"
+   ],
+   "sortf": 0,
+   "sfld": "x◊y",
+   "csum": 2298959513
+  },
+  {
+   "fields": [
+    "x&lrm;y",
+    "<i>back</i> x&lrm;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x‎y",
+   "csum": 2704553366
+  },
+  {
+   "fields": [
+    "x&lsaquo;y",
+    "x&lsaquo;y"
+   ],
+   "sortf": 0,
+   "sfld": "x‹y",
+   "csum": 3173286736
+  },
+  {
+   "fields": [
+    "x&lsquo;y",
+    "<i>back</i> x&lsquo;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x‘y",
+   "csum": 1649321610
+  },
+  {
+   "fields": [
+    "x&lt;y",
+    "x&lt;y"
+   ],
+   "sortf": 0,
+   "sfld": "x<y",
+   "csum": 2201129188
+  },
+  {
+   "fields": [
+    "x&macr;y",
+    "<i>back</i> x&macr;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x¯y",
+   "csum": 3858322141
+  },
+  {
+   "fields": [
+    "x&mdash;y",
+    "x&mdash;y"
+   ],
+   "sortf": 0,
+   "sfld": "x—y",
+   "csum": 3078528680
+  },
+  {
+   "fields": [
+    "x&micro;y",
+    "<i>back</i> x&micro;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xµy",
+   "csum": 3911304445
+  },
+  {
+   "fields": [
+    "x&middot;y",
+    "x&middot;y"
+   ],
+   "sortf": 0,
+   "sfld": "x·y",
+   "csum": 2210548418
+  },
+  {
+   "fields": [
+    "x&minus;y",
+    "<i>back</i> x&minus;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x−y",
+   "csum": 1372281581
+  },
+  {
+   "fields": [
+    "x&mu;y",
+    "x&mu;y"
+   ],
+   "sortf": 0,
+   "sfld": "xμy",
+   "csum": 3023155367
+  },
+  {
+   "fields": [
+    "x&nabla;y",
+    "<i>back</i> x&nabla;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x∇y",
+   "csum": 2670947092
+  },
+  {
+   "fields": [
+    "x&nbsp;y",
+    "x&nbsp;y"
+   ],
+   "sortf": 0,
+   "sfld": "x y",
+   "csum": 1943979411
+  },
+  {
+   "fields": [
+    "x&ndash;y",
+    "<i>back</i> x&ndash;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x–y",
+   "csum": 1084923260
+  },
+  {
+   "fields": [
+    "x&ne;y",
+    "x&ne;y"
+   ],
+   "sortf": 0,
+   "sfld": "x≠y",
+   "csum": 1204214713
+  },
+  {
+   "fields": [
+    "x&ni;y",
+    "<i>back</i> x&ni;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x∋y",
+   "csum": 621179395
+  },
+  {
+   "fields": [
+    "x&not;y",
+    "x&not;y"
+   ],
+   "sortf": 0,
+   "sfld": "x¬y",
+   "csum": 2749487369
+  },
+  {
+   "fields": [
+    "x&notin;y",
+    "<i>back</i> x&notin;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x∉y",
+   "csum": 4290440249
+  },
+  {
+   "fields": [
+    "x&nsub;y",
+    "x&nsub;y"
+   ],
+   "sortf": 0,
+   "sfld": "x⊄y",
+   "csum": 3124839653
+  },
+  {
+   "fields": [
+    "x&ntilde;y",
+    "<i>back</i> x&ntilde;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xñy",
+   "csum": 2563745074
+  },
+  {
+   "fields": [
+    "x&nu;y",
+    "x&nu;y"
+   ],
+   "sortf": 0,
+   "sfld": "xνy",
+   "csum": 289636514
+  },
+  {
+   "fields": [
+    "x&oacute;y",
+    "<i>back</i> x&oacute;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xóy",
+   "csum": 3536807874
+  },
+  {
+   "fields": [
+    "x&ocirc;y",
+    "x&ocirc;y"
+   ],
+   "sortf": 0,
+   "sfld": "xôy",
+   "csum": 3387902084
+  },
+  {
+   "fields": [
+    "x&oelig;y",
+    "<i>back</i> x&oelig;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xœy",
+   "csum": 2016047584
+  },
+  {
+   "fields": [
+    "x&ograve;y",
+    "x&ograve;y"
+   ],
+   "sortf": 0,
+   "sfld": "xòy",
+   "csum": 3464309625
+  },
+  {
+   "fields": [
+    "x&oline;y",
+    "<i>back</i> x&oline;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x‾y",
+   "csum": 3637954936
+  },
+  {
+   "fields": [
+    "x&omega;y",
+    "x&omega;y"
+   ],
+   "sortf": 0,
+   "sfld": "xωy",
+   "csum": 2487752420
+  },
+  {
+   "fields": [
+    "x&omicron;y",
+    "<i>back</i> x&omicron;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xοy",
+   "csum": 2045956421
+  },
+  {
+   "fields": [
+    "x&oplus;y",
+    "x&oplus;y"
+   ],
+   "sortf": 0,
+   "sfld": "x⊕y",
+   "csum": 3363319368
+  },
+  {
+   "fields": [
+    "x&or;y",
+    "<i>back</i> x&or;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x∨y",
+   "csum": 3097348312
+  },
+  {
+   "fields": [
+    "x&ordf;y",
+    "x&ordf;y"
+   ],
+   "sortf": 0,
+   "sfld": "xªy",
+   "csum": 378702328
+  },
+  {
+   "fields": [
+    "x&ordm;y",
+    "<i>back</i> x&ordm;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xºy",
+   "csum": 3560597920
+  },
+  {
+   "fields": [
+    "x&oslash;y",
+    "x&oslash;y"
+   ],
+   "sortf": 0,
+   "sfld": "xøy",
+   "csum": 856130080
+  },
+  {
+   "fields": [
+    "x&otilde;y",
+    "<i>back</i> x&otilde;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xõy",
+   "csum": 2141410637
+  },
+  {
+   "fields": [
+    "x&otimes;y",
+    "x&otimes;y"
+   ],
+   "sortf": 0,
+   "sfld": "x⊗y",
+   "csum": 3456258465
+  },
+  {
+   "fields": [
+    "x&ouml;y",
+    "<i>back</i> x&ouml;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xöy",
+   "csum": 1633689272
+  },
+  {
+   "fields": [
+    "x&para;y",
+    "x&para;y"
+   ],
+   "sortf": 0,
+   "sfld": "x¶y",
+   "csum": 564132207
+  },
+  {
+   "fields": [
+    "x&part;y",
+    "<i>back</i> x&part;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x∂y",
+   "csum": 1492513862
+  },
+  {
+   "fields": [
+    "x&permil;y",
+    "x&permil;y"
+   ],
+   "sortf": 0,
+   "sfld": "x‰y",
+   "csum": 3534054806
+  },
+  {
+   "fields": [
+    "x&perp;y",
+    "<i>back</i> x&perp;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x⊥y",
+   "csum": 2160329034
+  },
+  {
+   "fields": [
+    "x&phi;y",
+    "x&phi;y"
+   ],
+   "sortf": 0,
+   "sfld": "xφy",
+   "csum": 1517861224
+  },
+  {
+   "fields": [
+    "x&pi;y",
+    "<i>back</i> x&pi;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xπy",
+   "csum": 61985129
+  },
+  {
+   "fields": [
+    "x&piv;y",
+    "x&piv;y"
+   ],
+   "sortf": 0,
+   "sfld": "xϖy",
+   "csum": 1352082733
+  },
+  {
+   "fields": [
+    "x&plusmn;y",
+    "<i>back</i> x&plusmn;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x±y",
+   "csum": 2432961050
+  },
+  {
+   "fields": [
+    "x&pound;y",
+    "x&pound;y"
+   ],
+   "sortf": 0,
+   "sfld": "x£y",
+   "csum": 3665101595
+  },
+  {
+   "fields": [
+    "x&prime;y",
+    "<i>back</i> x&prime;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x′y",
+   "csum": 1507691901
+  },
+  {
+   "fields": [
+    "x&prod;y",
+    "x&prod;y"
+   ],
+   "sortf": 0,
+   "sfld": "x∏y",
+   "csum": 1304611953
+  },
+  {
+   "fields": [
+    "x&prop;y",
+    "<i>back</i> x&prop;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x∝y",
+   "csum": 3523716772
+  },
+  {
+   "fields": [
+    "x&psi;y",
+    "x&psi;y"
+   ],
+   "sortf": 0,
+   "sfld": "xψy",
+   "csum": 80769353
+  },
+  {
+   "fields": [
+    "x&quot;y",
+    "<i>back</i> x&quot;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x\"y",
+   "csum": 2490721350
+  },
+  {
+   "fields": [
+    "x&rArr;y",
+    "x&rArr;y"
+   ],
+   "sortf": 0,
+   "sfld": "x⇒y",
+   "csum": 4063329039
+  },
+  {
+   "fields": [
+    "x&radic;y",
+    "<i>back</i> x&radic;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x√y",
+   "csum": 2117740976
+  },
+  {
+   "fields": [
+    "x&rang;y",
+    "x&rang;y"
+   ],
+   "sortf": 0,
+   "sfld": "x〉y",
+   "csum": 14627855
+  },
+  {
+   "fields": [
+    "x&raquo;y",
+    "<i>back</i> x&raquo;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x»y",
+   "csum": 2181546547
+  },
+  {
+   "fields": [
+    "x&rarr;y",
+    "x&rarr;y"
+   ],
+   "sortf": 0,
+   "sfld": "x→y",
+   "csum": 3658326237
+  },
+  {
+   "fields": [
+    "x&rceil;y",
+    "<i>back</i> x&rceil;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x⌉y",
+   "csum": 955250736
+  },
+  {
+   "fields": [
+    "x&rdquo;y",
+    "x&rdquo;y"
+   ],
+   "sortf": 0,
+   "sfld": "x”y",
+   "csum": 3438132850
+  },
+  {
+   "fields": [
+    "x&real;y",
+    "<i>back</i> x&real;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xℜy",
+   "csum": 599211647
+  },
+  {
+   "fields": [
+    "x&reg;y",
+    "x&reg;y"
+   ],
+   "sortf": 0,
+   "sfld": "x®y",
+   "csum": 2710027515
+  },
+  {
+   "fields": [
+    "x&rfloor;y",
+    "<i>back</i> x&rfloor;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x⌋y",
+   "csum": 4276607051
+  },
+  {
+   "fields": [
+    "x&rho;y",
+    "x&rho;y"
+   ],
+   "sortf": 0,
+   "sfld": "xρy",
+   "csum": 3618656806
+  },
+  {
+   "fields": [
+    "x&rlm;y",
+    "<i>back</i> x&rlm;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x‏y",
+   "csum": 1259137932
+  },
+  {
+   "fields": [
+    "x&rsaquo;y",
+    "x&rsaquo;y"
+   ],
+   "sortf": 0,
+   "sfld": "x›y",
+   "csum": 1867004766
+  },
+  {
+   "fields": [
+    "x&rsquo;y",
+    "<i>back</i> x&rsquo;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x’y",
+   "csum": 2438031143
+  },
+  {
+   "fields": [
+    "x&sbquo;y",
+    "x&sbquo;y"
+   ],
+   "sortf": 0,
+   "sfld": "x‚y",
+   "csum": 1969789946
+  },
+  {
+   "fields": [
+    "x&scaron;y",
+    "<i>back</i> x&scaron;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xšy",
+   "csum": 2196326636
+  },
+  {
+   "fields": [
+    "x&sdot;y",
+    "x&sdot;y"
+   ],
+   "sortf": 0,
+   "sfld": "x⋅y",
+   "csum": 484707064
+  },
+  {
+   "fields": [
+    "x&sect;y",
+    "<i>back</i> x&sect;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x§y",
+   "csum": 2763389113
+  },
+  {
+   "fields": [
+    "x&shy;y",
+    "x&shy;y"
+   ],
+   "sortf": 0,
+   "sfld": "x­y",
+   "csum": 1469115943
+  },
+  {
+   "fields": [
+    "x&sigma;y",
+    "<i>back</i> x&sigma;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xσy",
+   "csum": 996152495
+  },
+  {
+   "fields": [
+    "x&sigmaf;y",
+    "x&sigmaf;y"
+   ],
+   "sortf": 0,
+   "sfld": "xςy",
+   "csum": 2014088028
+  },
+  {
+   "fields": [
+    "x&sim;y",
+    "<i>back</i> x&sim;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x∼y",
+   "csum": 2003392047
+  },
+  {
+   "fields": [
+    "x&spades;y",
+    "x&spades;y"
+   ],
+   "sortf": 0,
+   "sfld": "x♠y",
+   "csum": 3550528077
+  },
+  {
+   "fields": [
+    "x&sub;y",
+    "<i>back</i> x&sub;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x⊂y",
+   "csum": 2155529907
+  },
+  {
+   "fields": [
+    "x&sube;y",
+    "x&sube;y"
+   ],
+   "sortf": 0,
+   "sfld": "x⊆y",
+   "csum": 3446017699
+  },
+  {
+   "fields": [
+    "x&sum;y",
+    "<i>back</i> x&sum;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x∑y",
+   "csum": 3551150466
+  },
+  {
+   "fields": [
+    "x&sup;y",
+    "x&sup;y"
+   ],
+   "sortf": 0,
+   "sfld": "x⊃y",
+   "csum": 2756088949
+  },
+  {
+   "fields": [
+    "x&sup1;y",
+    "<i>back</i> x&sup1;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x¹y",
+   "csum": 1284330498
+  },
+  {
+   "fields": [
+    "x&sup2;y",
+    "x&sup2;y"
+   ],
+   "sortf": 0,
+   "sfld": "x²y",
+   "csum": 2438495353
+  },
+  {
+   "fields": [
+    "x&sup3;y",
+    "<i>back</i> x&sup3;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x³y",
+   "csum": 3257251176
+  },
+  {
+   "fields": [
+    "x&supe;y",
+    "x&supe;y"
+   ],
+   "sortf": 0,
+   "sfld": "x⊇y",
+   "csum": 2881963155
+  },
+  {
+   "fields": [
+    "x&szlig;y",
+    "<i>back</i> x&szlig;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xßy",
+   "csum": 3087586525
+  },
+  {
+   "fields": [
+    "x&tau;y",
+    "x&tau;y"
+   ],
+   "sortf": 0,
+   "sfld": "xτy",
+   "csum": 86318688
+  },
+  {
+   "fields": [
+    "x&there4;y",
+    "<i>back</i> x&there4;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x∴y",
+   "csum": 2886727080
+  },
+  {
+   "fields": [
+    "x&theta;y",
+    "x&theta;y"
+   ],
+   "sortf": 0,
+   "sfld": "xθy",
+   "csum": 3032238432
+  },
+  {
+   "fields": [
+    "x&thetasym;y",
+    "<i>back</i> x&thetasym;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xϑy",
+   "csum": 1840050868
+  },
+  {
+   "fields": [
+    "x&thinsp;y",
+    "x&thinsp;y"
+   ],
+   "sortf": 0,
+   "sfld": "x y",
+   "csum": 2970891737
+  },
+  {
+   "fields": [
+    "x&thorn;y",
+    "<i>back</i> x&thorn;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xþy",
+   "csum": 2836077834
+  },
+  {
+   "fields": [
+    "x&tilde;y",
+    "x&tilde;y"
+   ],
+   "sortf": 0,
+   "sfld": "x˜y",
+   "csum": 1941971525
+  },
+  {
+   "fields": [
+    "x&times;y",
+    "<i>back</i> x&times;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x×y",
+   "csum": 8100988
+  },
+  {
+   "fields": [
+    "x&trade;y",
+    "x&trade;y"
+   ],
+   "sortf": 0,
+   "sfld": "x™y",
+   "csum": 2110761714
+  },
+  {
+   "fields": [
+    "x&uArr;y",
+    "<i>back</i> x&uArr;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x⇑y",
+   "csum": 1428213794
+  },
+  {
+   "fields": [
+    "x&uacute;y",
+    "x&uacute;y"
+   ],
+   "sortf": 0,
+   "sfld": "xúy",
+   "csum": 2149039877
+  },
+  {
+   "fields": [
+    "x&uarr;y",
+    "<i>back</i> x&uarr;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x↑y",
+   "csum": 835149883
+  },
+  {
+   "fields": [
+    "x&ucirc;y",
+    "x&ucirc;y"
+   ],
+   "sortf": 0,
+   "sfld": "xûy",
+   "csum": 647332257
+  },
+  {
+   "fields": [
+    "x&ugrave;y",
+    "<i>back</i> x&ugrave;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xùy",
+   "csum": 266832754
+  },
+  {
+   "fields": [
+    "x&uml;y",
+    "x&uml;y"
+   ],
+   "sortf": 0,
+   "sfld": "x¨y",
+   "csum": 3471908469
+  },
+  {
+   "fields": [
+    "x&upsih;y",
+    "<i>back</i> x&upsih;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xϒy",
+   "csum": 2472208913
+  },
+  {
+   "fields": [
+    "x&upsilon;y",
+    "x&upsilon;y"
+   ],
+   "sortf": 0,
+   "sfld": "xυy",
+   "csum": 818027462
+  },
+  {
+   "fields": [
+    "x&uuml;y",
+    "<i>back</i> x&uuml;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xüy",
+   "csum": 1781479390
+  },
+  {
+   "fields": [
+    "x&weierp;y",
+    "x&weierp;y"
+   ],
+   "sortf": 0,
+   "sfld": "x℘y",
+   "csum": 3357558139
+  },
+  {
+   "fields": [
+    "x&xi;y",
+    "<i>back</i> x&xi;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xξy",
+   "csum": 1873921442
+  },
+  {
+   "fields": [
+    "x&yacute;y",
+    "x&yacute;y"
+   ],
+   "sortf": 0,
+   "sfld": "xýy",
+   "csum": 2411105357
+  },
+  {
+   "fields": [
+    "x&yen;y",
+    "<i>back</i> x&yen;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x¥y",
+   "csum": 277230169
+  },
+  {
+   "fields": [
+    "x&yuml;y",
+    "x&yuml;y"
+   ],
+   "sortf": 0,
+   "sfld": "xÿy",
+   "csum": 794747631
+  },
+  {
+   "fields": [
+    "x&zeta;y",
+    "<i>back</i> x&zeta;y"
+   ],
+   "sortf": 1,
+   "sfld": "back xζy",
+   "csum": 163547116
+  },
+  {
+   "fields": [
+    "x&zwj;y",
+    "x&zwj;y"
+   ],
+   "sortf": 0,
+   "sfld": "x‍y",
+   "csum": 2402083014
+  },
+  {
+   "fields": [
+    "x&zwnj;y",
+    "<i>back</i> x&zwnj;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x‌y",
+   "csum": 1277992793
+  },
+  {
+   "fields": [
+    "x&bigstar;y",
+    "x&bigstar;y"
+   ],
+   "sortf": 0,
+   "sfld": "x&bigstar;y",
+   "csum": 3179568055
+  },
+  {
+   "fields": [
+    "x&apos;y",
+    "<i>back</i> x&apos;y"
+   ],
+   "sortf": 1,
+   "sfld": "back x&apos;y",
+   "csum": 2041755968
+  },
+  {
+   "fields": [
+    "x&NotEqualTilde;y",
+    "x&NotEqualTilde;y"
+   ],
+   "sortf": 0,
+   "sfld": "x&NotEqualTilde;y",
+   "csum": 4175552266
+  },
+  {
+   "fields": [
+    "x&ampy",
+    "<i>back</i> x&ampy"
+   ],
+   "sortf": 1,
+   "sfld": "back x&ampy",
+   "csum": 4043804588
+  },
+  {
+   "fields": [
+    "x&nbspy",
+    "x&nbspy"
+   ],
+   "sortf": 0,
+   "sfld": "x&nbspy",
+   "csum": 301060187
+  }
+ ]
+}

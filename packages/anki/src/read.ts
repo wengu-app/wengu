@@ -36,7 +36,7 @@ export interface ReadOptions {
 
 let cachedSqlJs: Promise<SqlJsStatic> | null = null;
 
-function getSqlJs(options: ReadOptions): Promise<SqlJsStatic> {
+export function getSqlJs(options: Pick<ReadOptions, "sqlJs" | "sqlJsConfig">): Promise<SqlJsStatic> {
   if (options.sqlJs) return Promise.resolve(options.sqlJs);
   if (options.sqlJsConfig) return initSqlJs(options.sqlJsConfig);
   cachedSqlJs ??= initSqlJs();
@@ -274,7 +274,7 @@ function readMedia(
   return { media, manifest: "protobuf" };
 }
 
-function parseCardData(raw: string, warnings: string[], cardId: number): CardData {
+export function parseCardData(raw: string, warnings: string[], cardId: number): CardData {
   const out: CardData = {
     originalPosition: null,
     memoryState: null,

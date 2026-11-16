@@ -1,0 +1,32 @@
+{
+ "ankiVersion": "26.09.4",
+ "now": 1759834802,
+ "subsetDeck": "Wengu Test::Languages",
+ "packages": {
+  "ref-legacy-nosched.apkg": {
+   "deck": null,
+   "withScheduling": false,
+   "withDeckConfigs": false
+  },
+  "ref-legacy-nosched-presets.apkg": {
+   "deck": null,
+   "withScheduling": false,
+   "withDeckConfigs": true
+  },
+  "ref-legacy-sched-nopresets.apkg": {
+   "deck": null,
+   "withScheduling": true,
+   "withDeckConfigs": false
+  },
+  "ref-legacy-subdeck.apkg": {
+   "deck": "Wengu Test::Languages",
+   "withScheduling": true,
+   "withDeckConfigs": true
+  },
+  "ref-legacy-subdeck-nosched.apkg": {
+   "deck": "Wengu Test::Languages",
+   "withScheduling": false,
+   "withDeckConfigs": false
+  }
+ }
+}

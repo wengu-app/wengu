@@ -2,7 +2,7 @@
   "name": "@wengu/anki",
   "version": "0.0.0",
   "private": true,
-  "description": "Read Anki .apkg/.colpkg packages into a typed in-memory model (browser-compatible)",
+  "description": "Read Anki .apkg/.colpkg packages into a typed in-memory model and write .apkg packages (browser-compatible)",
   "license": "AGPL-3.0-only",
   "type": "module",
   "exports": {
@@ -12,7 +12,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "fixtures": "fixtures/.venv/bin/python fixtures/generate.py",
-    "fixtures:intervals": "fixtures/.venv/bin/python fixtures/intervals.py"
+    "fixtures:intervals": "fixtures/.venv/bin/python fixtures/intervals.py",
+    "fixtures:sortfield": "fixtures/.venv/bin/python fixtures/sortfield.py",
+    "fixtures:writer-refs": "fixtures/.venv/bin/python fixtures/writer_refs.py"
   },
   "dependencies": {
     "fflate": "0.8.3",

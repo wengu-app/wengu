@@ -353,17 +353,31 @@ export function htmlToText(html: string): string {
 
 const LATEX = /\[latex\]([\s\S]+?)\[\/latex\]|\[\$\]([\s\S]+?)\[\/\$\]|\[\$\$\]([\s\S]+?)\[\/\$\$\]/gi;
 
+function latexSource(full?: string, inline?: string, display?: string): string {
+  let src: string;
+  if (full !== undefined) src = full;
+  else if (inline !== undefined) src = `$${inline}$`;
+  else src = `\\begin{displaymath}${display}\\end{displaymath}`;
+  // HTML in LaTeX: line breaks become newlines, other tags are dropped.
+  return decodeEntities(src.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, ""));
+}
+
+function latexFileName(latex: string, svg: boolean): string {
+  return `latex-${sha1Hex(latex)}.${svg ? "svg" : "png"}`;
+}
+
 function latexToImg(html: string, svg: boolean): string {
   return html.replace(LATEX, (_w, full?: string, inline?: string, display?: string) => {
-    let src: string;
-    if (full !== undefined) src = full;
-    else if (inline !== undefined) src = `$${inline}$`;
-    else src = `\\begin{displaymath}${display}\\end{displaymath}`;
-    // HTML in LaTeX: line breaks become newlines, other tags are dropped.
-    const latex = decodeEntities(src.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, ""));
-    const fname = `latex-${sha1Hex(latex)}.${svg ? "svg" : "png"}`;
-    return `<img class=latex alt="${encodeAttribute(latex)}" src="${fname}">`;
+    const latex = latexSource(full, inline, display);
+    return `<img class=latex alt="${encodeAttribute(latex)}" src="${latexFileName(latex, svg)}">`;
   });
+}
+
+/** Media file names of the LaTeX images Anki generates for `[latex]`, `[$]` and `[$$]` in this HTML. */
+export function latexImageNames(html: string, svg: boolean): string[] {
+  const out: string[] = [];
+  for (const m of html.matchAll(LATEX)) out.push(latexFileName(latexSource(m[1], m[2], m[3]), svg));
+  return out;
 }
 
 const AV = /\[sound:(.+?)\]|\[anki:tts([^\]]*)\]([\s\S]*?)\[\/anki:tts\]/g;
