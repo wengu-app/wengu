@@ -1,0 +1,33 @@
+{
+  "name": "@wengu/core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Wengu data core: knowledge-point model, SQLite (WASM + OPFS) storage, FSRS scheduling, Anki import/export",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./worker": "./src/worker/worker.ts",
+    "./engine": "./src/engine/index.ts",
+    "./node": "./src/node.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:browser": "node bench/browser/run.mjs --test",
+    "bench": "vitest run --config vitest.bench.config.ts",
+    "bench:browser": "node bench/browser/run.mjs"
+  },
+  "dependencies": {
+    "@sqlite.org/sqlite-wasm": "3.53.4-build2",
+    "@wengu/anki": "workspace:*",
+    "ts-fsrs": "6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.28.0",
+    "playwright": "1.63.0",
+    "typescript": "^7.0.0",
+    "vitest": "^5.1.0"
+  }
+}
