@@ -1,0 +1,47 @@
+{
+ "ankiVersion": "26.09.4",
+ "now": 1759834802,
+ "packages": {
+  "full-latest.apkg": {
+   "options": {
+    "with_scheduling": true,
+    "with_deck_configs": true,
+    "with_media": true,
+    "legacy": false
+   },
+   "size": 64255
+  },
+  "full-legacy.apkg": {
+   "options": {
+    "with_scheduling": true,
+    "with_deck_configs": true,
+    "with_media": true,
+    "legacy": true
+   },
+   "size": 71816
+  },
+  "shared-latest.apkg": {
+   "options": {
+    "with_scheduling": false,
+    "with_deck_configs": false,
+    "with_media": true,
+    "legacy": false
+   },
+   "size": 61491
+  },
+  "full-latest.colpkg": {
+   "options": {
+    "legacy": false,
+    "collectionPackage": true
+   },
+   "size": 65022
+  },
+  "derived-legacy1.apkg": {
+   "options": {
+    "derivedFrom": "full-legacy.apkg",
+    "with_scheduling": true
+   },
+   "size": 19672
+  }
+ }
+}

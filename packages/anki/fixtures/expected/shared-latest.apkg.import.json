@@ -1,0 +1,1325 @@
+{
+ "ankiVersion": "26.09.4",
+ "now": 1759834802,
+ "crt": 1759809600,
+ "today": 0,
+ "rolloverHour": 4,
+ "fsrsEnabled": false,
+ "counts": {
+  "notes": 14,
+  "cards": 24,
+  "revlog": 0,
+  "notetypes": 13,
+  "decks": 8,
+  "deckConfigs": 1,
+  "media": 3
+ },
+ "tags": [
+  "animals",
+  "cloze",
+  "cloze::edge",
+  "cloze::nested",
+  "geo",
+  "lang::ja",
+  "lang::zh",
+  "latex",
+  "math",
+  "media::image",
+  "vocab",
+  "测试"
+ ],
+ "decks": [
+  {
+   "id": 1,
+   "name": "Default",
+   "dyn": false,
+   "conf": 1,
+   "desc": "",
+   "desiredRetention": null
+  },
+  {
+   "id": 1759834802000,
+   "name": "Wengu Test",
+   "dyn": false,
+   "conf": 1,
+   "desc": "",
+   "desiredRetention": null
+  },
+  {
+   "id": 1759834802002,
+   "name": "Wengu Test::Languages",
+   "dyn": false,
+   "conf": 1,
+   "desc": "",
+   "desiredRetention": null
+  },
+  {
+   "id": 1759834802004,
+   "name": "Wengu Test::Languages::中文",
+   "dyn": false,
+   "conf": 1,
+   "desc": "",
+   "desiredRetention": null
+  },
+  {
+   "id": 1759834802005,
+   "name": "Wengu Test::Languages::日本語",
+   "dyn": false,
+   "conf": 1,
+   "desc": "",
+   "desiredRetention": null
+  },
+  {
+   "id": 1759834802001,
+   "name": "Wengu Test::Misc",
+   "dyn": false,
+   "conf": 1,
+   "desc": "Deck with a <b>description</b> and a retention override.",
+   "desiredRetention": 80
+  },
+  {
+   "id": 1759834802003,
+   "name": "Wengu Test::Science",
+   "dyn": false,
+   "conf": 1,
+   "desc": "",
+   "desiredRetention": null
+  },
+  {
+   "id": 1759834802006,
+   "name": "Wengu Test::Science::Math ∑",
+   "dyn": false,
+   "conf": 1,
+   "desc": "",
+   "desiredRetention": null
+  }
+ ],
+ "deckConfigs": [
+  {
+   "id": 1,
+   "name": "Default",
+   "learnSteps": [
+    1.0,
+    10.0
+   ],
+   "relearnSteps": [
+    10.0
+   ],
+   "newPerDay": 20,
+   "reviewsPerDay": 200,
+   "maxIvl": 36500,
+   "desiredRetention": 0.9,
+   "fsrsParams4": [],
+   "fsrsParams5": [],
+   "fsrsParams6": []
+  }
+ ],
+ "notetypes": [
+  {
+   "id": 1759834802000,
+   "name": "Basic",
+   "type": 0,
+   "css": ".card {\n    font-family: arial;\n    font-size: 20px;\n    line-height: 1.5;\n    text-align: center;\n    color: black;\n    background-color: white;\n}\n",
+   "sortf": 0,
+   "latexPre": "\\documentclass[12pt]{article}\n\\special{papersize=3in,5in}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb,amsmath}\n\\pagestyle{empty}\n\\setlength{\\parindent}{0in}\n\\begin{document}\n",
+   "latexPost": "\\end{document}",
+   "fields": [
+    "Front",
+    "Back"
+   ],
+   "templates": [
+    {
+     "name": "Card 1",
+     "qfmt": "{{Front}}",
+     "afmt": "{{FrontSide}}\n\n<hr id=answer>\n\n{{Back}}"
+    }
+   ]
+  },
+  {
+   "id": 1759834802001,
+   "name": "Basic (and reversed card)",
+   "type": 0,
+   "css": ".card {\n    font-family: arial;\n    font-size: 20px;\n    line-height: 1.5;\n    text-align: center;\n    color: black;\n    background-color: white;\n}\n",
+   "sortf": 0,
+   "latexPre": "\\documentclass[12pt]{article}\n\\special{papersize=3in,5in}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb,amsmath}\n\\pagestyle{empty}\n\\setlength{\\parindent}{0in}\n\\begin{document}\n",
+   "latexPost": "\\end{document}",
+   "fields": [
+    "Front",
+    "Back"
+   ],
+   "templates": [
+    {
+     "name": "Card 1",
+     "qfmt": "{{Front}}",
+     "afmt": "{{FrontSide}}\n\n<hr id=answer>\n\n{{Back}}"
+    },
+    {
+     "name": "Card 2",
+     "qfmt": "{{Back}}",
+     "afmt": "{{FrontSide}}\n\n<hr id=answer>\n\n{{Front}}"
+    }
+   ]
+  },
+  {
+   "id": 1740819600001,
+   "name": "Basic (and reversed card)+",
+   "type": 0,
+   "css": ".card {\n    font-family: arial;\n    font-size: 20px;\n    line-height: 1.5;\n    text-align: center;\n    color: black;\n    background-color: white;\n}\n",
+   "sortf": 0,
+   "latexPre": "\\documentclass[12pt]{article}\n\\special{papersize=3in,5in}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb,amsmath}\n\\pagestyle{empty}\n\\setlength{\\parindent}{0in}\n\\begin{document}\n",
+   "latexPost": "\\end{document}",
+   "fields": [
+    "Front",
+    "Back"
+   ],
+   "templates": [
+    {
+     "name": "Card 1",
+     "qfmt": "{{Front}}",
+     "afmt": "{{FrontSide}}\n\n<hr id=answer>\n\n{{Back}}"
+    },
+    {
+     "name": "Card 2",
+     "qfmt": "{{Back}}",
+     "afmt": "{{FrontSide}}\n\n<hr id=answer>\n\n{{Front}}"
+    }
+   ]
+  },
+  {
+   "id": 1759834802002,
+   "name": "Basic (optional reversed card)",
+   "type": 0,
+   "css": ".card {\n    font-family: arial;\n    font-size: 20px;\n    line-height: 1.5;\n    text-align: center;\n    color: black;\n    background-color: white;\n}\n",
+   "sortf": 0,
+   "latexPre": "\\documentclass[12pt]{article}\n\\special{papersize=3in,5in}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb,amsmath}\n\\pagestyle{empty}\n\\setlength{\\parindent}{0in}\n\\begin{document}\n",
+   "latexPost": "\\end{document}",
+   "fields": [
+    "Front",
+    "Back",
+    "Add Reverse"
+   ],
+   "templates": [
+    {
+     "name": "Card 1",
+     "qfmt": "{{Front}}",
+     "afmt": "{{FrontSide}}\n\n<hr id=answer>\n\n{{Back}}"
+    },
+    {
+     "name": "Card 2",
+     "qfmt": "{{#Add Reverse}}{{Back}}{{/Add Reverse}}",
+     "afmt": "{{FrontSide}}\n\n<hr id=answer>\n\n{{Front}}"
+    }
+   ]
+  },
+  {
+   "id": 1740819600002,
+   "name": "Basic (optional reversed card)+",
+   "type": 0,
+   "css": ".card {\n    font-family: arial;\n    font-size: 20px;\n    line-height: 1.5;\n    text-align: center;\n    color: black;\n    background-color: white;\n}\n",
+   "sortf": 0,
+   "latexPre": "\\documentclass[12pt]{article}\n\\special{papersize=3in,5in}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb,amsmath}\n\\pagestyle{empty}\n\\setlength{\\parindent}{0in}\n\\begin{document}\n",
+   "latexPost": "\\end{document}",
+   "fields": [
+    "Front",
+    "Back",
+    "Add Reverse"
+   ],
+   "templates": [
+    {
+     "name": "Card 1",
+     "qfmt": "{{Front}}",
+     "afmt": "{{FrontSide}}\n\n<hr id=answer>\n\n{{Back}}"
+    },
+    {
+     "name": "Card 2",
+     "qfmt": "{{#Add Reverse}}{{Back}}{{/Add Reverse}}",
+     "afmt": "{{FrontSide}}\n\n<hr id=answer>\n\n{{Front}}"
+    }
+   ]
+  },
+  {
+   "id": 1759834802003,
+   "name": "Basic (type in the answer)",
+   "type": 0,
+   "css": ".card {\n    font-family: arial;\n    font-size: 20px;\n    line-height: 1.5;\n    text-align: center;\n    color: black;\n    background-color: white;\n}\n",
+   "sortf": 0,
+   "latexPre": "\\documentclass[12pt]{article}\n\\special{papersize=3in,5in}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb,amsmath}\n\\pagestyle{empty}\n\\setlength{\\parindent}{0in}\n\\begin{document}\n",
+   "latexPost": "\\end{document}",
+   "fields": [
+    "Front",
+    "Back"
+   ],
+   "templates": [
+    {
+     "name": "Card 1",
+     "qfmt": "{{Front}}\n\n{{type:Back}}",
+     "afmt": "{{Front}}\n\n<hr id=answer>\n\n{{type:Back}}"
+    }
+   ]
+  },
+  {
+   "id": 1740819600003,
+   "name": "Basic (type in the answer)+",
+   "type": 0,
+   "css": ".card {\n    font-family: arial;\n    font-size: 20px;\n    line-height: 1.5;\n    text-align: center;\n    color: black;\n    background-color: white;\n}\n",
+   "sortf": 0,
+   "latexPre": "\\documentclass[12pt]{article}\n\\special{papersize=3in,5in}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb,amsmath}\n\\pagestyle{empty}\n\\setlength{\\parindent}{0in}\n\\begin{document}\n",
+   "latexPost": "\\end{document}",
+   "fields": [
+    "Front",
+    "Back"
+   ],
+   "templates": [
+    {
+     "name": "Card 1",
+     "qfmt": "{{Front}}\n\n{{type:Back}}",
+     "afmt": "{{Front}}\n\n<hr id=answer>\n\n{{type:Back}}"
+    }
+   ]
+  },
+  {
+   "id": 1740819600000,
+   "name": "Basic+",
+   "type": 0,
+   "css": ".card {\n    font-family: arial;\n    font-size: 20px;\n    line-height: 1.5;\n    text-align: center;\n    color: black;\n    background-color: white;\n}\n",
+   "sortf": 0,
+   "latexPre": "\\documentclass[12pt]{article}\n\\special{papersize=3in,5in}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb,amsmath}\n\\pagestyle{empty}\n\\setlength{\\parindent}{0in}\n\\begin{document}\n",
+   "latexPost": "\\end{document}",
+   "fields": [
+    "Front",
+    "Back"
+   ],
+   "templates": [
+    {
+     "name": "Card 1",
+     "qfmt": "{{Front}}",
+     "afmt": "{{FrontSide}}\n\n<hr id=answer>\n\n{{Back}}"
+    }
+   ]
+  },
+  {
+   "id": 1759834802004,
+   "name": "Cloze",
+   "type": 1,
+   "css": ".card {\n    font-family: arial;\n    font-size: 20px;\n    line-height: 1.5;\n    text-align: center;\n    color: black;\n    background-color: white;\n}\n.cloze {\n    font-weight: bold;\n    color: blue;\n}\n.nightMode .cloze {\n    color: lightblue;\n}\n",
+   "sortf": 0,
+   "latexPre": "\\documentclass[12pt]{article}\n\\special{papersize=3in,5in}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb,amsmath}\n\\pagestyle{empty}\n\\setlength{\\parindent}{0in}\n\\begin{document}\n",
+   "latexPost": "\\end{document}",
+   "fields": [
+    "Text",
+    "Back Extra"
+   ],
+   "templates": [
+    {
+     "name": "Cloze",
+     "qfmt": "{{cloze:Text}}",
+     "afmt": "{{cloze:Text}}<br>\n{{Back Extra}}"
+    }
+   ]
+  },
+  {
+   "id": 1740819600004,
+   "name": "Cloze+",
+   "type": 1,
+   "css": ".card {\n    font-family: arial;\n    font-size: 20px;\n    line-height: 1.5;\n    text-align: center;\n    color: black;\n    background-color: white;\n}\n.cloze {\n    font-weight: bold;\n    color: blue;\n}\n.nightMode .cloze {\n    color: lightblue;\n}\n",
+   "sortf": 0,
+   "latexPre": "\\documentclass[12pt]{article}\n\\special{papersize=3in,5in}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb,amsmath}\n\\pagestyle{empty}\n\\setlength{\\parindent}{0in}\n\\begin{document}\n",
+   "latexPost": "\\end{document}",
+   "fields": [
+    "Text",
+    "Back Extra"
+   ],
+   "templates": [
+    {
+     "name": "Cloze",
+     "qfmt": "{{cloze:Text}}",
+     "afmt": "{{cloze:Text}}<br>\n{{Back Extra}}"
+    }
+   ]
+  },
+  {
+   "id": 1759834802005,
+   "name": "Image Occlusion",
+   "type": 1,
+   "css": "#image-occlusion-canvas {\n    --inactive-shape-color: #ffeba2;\n    --active-shape-color: #ff8e8e;\n    --inactive-shape-border: 1px #212121;\n    --active-shape-border: 1px #212121;\n    --highlight-shape-color: #ff8e8e00;\n    --highlight-shape-border: 1px #ff8e8e;\n}\n\n.card {\n    font-family: arial;\n    font-size: 20px;\n    text-align: center;\n    color: black;\n    background-color: white;\n}\n",
+   "sortf": 0,
+   "latexPre": "\\documentclass[12pt]{article}\n\\special{papersize=3in,5in}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb,amsmath}\n\\pagestyle{empty}\n\\setlength{\\parindent}{0in}\n\\begin{document}\n",
+   "latexPost": "\\end{document}",
+   "fields": [
+    "Occlusion",
+    "Image",
+    "Header",
+    "Back Extra",
+    "Comments"
+   ],
+   "templates": [
+    {
+     "name": "Image Occlusion",
+     "qfmt": "{{#Header}}<div>{{Header}}</div>{{/Header}}\n<div style=\"display: none\">{{cloze:Occlusion}}</div>\n<div id=\"err\"></div>\n<div id=\"image-occlusion-container\">\n    {{Image}}\n    <canvas id=\"image-occlusion-canvas\"></canvas>\n</div>\n<script>\ntry {\n    anki.imageOcclusion.setup();\n} catch (exc) {\n    document.getElementById(\"err\").innerHTML = `Error loading image occlusion. Is your Anki version up to date?<br><br>${exc}`;\n}\n</script>\n",
+     "afmt": "{{#Header}}<div>{{Header}}</div>{{/Header}}\n<div style=\"display: none\">{{cloze:Occlusion}}</div>\n<div id=\"err\"></div>\n<div id=\"image-occlusion-container\">\n    {{Image}}\n    <canvas id=\"image-occlusion-canvas\"></canvas>\n</div>\n<script>\ntry {\n    anki.imageOcclusion.setup();\n} catch (exc) {\n    document.getElementById(\"err\").innerHTML = `Error loading image occlusion. Is your Anki version up to date?<br><br>${exc}`;\n}\n</script>\n\n<div><button id=\"toggle\">Toggle Masks</button></div>\n{{#Back Extra}}<div>{{Back Extra}}</div>{{/Back Extra}}\n"
+    }
+   ]
+  },
+  {
+   "id": 1740819601000,
+   "name": "Wengu Cloze+",
+   "type": 1,
+   "css": ".card {\n    font-family: arial;\n    font-size: 20px;\n    line-height: 1.5;\n    text-align: center;\n    color: black;\n    background-color: white;\n}\n.cloze {\n    font-weight: bold;\n    color: blue;\n}\n.nightMode .cloze {\n    color: lightblue;\n}\n",
+   "sortf": 0,
+   "latexPre": "\\documentclass[12pt]{article}\n\\special{papersize=3in,5in}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb,amsmath}\n\\pagestyle{empty}\n\\setlength{\\parindent}{0in}\n\\begin{document}\n",
+   "latexPost": "\\end{document}",
+   "fields": [
+    "Text",
+    "Back Extra"
+   ],
+   "templates": [
+    {
+     "name": "Cloze",
+     "qfmt": "{{cloze:Text}}{{#c2}}<i>has c2</i>{{/c2}}{{^c2}}<i>no c2</i>{{/c2}}\n{{type:cloze:Text}}\n{{tts en_US voices=Apple_Samantha speed=1.1:cloze-only:Text}}",
+     "afmt": "{{cloze:Text}}\n{{text:Back Extra}}|{{ Back Extra }}|{{CardFlag}}"
+    }
+   ]
+  },
+  {
+   "id": 1740819600006,
+   "name": "Wengu Vocab 词汇",
+   "type": 0,
+   "css": ".card {\n  font-family: \"Noto Sans CJK SC\", sans-serif;\n  font-size: 22px;\n  text-align: center;\n  color: #222;\n  background: #fdfcf8;\n}\n.word { font-size: 40px; }\n.ex { color: #666; font-style: italic; }\n.tags { font-size: 12px; color: #999; }\n",
+   "sortf": 0,
+   "latexPre": "\\documentclass[12pt]{article}\n\\special{papersize=3in,5in}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb,amsmath}\n\\pagestyle{empty}\n\\setlength{\\parindent}{0in}\n\\begin{document}\n",
+   "latexPost": "\\end{document}",
+   "fields": [
+    "Word",
+    "Reading",
+    "Meaning",
+    "Example",
+    "Audio",
+    "Picture",
+    "Notes"
+   ],
+   "templates": [
+    {
+     "name": "Recognition",
+     "qfmt": "<div class=\"word\">{{Word}}</div>\n{{#Picture}}<div class=\"pic\">{{Picture}}</div>{{/Picture}}",
+     "afmt": "{{FrontSide}}\n<hr id=answer>\n{{furigana:Reading}}<br>\n{{Meaning}}\n{{#Example}}<div class=\"ex\">{{Example}}</div>{{/Example}}\n{{^Notes}}<i>no notes</i>{{/Notes}}{{#Notes}}{{hint:Notes}}{{/Notes}}\n<div class=\"tags\">{{Tags}} | {{Deck}} | {{Subdeck}} | {{Card}} | {{Type}}</div>"
+    },
+    {
+     "name": "Production",
+     "qfmt": "{{Meaning}}<br>\n{{type:Word}}",
+     "afmt": "{{FrontSide}}\n<hr id=answer>\n{{Word}} — {{text:Example}} {{kana:Reading}}"
+    },
+    {
+     "name": "Listening",
+     "qfmt": "{{#Audio}}🔊 {{Audio}}{{/Audio}}",
+     "afmt": "{{FrontSide}}\n<hr id=answer>\n{{Word}} {{kanji:Reading}}"
+    }
+   ]
+  }
+ ],
+ "notes": [
+  {
+   "id": 1740819614000,
+   "guid": "k;}ApZ:M3_",
+   "notetype": "Basic+",
+   "fields": {
+    "Front": "What is the <b>capital</b> of France?",
+    "Back": "Paris"
+   },
+   "tags": [
+    "geo"
+   ]
+  },
+  {
+   "id": 1740819615000,
+   "guid": "GX@uzTpB@*",
+   "notetype": "Basic+",
+   "fields": {
+    "Front": "Which animal? <img src=\"猫 cat.png\">",
+    "Back": "A cat 🐱 &amp; friends &lt;3"
+   },
+   "tags": [
+    "animals",
+    "media::image"
+   ]
+  },
+  {
+   "id": 1740819616000,
+   "guid": "Gp*--tB*vf",
+   "notetype": "Basic (and reversed card)+",
+   "fields": {
+    "Front": "你好",
+    "Back": "hello"
+   },
+   "tags": [
+    "lang::zh",
+    "测试"
+   ]
+  },
+  {
+   "id": 1740819617000,
+   "guid": "A(8:g,kzh]",
+   "notetype": "Basic (optional reversed card)+",
+   "fields": {
+    "Front": "谢谢",
+    "Back": "thank you",
+    "Add Reverse": "y"
+   },
+   "tags": [
+    "lang::zh"
+   ]
+  },
+  {
+   "id": 1740819618000,
+   "guid": "JQ0ynWGly@",
+   "notetype": "Basic (optional reversed card)+",
+   "fields": {
+    "Front": "再见",
+    "Back": "goodbye",
+    "Add Reverse": ""
+   },
+   "tags": [
+    "lang::zh"
+   ]
+  },
+  {
+   "id": 1740819619000,
+   "guid": "w.h#+^Q**#",
+   "notetype": "Basic (type in the answer)+",
+   "fields": {
+    "Front": "「ありがとう」 in English?",
+    "Back": "thank you"
+   },
+   "tags": [
+    "lang::ja"
+   ]
+  },
+  {
+   "id": 1740819620000,
+   "guid": "cSMrpuUkl;",
+   "notetype": "Cloze+",
+   "fields": {
+    "Text": "{{c1::北京}}是中国的{{c2::首都::capital}}。",
+    "Back Extra": "Beijing 🇨🇳"
+   },
+   "tags": [
+    "cloze",
+    "lang::zh"
+   ]
+  },
+  {
+   "id": 1740819621000,
+   "guid": "O{9LDl47/7",
+   "notetype": "Cloze+",
+   "fields": {
+    "Text": "Euler: {{c1::\\(e^{i\\pi}+1=0\\)}} and {{c2::\\[\\int_0^1 x\\,dx = \\tfrac12\\]::integral}}",
+    "Back Extra": "Inline MathJax \\(a^2+b^2=c^2\\)"
+   },
+   "tags": [
+    "math"
+   ]
+  },
+  {
+   "id": 1740819622000,
+   "guid": "j$;B~r)Tzw",
+   "notetype": "Cloze+",
+   "fields": {
+    "Text": "{{c1::outer {{c2::inner}} text}} then {{c3::a}} and {{c3::b}}",
+    "Back Extra": ""
+   },
+   "tags": [
+    "cloze::nested",
+    "math"
+   ]
+  },
+  {
+   "id": 1740819623000,
+   "guid": "QjVAmP;lHJ",
+   "notetype": "Basic+",
+   "fields": {
+    "Front": "LaTeX: [latex]\\frac{a}{b}[/latex] and [$]x^2[/$]",
+    "Back": "[$$]\\sum_{i=1}^n i[/$$]"
+   },
+   "tags": [
+    "latex",
+    "math"
+   ]
+  },
+  {
+   "id": 1740819624000,
+   "guid": "FYwJ8s5F5?",
+   "notetype": "Wengu Vocab 词汇",
+   "fields": {
+    "Word": "猫",
+    "Reading": "猫[ねこ]",
+    "Meaning": "cat",
+    "Example": "<b>猫</b>が好きです。",
+    "Audio": "[sound:hello-你好.wav]",
+    "Picture": "<img src=\"diagram.png\">",
+    "Notes": "Common pet 😺"
+   },
+   "tags": [
+    "lang::ja",
+    "vocab"
+   ]
+  },
+  {
+   "id": 1740819625000,
+   "guid": "pB{ZPqMB,I",
+   "notetype": "Wengu Vocab 词汇",
+   "fields": {
+    "Word": "犬",
+    "Reading": "犬[いぬ]",
+    "Meaning": "dog",
+    "Example": "",
+    "Audio": "",
+    "Picture": "",
+    "Notes": ""
+   },
+   "tags": [
+    "lang::ja",
+    "vocab"
+   ]
+  },
+  {
+   "id": 1740819626000,
+   "guid": "P>fsc?]6-N",
+   "notetype": "Wengu Cloze+",
+   "fields": {
+    "Text": "MathJax \\(x + {{c1::y^2}}\\) and {{c2::A &amp; B<br>}} and <b>{{c1::bold::h<i>i</i>nt}}</b>",
+    "Back Extra": "<div>x &lt; y &amp;&nbsp;z</div>"
+   },
+   "tags": [
+    "cloze::edge"
+   ]
+  },
+  {
+   "id": 1740819627000,
+   "guid": "JaI#eEICr]",
+   "notetype": "Basic+",
+   "fields": {
+    "Front": "Emoji 🎉👨‍👩‍👧 and RTL שלום",
+    "Back": "ZWJ sequence &nbsp; non-breaking"
+   },
+   "tags": []
+  }
+ ],
+ "cards": [
+  {
+   "id": 1740819614000,
+   "nid": 1740819614000,
+   "noteGuid": "k;}ApZ:M3_",
+   "ord": 0,
+   "deck": "Wengu Test",
+   "type": 0,
+   "queue": 0,
+   "due": 1,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{\"dr\":0.9,\"decay\":0.154,\"lrt\":1759831200}",
+   "memoryState": null,
+   "desiredRetention": 0.8999999761581421,
+   "decay": 0.15399999916553497,
+   "lastReviewTime": 1759831200,
+   "render": {
+    "question": "What is the <b>capital</b> of France?",
+    "answer": "What is the <b>capital</b> of France?\n\n<hr id=answer>\n\nParis",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819615000,
+   "nid": 1740819615000,
+   "noteGuid": "GX@uzTpB@*",
+   "ord": 0,
+   "deck": "Wengu Test::Misc",
+   "type": 0,
+   "queue": 0,
+   "due": 2,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{\"dr\":0.8,\"decay\":0.154,\"lrt\":1748773080}",
+   "memoryState": null,
+   "desiredRetention": 0.800000011920929,
+   "decay": 0.15399999916553497,
+   "lastReviewTime": 1748773080,
+   "render": {
+    "question": "Which animal? <img src=\"猫 cat.png\">",
+    "answer": "Which animal? <img src=\"猫 cat.png\">\n\n<hr id=answer>\n\nA cat 🐱 &amp; friends &lt;3",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819616000,
+   "nid": 1740819616000,
+   "noteGuid": "Gp*--tB*vf",
+   "ord": 0,
+   "deck": "Wengu Test::Languages::中文",
+   "type": 0,
+   "queue": 0,
+   "due": 3,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{\"dr\":0.9,\"decay\":0.154,\"lrt\":1742205720}",
+   "memoryState": null,
+   "desiredRetention": 0.8999999761581421,
+   "decay": 0.15399999916553497,
+   "lastReviewTime": 1742205720,
+   "render": {
+    "question": "你好",
+    "answer": "你好\n\n<hr id=answer>\n\nhello",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819616001,
+   "nid": 1740819616000,
+   "noteGuid": "Gp*--tB*vf",
+   "ord": 1,
+   "deck": "Wengu Test::Languages::中文",
+   "type": 0,
+   "queue": 0,
+   "due": 3,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{\"dr\":0.9,\"decay\":0.154,\"lrt\":1759745040}",
+   "memoryState": null,
+   "desiredRetention": 0.8999999761581421,
+   "decay": 0.15399999916553497,
+   "lastReviewTime": 1759745040,
+   "render": {
+    "question": "hello",
+    "answer": "hello\n\n<hr id=answer>\n\n你好",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819617000,
+   "nid": 1740819617000,
+   "noteGuid": "A(8:g,kzh]",
+   "ord": 0,
+   "deck": "Wengu Test::Languages::中文",
+   "type": 0,
+   "queue": 0,
+   "due": 4,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{}",
+   "memoryState": null,
+   "desiredRetention": null,
+   "decay": null,
+   "lastReviewTime": null,
+   "render": {
+    "question": "谢谢",
+    "answer": "谢谢\n\n<hr id=answer>\n\nthank you",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819617001,
+   "nid": 1740819617000,
+   "noteGuid": "A(8:g,kzh]",
+   "ord": 1,
+   "deck": "Wengu Test::Languages::中文",
+   "type": 0,
+   "queue": 0,
+   "due": 4,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{}",
+   "memoryState": null,
+   "desiredRetention": null,
+   "decay": null,
+   "lastReviewTime": null,
+   "render": {
+    "question": "thank you",
+    "answer": "thank you\n\n<hr id=answer>\n\n谢谢",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819618000,
+   "nid": 1740819618000,
+   "noteGuid": "JQ0ynWGly@",
+   "ord": 0,
+   "deck": "Wengu Test::Languages::中文",
+   "type": 0,
+   "queue": 0,
+   "due": 5,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{}",
+   "memoryState": null,
+   "desiredRetention": null,
+   "decay": null,
+   "lastReviewTime": null,
+   "render": {
+    "question": "再见",
+    "answer": "再见\n\n<hr id=answer>\n\ngoodbye",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819619000,
+   "nid": 1740819619000,
+   "noteGuid": "w.h#+^Q**#",
+   "ord": 0,
+   "deck": "Wengu Test::Languages::日本語",
+   "type": 0,
+   "queue": 0,
+   "due": 6,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 1,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{\"dr\":0.92,\"decay\":0.5,\"lrt\":1742551920}",
+   "memoryState": null,
+   "desiredRetention": 0.9200000166893005,
+   "decay": 0.5,
+   "lastReviewTime": 1742551920,
+   "render": {
+    "question": "「ありがとう」 in English?\n\n[[type:Back]]",
+    "answer": "「ありがとう」 in English?\n\n<hr id=answer>\n\n[[type:Back]]",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819620000,
+   "nid": 1740819620000,
+   "noteGuid": "cSMrpuUkl;",
+   "ord": 0,
+   "deck": "Wengu Test::Languages::中文",
+   "type": 0,
+   "queue": 0,
+   "due": 7,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{\"dr\":0.9,\"decay\":0.154,\"lrt\":1748426760}",
+   "memoryState": null,
+   "desiredRetention": 0.8999999761581421,
+   "decay": 0.15399999916553497,
+   "lastReviewTime": 1748426760,
+   "render": {
+    "question": "<span class=\"cloze\" data-cloze=\"北京\" data-ordinal=\"1\">[...]</span>是中国的<span class=\"cloze-inactive\" data-ordinal=\"2\">首都</span>。",
+    "answer": "<span class=\"cloze\" data-ordinal=\"1\">北京</span>是中国的<span class=\"cloze-inactive\" data-ordinal=\"2\">首都</span>。<br>\nBeijing 🇨🇳",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819620001,
+   "nid": 1740819620000,
+   "noteGuid": "cSMrpuUkl;",
+   "ord": 1,
+   "deck": "Wengu Test::Languages::中文",
+   "type": 0,
+   "queue": 0,
+   "due": 7,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{}",
+   "memoryState": null,
+   "desiredRetention": null,
+   "decay": null,
+   "lastReviewTime": null,
+   "render": {
+    "question": "<span class=\"cloze-inactive\" data-ordinal=\"1\">北京</span>是中国的<span class=\"cloze\" data-cloze=\"首都\" data-ordinal=\"2\">[capital]</span>。",
+    "answer": "<span class=\"cloze-inactive\" data-ordinal=\"1\">北京</span>是中国的<span class=\"cloze\" data-ordinal=\"2\">首都</span>。<br>\nBeijing 🇨🇳",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819621000,
+   "nid": 1740819621000,
+   "noteGuid": "O{9LDl47/7",
+   "ord": 1,
+   "deck": "Wengu Test::Science::Math ∑",
+   "type": 0,
+   "queue": 0,
+   "due": 8,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{\"dr\":0.85,\"decay\":0.2,\"lrt\":1741169400}",
+   "memoryState": null,
+   "desiredRetention": 0.8500000238418579,
+   "decay": 0.20000000298023224,
+   "lastReviewTime": 1741169400,
+   "render": {
+    "question": "Euler: <span class=\"cloze-inactive\" data-ordinal=\"1\">\\(e^{i\\pi}+1=0\\)</span> and <span class=\"cloze\" data-cloze=\"&#x5C;&#x5B;&#x5C;int&#x5F;0&#x5E;1&#x20;x&#x5C;&#x2C;dx&#x20;&#x3D;&#x20;&#x5C;tfrac12&#x5C;&#x5D;\" data-ordinal=\"2\">[integral]</span>",
+    "answer": "Euler: <span class=\"cloze-inactive\" data-ordinal=\"1\">\\(e^{i\\pi}+1=0\\)</span> and <span class=\"cloze\" data-ordinal=\"2\">\\[\\int_0^1 x\\,dx = \\tfrac12\\]</span><br>\nInline MathJax \\(a^2+b^2=c^2\\)",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819621001,
+   "nid": 1740819621000,
+   "noteGuid": "O{9LDl47/7",
+   "ord": 0,
+   "deck": "Wengu Test::Science::Math ∑",
+   "type": 0,
+   "queue": 0,
+   "due": 8,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{\"dr\":0.85,\"decay\":0.2,\"lrt\":1744452480}",
+   "memoryState": null,
+   "desiredRetention": 0.8500000238418579,
+   "decay": 0.20000000298023224,
+   "lastReviewTime": 1744452480,
+   "render": {
+    "question": "Euler: <span class=\"cloze\" data-cloze=\"&#x5C;&#x28;e&#x5E;&#x7B;i&#x5C;pi&#x7D;&#x2B;1&#x3D;0&#x5C;&#x29;\" data-ordinal=\"1\">[...]</span> and <span class=\"cloze-inactive\" data-ordinal=\"2\">\\[\\int_0^1 x\\,dx = \\tfrac12\\]</span>",
+    "answer": "Euler: <span class=\"cloze\" data-ordinal=\"1\">\\(e^{i\\pi}+1=0\\)</span> and <span class=\"cloze-inactive\" data-ordinal=\"2\">\\[\\int_0^1 x\\,dx = \\tfrac12\\]</span><br>\nInline MathJax \\(a^2+b^2=c^2\\)",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819622000,
+   "nid": 1740819622000,
+   "noteGuid": "j$;B~r)Tzw",
+   "ord": 2,
+   "deck": "Wengu Test::Science::Math ∑",
+   "type": 0,
+   "queue": 0,
+   "due": 9,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{}",
+   "memoryState": null,
+   "desiredRetention": null,
+   "decay": null,
+   "lastReviewTime": null,
+   "render": {
+    "question": "<span class=\"cloze-inactive\" data-ordinal=\"1\">outer <span class=\"cloze-inactive\" data-ordinal=\"2\">inner</span> text</span> then <span class=\"cloze\" data-cloze=\"a\" data-ordinal=\"3\">[...]</span> and <span class=\"cloze\" data-cloze=\"b\" data-ordinal=\"3\">[...]</span>",
+    "answer": "<span class=\"cloze-inactive\" data-ordinal=\"1\">outer <span class=\"cloze-inactive\" data-ordinal=\"2\">inner</span> text</span> then <span class=\"cloze\" data-ordinal=\"3\">a</span> and <span class=\"cloze\" data-ordinal=\"3\">b</span><br>\n",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819622001,
+   "nid": 1740819622000,
+   "noteGuid": "j$;B~r)Tzw",
+   "ord": 1,
+   "deck": "Wengu Test::Science::Math ∑",
+   "type": 0,
+   "queue": 0,
+   "due": 9,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{}",
+   "memoryState": null,
+   "desiredRetention": null,
+   "decay": null,
+   "lastReviewTime": null,
+   "render": {
+    "question": "<span class=\"cloze-inactive\" data-ordinal=\"1\">outer <span class=\"cloze\" data-cloze=\"inner\" data-ordinal=\"2\">[...]</span> text</span> then <span class=\"cloze-inactive\" data-ordinal=\"3\">a</span> and <span class=\"cloze-inactive\" data-ordinal=\"3\">b</span>",
+    "answer": "<span class=\"cloze-inactive\" data-ordinal=\"1\">outer <span class=\"cloze\" data-ordinal=\"2\">inner</span> text</span> then <span class=\"cloze-inactive\" data-ordinal=\"3\">a</span> and <span class=\"cloze-inactive\" data-ordinal=\"3\">b</span><br>\n",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819622002,
+   "nid": 1740819622000,
+   "noteGuid": "j$;B~r)Tzw",
+   "ord": 0,
+   "deck": "Wengu Test::Science::Math ∑",
+   "type": 0,
+   "queue": 0,
+   "due": 9,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{}",
+   "memoryState": null,
+   "desiredRetention": null,
+   "decay": null,
+   "lastReviewTime": null,
+   "render": {
+    "question": "<span class=\"cloze\" data-cloze=\"outer&#x20;&lt;span&#x20;class&#x3D;&quot;cloze&#x2D;inactive&quot;&#x20;data&#x2D;ordinal&#x3D;&quot;2&quot;&gt;inner&lt;&#x2F;span&gt;&#x20;text\" data-ordinal=\"1\">[...]</span> then <span class=\"cloze-inactive\" data-ordinal=\"3\">a</span> and <span class=\"cloze-inactive\" data-ordinal=\"3\">b</span>",
+    "answer": "<span class=\"cloze\" data-ordinal=\"1\">outer <span class=\"cloze-inactive\" data-ordinal=\"2\">inner</span> text</span> then <span class=\"cloze-inactive\" data-ordinal=\"3\">a</span> and <span class=\"cloze-inactive\" data-ordinal=\"3\">b</span><br>\n",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819623000,
+   "nid": 1740819623000,
+   "noteGuid": "QjVAmP;lHJ",
+   "ord": 0,
+   "deck": "Wengu Test::Science::Math ∑",
+   "type": 0,
+   "queue": 0,
+   "due": 10,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{}",
+   "memoryState": null,
+   "desiredRetention": null,
+   "decay": null,
+   "lastReviewTime": null,
+   "render": {
+    "question": "LaTeX: <img class=latex alt=\"&#x5C;frac&#x7B;a&#x7D;&#x7B;b&#x7D;\" src=\"latex-a7487d7e62f90136b78ae3fbf0a008396f146e13.png\"> and <img class=latex alt=\"&#x24;x&#x5E;2&#x24;\" src=\"latex-76b2878564ab19b80abb21ba964abe90fe120846.png\">LaTeX image generation is disabled in the preferences.",
+    "answer": "LaTeX: <img class=latex alt=\"&#x5C;frac&#x7B;a&#x7D;&#x7B;b&#x7D;\" src=\"latex-a7487d7e62f90136b78ae3fbf0a008396f146e13.png\"> and <img class=latex alt=\"&#x24;x&#x5E;2&#x24;\" src=\"latex-76b2878564ab19b80abb21ba964abe90fe120846.png\">\n\n<hr id=answer>\n\n<img class=latex alt=\"&#x5C;begin&#x7B;displaymath&#x7D;&#x5C;sum&#x5F;&#x7B;i&#x3D;1&#x7D;&#x5E;n&#x20;i&#x5C;end&#x7B;displaymath&#x7D;\" src=\"latex-79ce667dffa1209f7b0f3e8b3a4f8ae1345b8c69.png\">LaTeX image generation is disabled in the preferences.",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819624000,
+   "nid": 1740819624000,
+   "noteGuid": "FYwJ8s5F5?",
+   "ord": 0,
+   "deck": "Wengu Test::Languages::日本語",
+   "type": 0,
+   "queue": 0,
+   "due": 11,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{\"dr\":0.92,\"decay\":0.5,\"lrt\":1741428960}",
+   "memoryState": null,
+   "desiredRetention": 0.9200000166893005,
+   "decay": 0.5,
+   "lastReviewTime": 1741428960,
+   "render": {
+    "question": "<div class=\"word\">猫</div>\n<div class=\"pic\"><img src=\"diagram.png\"></div>",
+    "answer": "<div class=\"word\">猫</div>\n<div class=\"pic\"><img src=\"diagram.png\"></div>\n<hr id=answer>\n<ruby><rb>猫</rb><rt>ねこ</rt></ruby><br>\ncat\n<div class=\"ex\"><b>猫</b>が好きです。</div>\n\n<a class=hint href=\"#\"\nonclick=\"this.style.display='none';\ndocument.getElementById('hint0f20197c71fef089').style.display='block';\nreturn false;\" draggable=false>\nNotes</a>\n<div id=\"hint0f20197c71fef089\" class=hint style=\"display: none\">Common pet 😺</div>\n\n<div class=\"tags\">lang::ja vocab | Wengu Test::Languages::日本語 | 日本語 | Recognition | Wengu Vocab 词汇</div>",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819624001,
+   "nid": 1740819624000,
+   "noteGuid": "FYwJ8s5F5?",
+   "ord": 1,
+   "deck": "Wengu Test::Languages::日本語",
+   "type": 0,
+   "queue": 0,
+   "due": 11,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{}",
+   "memoryState": null,
+   "desiredRetention": null,
+   "decay": null,
+   "lastReviewTime": null,
+   "render": {
+    "question": "cat<br>\n[[type:Word]]",
+    "answer": "cat<br>\n[[type:Word]]\n<hr id=answer>\n猫 — 猫が好きです。 ねこ",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819624002,
+   "nid": 1740819624000,
+   "noteGuid": "FYwJ8s5F5?",
+   "ord": 2,
+   "deck": "Wengu Test::Languages::日本語",
+   "type": 0,
+   "queue": 0,
+   "due": 11,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{}",
+   "memoryState": null,
+   "desiredRetention": null,
+   "decay": null,
+   "lastReviewTime": null,
+   "render": {
+    "question": "🔊 [anki:play:q:0]",
+    "answer": "🔊 [anki:play:q:0]\n<hr id=answer>\n猫 猫",
+    "questionAvTags": [
+     "SoundOrVideoTag(filename='hello-你好.wav')"
+    ],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819625000,
+   "nid": 1740819625000,
+   "noteGuid": "pB{ZPqMB,I",
+   "ord": 0,
+   "deck": "Wengu Test::Languages::日本語",
+   "type": 0,
+   "queue": 0,
+   "due": 12,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 2,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{\"dr\":0.92,\"decay\":0.5,\"lrt\":1740824040}",
+   "memoryState": null,
+   "desiredRetention": 0.9200000166893005,
+   "decay": 0.5,
+   "lastReviewTime": 1740824040,
+   "render": {
+    "question": "<div class=\"word\">犬</div>\n",
+    "answer": "<div class=\"word\">犬</div>\n\n<hr id=answer>\n<ruby><rb>犬</rb><rt>いぬ</rt></ruby><br>\ndog\n\n<i>no notes</i>\n<div class=\"tags\">lang::ja vocab | Wengu Test::Languages::日本語 | 日本語 | Recognition | Wengu Vocab 词汇</div>",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819625001,
+   "nid": 1740819625000,
+   "noteGuid": "pB{ZPqMB,I",
+   "ord": 1,
+   "deck": "Wengu Test::Languages::日本語",
+   "type": 0,
+   "queue": 0,
+   "due": 12,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{}",
+   "memoryState": null,
+   "desiredRetention": null,
+   "decay": null,
+   "lastReviewTime": null,
+   "render": {
+    "question": "dog<br>\n[[type:Word]]",
+    "answer": "dog<br>\n[[type:Word]]\n<hr id=answer>\n犬 —  いぬ",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819626000,
+   "nid": 1740819626000,
+   "noteGuid": "P>fsc?]6-N",
+   "ord": 0,
+   "deck": "Wengu Test::Science::Math ∑",
+   "type": 0,
+   "queue": 0,
+   "due": 13,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{}",
+   "memoryState": null,
+   "desiredRetention": null,
+   "decay": null,
+   "lastReviewTime": null,
+   "render": {
+    "question": "MathJax \\(x + [...]\\) and <span class=\"cloze-inactive\" data-ordinal=\"2\">A &amp; B<br></span> and <b><span class=\"cloze\" data-cloze=\"bold\" data-ordinal=\"1\">[h<i>i</i>nt]</span></b><i>no c2</i>\n[[type:cloze:Text]]\n[anki:play:q:0]",
+    "answer": "MathJax \\(x + y^2\\) and <span class=\"cloze-inactive\" data-ordinal=\"2\">A &amp; B<br></span> and <b><span class=\"cloze\" data-ordinal=\"1\">bold</span></b>\nx < y & z|<div>x &lt; y &amp;&nbsp;z</div>|flag0",
+    "questionAvTags": [
+     "TTSTag(field_text='..., hint', lang='en_US', voices=['Apple_Samantha'], speed=1.100000023841858, other_args=[])"
+    ],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819626001,
+   "nid": 1740819626000,
+   "noteGuid": "P>fsc?]6-N",
+   "ord": 1,
+   "deck": "Wengu Test::Science::Math ∑",
+   "type": 0,
+   "queue": 0,
+   "due": 13,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{}",
+   "memoryState": null,
+   "desiredRetention": null,
+   "decay": null,
+   "lastReviewTime": null,
+   "render": {
+    "question": "MathJax \\(x + y^2\\) and <span class=\"cloze\" data-cloze=\"A&#x20;&amp;amp&#x3B;&#x20;B&lt;br&gt;\" data-ordinal=\"2\">[...]</span> and <b><span class=\"cloze-inactive\" data-ordinal=\"1\">bold</span></b><i>has c2</i>\n[[type:cloze:Text]]\n[anki:play:q:0]",
+    "answer": "MathJax \\(x + y^2\\) and <span class=\"cloze\" data-ordinal=\"2\">A &amp; B<br></span> and <b><span class=\"cloze-inactive\" data-ordinal=\"1\">bold</span></b>\nx < y & z|<div>x &lt; y &amp;&nbsp;z</div>|flag0",
+    "questionAvTags": [
+     "TTSTag(field_text='...', lang='en_US', voices=['Apple_Samantha'], speed=1.100000023841858, other_args=[])"
+    ],
+    "answerAvTags": []
+   }
+  },
+  {
+   "id": 1740819627000,
+   "nid": 1740819627000,
+   "noteGuid": "JaI#eEICr]",
+   "ord": 0,
+   "deck": "Wengu Test::Misc",
+   "type": 0,
+   "queue": 0,
+   "due": 14,
+   "ivl": 0,
+   "factor": 0,
+   "reps": 0,
+   "lapses": 0,
+   "left": 0,
+   "flags": 0,
+   "odid": 0,
+   "odue": 0,
+   "data": "{}",
+   "memoryState": null,
+   "desiredRetention": null,
+   "decay": null,
+   "lastReviewTime": null,
+   "render": {
+    "question": "Emoji 🎉👨‍👩‍👧 and RTL שלום",
+    "answer": "Emoji 🎉👨‍👩‍👧 and RTL שלום\n\n<hr id=answer>\n\nZWJ sequence &nbsp; non-breaking",
+    "questionAvTags": [],
+    "answerAvTags": []
+   }
+  }
+ ],
+ "revlog": [],
+ "media": {
+  "diagram.png": {
+   "size": 105,
+   "sha1": "6ba64630c50dfdd09ca148f26851a3b1fd87b588"
+  },
+  "hello-你好.wav": {
+   "size": 444,
+   "sha1": "35595a3ca2cb77f308f2181c560e2110e2ea4cd5"
+  },
+  "猫 cat.png": {
+   "size": 105,
+   "sha1": "7676e1f6de63a93a91820b351fb32ce4d4750419"
+  }
+ }
+}

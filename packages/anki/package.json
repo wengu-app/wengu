@@ -1,0 +1,28 @@
+{
+  "name": "@wengu/anki",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Read Anki .apkg/.colpkg packages into a typed in-memory model (browser-compatible)",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "fixtures": "fixtures/.venv/bin/python fixtures/generate.py"
+  },
+  "dependencies": {
+    "fflate": "0.8.3",
+    "fzstd": "0.1.1",
+    "sql.js": "1.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/sql.js": "^1.4.9",
+    "ts-fsrs": "6.0.0",
+    "typescript": "^7.0.0",
+    "vitest": "^5.1.0"
+  }
+}
