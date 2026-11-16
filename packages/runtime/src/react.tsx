@@ -17,6 +17,7 @@ export interface SandboxedComponentProps {
   mode: Mode;
   delivery?: Delivery;
   watchdog?: HostOptions['watchdog'];
+  hostCspCheck?: HostOptions['hostCspCheck'];
   onEvent?: (event: HostEvent) => void;
   /** Rendered over the frame when the component failed or was stopped. Receives a retry callback. */
   fallback?: (info: { status: HostStatus; reason?: KillReason; message?: string; retry: () => void }) => ReactNode;
@@ -49,6 +50,7 @@ export function SandboxedComponent(p: SandboxedComponentProps) {
       mode: cur.mode,
       ...(cur.delivery ? { delivery: cur.delivery } : {}),
       ...(cur.watchdog !== undefined ? { watchdog: cur.watchdog } : {}),
+      ...(cur.hostCspCheck !== undefined ? { hostCspCheck: cur.hostCspCheck } : {}),
       onEvent: (e) => {
         if (e.type === 'killed') setFailure({ status: 'killed', reason: e.reason, message: e.detail });
         else if (e.type === 'error' && (e.phase === 'load' || e.phase === 'mount')) setFailure({ status: 'error', message: e.message });

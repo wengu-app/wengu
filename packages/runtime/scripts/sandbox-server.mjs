@@ -19,7 +19,7 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(404).end();
     return;
   }
-  // Re-read on each request so `npm run build:frame` takes effect without a restart.
+  // Re-read on each request so `corepack pnpm build:frame` takes effect without a restart.
   const html = await readFile(path.join(pkgRoot, 'generated/sandbox.html'));
   res.writeHead(200, {
     'content-type': 'text/html; charset=utf-8',

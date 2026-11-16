@@ -7,6 +7,7 @@
 
 import type { Mode, ReviewResult } from './component-api.ts';
 import { buildFrameDocument } from './frame-document.ts';
+import { checkHostNavigationProtection } from './host-csp.ts';
 import { cloneJson, isPlainObject, type JsonObject } from './json.ts';
 import { validatePackage, type ComponentPackage } from './manifest.ts';
 import {
@@ -40,7 +41,22 @@ export type HostEvent =
   | { type: 'error'; phase: ErrorPhase; message: string; stack?: string }
   | { type: 'violation'; reason: string }
   | { type: 'heartbeat'; rttMs: number }
-  | { type: 'killed'; reason: KillReason; detail: string };
+  | { type: 'killed'; reason: KillReason; detail: string }
+  /**
+   * The host page does not block frame self-navigation (see hostPageCsp() and README.md): a component could send data
+   * to any server by navigating its own frame. `enforced`: the component was not loaded (hostCspCheck: 'enforce').
+   */
+  | { type: 'unprotected'; detail: string; enforced: boolean };
+
+/**
+ * What ComponentHost does about a host page that would let a component navigate its frame to an external origin.
+ *  - `warn` (default): load the component, and in parallel check; if unprotected, console.error + `unprotected` event.
+ *  - `enforce`: check first (a few ms on a protected page); if unprotected, do not load the component at all: status
+ *    becomes 'error' with an `unprotected` and an `error` event.
+ *  - `off`: no check. Only for environments that block frame navigation by other means (e.g. Electron
+ *    `will-frame-navigate`), which page script cannot see.
+ */
+export type HostCspCheck = 'warn' | 'enforce' | 'off';
 
 export interface HostOptions {
   /** Element the iframe is appended to. */
@@ -61,16 +77,22 @@ export interface HostOptions {
   onEvent?: (event: HostEvent) => void;
   /** Kill the component when its frame navigates away from the sandbox document. Default true. */
   killOnNavigation?: boolean;
+  /** Check that the host page blocks frame self-navigation. Default 'warn'. See {@link HostCspCheck}. */
+  hostCspCheck?: HostCspCheck;
   /** Test only. */
   dangerouslyOmitFrameCsp?: boolean;
 }
+
+let warnedUnprotected = false;
 
 const MAX_INVALID_MESSAGES = 50;
 
 export class ComponentHost {
   readonly iframe: HTMLIFrameElement;
-  private readonly opts: Required<Omit<HostOptions, 'onEvent' | 'dangerouslyOmitFrameCsp' | 'killOnNavigation' | 'delivery'>> &
-    Pick<HostOptions, 'onEvent' | 'dangerouslyOmitFrameCsp' | 'killOnNavigation'> & { delivery: Delivery };
+  private readonly opts: Required<
+    Omit<HostOptions, 'onEvent' | 'dangerouslyOmitFrameCsp' | 'killOnNavigation' | 'delivery' | 'hostCspCheck'>
+  > &
+    Pick<HostOptions, 'onEvent' | 'dangerouslyOmitFrameCsp' | 'killOnNavigation'> & { delivery: Delivery; hostCspCheck: HostCspCheck };
   private port: MessagePort | null = null;
   private _status: HostStatus = 'loading';
   private loads = 0;
@@ -95,6 +117,7 @@ export class ComponentHost {
       component: pkg.value,
       props: props as JsonObject,
       delivery: options.delivery ?? { kind: 'srcdoc' },
+      hostCspCheck: options.hostCspCheck ?? 'warn',
       watchdog: options.watchdog ?? { intervalMs: 500, timeoutMs: 3000 },
       rateLimit: options.rateLimit ?? { perSecond: 120, burst: 240 },
       minHeight: options.minHeight ?? 120,
@@ -113,15 +136,52 @@ export class ComponentHost {
     iframe.setAttribute('referrerpolicy', 'no-referrer');
     iframe.setAttribute('title', pkg.value.manifest.title);
     iframe.style.cssText = `display:block;width:100%;border:0;height:${this.opts.minHeight}px;`;
+    this.iframe = iframe;
+    this.emit({ type: 'status', status: 'loading' });
+
+    const check = this.opts.hostCspCheck;
+    if (check === 'enforce') {
+      // Nothing is loaded (the iframe is not even attached) until the browser has shown that it blocks the navigation.
+      void checkHostNavigationProtection().then((r) => {
+        if (this._status !== 'loading') return;
+        if (r.protected) return this.start();
+        this.reportUnprotected(r.detail, true);
+        this.teardown();
+        this.emit({ type: 'error', phase: 'load', message: `not loaded: ${r.detail}` });
+        this.setStatus('error');
+      });
+      return;
+    }
+    this.start();
+    if (check === 'warn') {
+      void checkHostNavigationProtection().then((r) => {
+        if (!r.protected && this._status !== 'destroyed') this.reportUnprotected(r.detail, false);
+      });
+    }
+  }
+
+  private start() {
+    const iframe = this.iframe;
     iframe.addEventListener('load', this.onLoad);
+    // src/srcdoc is set before the frame is attached, so no initial about:blank document is ever connected to.
     if (this.opts.delivery.kind === 'srcdoc') {
-      iframe.srcdoc = buildFrameDocument({ dangerouslyOmitCsp: options.dangerouslyOmitFrameCsp });
+      iframe.srcdoc = buildFrameDocument({ dangerouslyOmitCsp: this.opts.dangerouslyOmitFrameCsp });
     } else {
       iframe.src = this.opts.delivery.url;
     }
-    this.iframe = iframe;
     this.opts.container.append(iframe);
-    this.emit({ type: 'status', status: 'loading' });
+  }
+
+  private reportUnprotected(detail: string, enforced: boolean) {
+    if (!warnedUnprotected || enforced) {
+      warnedUnprotected = true;
+      console.error(
+        `[wengu/runtime] UNSAFE HOST PAGE: ${detail}. A component can leak data by navigating its own frame to any URL. ` +
+          `Serve this page with the policy from hostPageCsp() (header or <meta> at the top of <head>). ` +
+          (enforced ? 'The component was not loaded (hostCspCheck: "enforce").' : 'Use hostCspCheck: "enforce" to refuse to load components here.'),
+      );
+    }
+    this.emit({ type: 'unprotected', detail, enforced });
   }
 
   get status(): HostStatus {

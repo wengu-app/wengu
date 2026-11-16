@@ -1,22 +1,15 @@
 // Test harness page (no React). Playwright drives it through `window.harness`.
-//   ?hostcsp=1  adds a host-page CSP restricting frame-src (see tests: frame self-navigation).
-import { ComponentHost, themeFor, type HostEvent, type JsonObject, type Mode } from '../../src/index.ts';
+//   The page is served with the host-page CSP from hostPageCsp() (injected by vite.config.ts), like the demo.
+//   ?hostcsp=0  serves it WITHOUT that CSP: the unprotected control in tests/navigation.spec.ts.
+import { ComponentHost, themeFor, type HostCspCheck, type HostEvent, type JsonObject, type Mode } from '../../src/index.ts';
 import { libraries, moleculeViewer, ethanolProps } from './catalog.ts';
 import hostile from '../../components/test/hostile.js?raw';
 import busy from '../../components/test/busy.js?raw';
 import heavy from '../../components/test/heavy.js?raw';
 
-const params = new URLSearchParams(location.search);
 export const SANDBOX_PORT = 5174;
 const SANDBOX_CROSS_SITE = `http://127.0.0.1:${SANDBOX_PORT}/sandbox.html`;
 const SANDBOX_SAME_SITE = `http://localhost:${SANDBOX_PORT}/sandbox.html`;
-
-if (params.get('hostcsp') === '1') {
-  const meta = document.createElement('meta');
-  meta.httpEquiv = 'Content-Security-Policy';
-  meta.content = `frame-src 'self' http://127.0.0.1:${SANDBOX_PORT} http://localhost:${SANDBOX_PORT}`;
-  document.head.prepend(meta);
-}
 
 // Things a hostile component would like to steal.
 try {
@@ -56,6 +49,7 @@ export interface MountOptions {
   csp?: boolean;
   watchdog?: { intervalMs: number; timeoutMs: number } | false;
   killOnNavigation?: boolean;
+  hostCspCheck?: HostCspCheck;
 }
 
 const events: Array<HostEvent & { t: number }> = [];
@@ -118,6 +112,7 @@ const harness = {
       ...(o.watchdog !== undefined ? { watchdog: o.watchdog } : {}),
       dangerouslyOmitFrameCsp: o.csp === false,
       ...(o.killOnNavigation !== undefined ? { killOnNavigation: o.killOnNavigation } : {}),
+      ...(o.hostCspCheck !== undefined ? { hostCspCheck: o.hostCspCheck } : {}),
       onEvent: (e) => {
         events.push({ ...e, t: performance.now() });
         if (e.type === 'status') document.getElementById('status')!.textContent = e.status;
@@ -134,6 +129,8 @@ const harness = {
   iframeHeight: () => host?.iframe.style.height,
   kill: () => host?.kill('manual'),
   frameUrl: () => host?.iframe.src ?? null,
+  /** Host-page CSPs delivered by <meta> (the dev server sends none as headers). */
+  hostCsp: () => [...document.querySelectorAll('meta[http-equiv="Content-Security-Policy"]')].map((m) => m.getAttribute('content')),
   startRecording() {
     frames = [];
     probes.length = 0;

@@ -66,7 +66,7 @@ for (const delivery of ['srcdoc', 'url-cross-site'] as const) {
       await page.waitForTimeout(1000);
       const udp = evil.udpPackets();
       matrix[`${delivery}/no-csp`] = { report, hits: evil.names(), preconnect: evil.preConnections(), udpPackets: udp.length, udpContainsSecret: udp.some((b) => b.includes('S3CR3T')) };
-      // srcdoc mode: there is no meta CSP but the frame still inherits nothing from the harness (it has no CSP).
+      // srcdoc mode: there is no frame CSP; the frame inherits the harness's host CSP, but that only restricts frames.
       // url mode: the sandbox server sends the CSP header regardless, so the control only removes the <meta>.
       if (delivery === 'srcdoc') {
         expect(evil.names()).toEqual(expect.arrayContaining(['fetch', 'xhr', 'img', 'script', 'stylesheet']));

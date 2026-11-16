@@ -80,6 +80,9 @@ export function App() {
         case 'killed':
           push(`已停止组件 · ${e.reason} · ${e.detail}`, 'bad');
           break;
+        case 'unprotected':
+          push(`宿主页面未阻止 frame 导航 · ${e.detail}`, 'bad');
+          break;
       }
     },
     [push],
@@ -154,6 +157,8 @@ export function App() {
             theme={theme}
             mode={mode}
             delivery={delivery === 'url' ? { kind: 'url', url: SANDBOX_URL } : { kind: 'srcdoc' }}
+            // The page is served with hostPageCsp() (vite.config.ts); refuse to run components if that is ever lost.
+            hostCspCheck="enforce"
             onEvent={onEvent}
             fallback={({ status: s, reason, message, retry }) => (
               <div className="fallback">

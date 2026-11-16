@@ -1,7 +1,7 @@
 // Measures how much a misbehaving component disturbs the host page, per browser mode and sandbox delivery.
 //
-//   npm run measure:jank            (needs the dev server and sandbox server; `npm test` starts them, or run
-//                                     `npx vite` and `npm run sandbox-server` yourself)
+//   corepack pnpm measure:jank      (needs the dev server and sandbox server; `corepack pnpm test` starts them, or run
+//                                     `corepack pnpm dev` and `corepack pnpm sandbox-server` yourself)
 //   node scripts/measure-jank.mjs --quick
 //
 // For each configuration it records, on the HOST page, for a 6 s window:
@@ -12,7 +12,7 @@
 // It also mounts a component that loops forever and measures how long the watchdog takes to kill it and whether the
 // looping process actually stops burning CPU afterwards.
 
-import { chromium } from 'playwright';
+import { chromium } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 
 const BASE = 'http://localhost:5173/harness.html';

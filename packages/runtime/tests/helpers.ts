@@ -1,8 +1,12 @@
 import { expect, type Frame, type Page } from '@playwright/test';
 import type { MountOptions } from '../demo/src/harness.ts';
 
+/**
+ * Opens the test harness. By default it is served like any page that embeds components should be: with the host-page
+ * CSP from hostPageCsp(). `hostCsp: false` serves it without, only for the unprotected controls.
+ */
 export async function openHarness(page: Page, opts: { hostCsp?: boolean } = {}) {
-  await page.goto(`/harness.html${opts.hostCsp ? '?hostcsp=1' : ''}`);
+  await page.goto(`/harness.html${opts.hostCsp === false ? '?hostcsp=0' : ''}`);
   await expect(page.locator('#status')).toHaveText('harness-ready');
 }
 

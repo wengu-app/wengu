@@ -1,6 +1,10 @@
 // Navigation-based exfiltration: the component navigates its own frame (or the top window) to a URL carrying data.
 // CSP3 has no directive for a document's own navigations (navigate-to was dropped), so this file pins down what
 // actually stops each variant. Results are also written to test-results/navigation-matrix.json.
+//
+// The harness is served by default with the host-page CSP from hostPageCsp() (as every embedding page must be; see
+// README.md). Tests marked UNPROTECTED CONTROL deliberately open it without (`hostCsp: false`) to show the leak that
+// policy closes.
 import { test, expect } from '@playwright/test';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { startEvilServers, type EvilServers } from './servers.ts';
@@ -54,22 +58,34 @@ async function run(
 for (const delivery of DELIVERIES) {
   test.describe(delivery, () => {
     for (const attack of EXTERNAL) {
-      test(`KNOWN GAP ${attack}: without a host frame-src CSP, self-navigation leaks the URL; host detects and kills`, async ({ page }) => {
+      test(`${attack}: default setup (host page has hostPageCsp()) blocks it before any request is sent; host kills`, async ({ page }) => {
+        const r = await run(page, { attack, delivery, hostCsp: true, killOnNavigation: true });
+        expect(r.hits).toEqual([]);
+        expect(r.killed).toBe('navigated');
+      });
+
+      test(`${attack}: it is the host CSP that blocks it, not the kill (killOnNavigation off: frame shows an error page)`, async ({ page }) => {
+        const r = await run(page, { attack, delivery, hostCsp: true, killOnNavigation: false });
+        expect(r.hits).toEqual([]);
+        expect(r.frameUrl).toBe('chrome-error://chromewebdata/');
+      });
+
+      test(`UNPROTECTED CONTROL ${attack}: without the host frame-src CSP, self-navigation leaks the URL; host detects and kills`, async ({ page }) => {
         const r = await run(page, { attack, delivery, hostCsp: false, killOnNavigation: true });
         // The request reaches the attacker before the host can react: detection is not prevention.
         expect(r.hits).toEqual([attack]);
         expect(r.killed).toBe('navigated');
       });
-
-      test(`${attack}: the host page's frame-src CSP blocks it before any request is sent`, async ({ page }) => {
-        const r = await run(page, { attack, delivery, hostCsp: true, killOnNavigation: false });
-        expect(r.hits).toEqual([]);
-        expect(r.frameUrl).toBe('chrome-error://chromewebdata/');
-      });
     }
 
     for (const attack of LOCAL_SCHEME) {
+      test(`${attack}: default setup: nothing leaks`, async ({ page }) => {
+        const r = await run(page, { attack, delivery, hostCsp: true, killOnNavigation: true });
+        expect(r.hits).toEqual([]);
+      });
+
       test(`${attack}: replacing the document does not shed the frame CSP (policy container is inherited)`, async ({ page }) => {
+        // Without the host CSP, so that only the frame's own policy is being tested.
         const r = await run(page, { attack, delivery, hostCsp: false, killOnNavigation: false });
         expect(r.hits).toEqual([]);
         expect(r.frameUrl).toMatch(/^(data:|blob:null\/|about:blank)/);

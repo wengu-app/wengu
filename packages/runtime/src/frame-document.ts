@@ -8,7 +8,8 @@ import { FRAME_BOOTSTRAP_JS } from './generated/frame-bootstrap.ts';
  * which can only carry data that is already inside the frame.
  *
  * Not covered by CSP (see tests/navigation.spec.ts, tests/webrtc-dns.spec.ts):
- *  - the frame navigating itself to an external URL: stopped only by the *host page's* `frame-src`;
+ *  - the frame navigating itself to an external URL: stopped only by the *host page's* `frame-src` (hostPageCsp(),
+ *    checked by ComponentHost's hostCspCheck);
  *  - WebRTC (STUN/TURN): not stoppable from the page in Chromium; needs browser/Electron-level controls.
  */
 export const FRAME_CSP = [

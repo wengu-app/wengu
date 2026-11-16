@@ -11,11 +11,11 @@
   },
   "scripts": {
     "build:frame": "node scripts/build-frame.mjs",
-    "dev": "npm run build:frame && vite",
+    "dev": "node scripts/build-frame.mjs && vite",
     "sandbox-server": "node scripts/sandbox-server.mjs",
-    "typecheck": "npm run build:frame && tsc -p tsconfig.json --noEmit",
-    "test": "npm run build:frame && playwright test",
-    "measure:jank": "npm run build:frame && node scripts/measure-jank.mjs"
+    "typecheck": "node scripts/build-frame.mjs && tsc -p tsconfig.json --noEmit",
+    "test": "node scripts/build-frame.mjs && playwright test",
+    "measure:jank": "node scripts/build-frame.mjs && node scripts/measure-jank.mjs"
   },
   "dependencies": {
     "three": "0.187.0"

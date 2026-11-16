@@ -27,7 +27,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'npx vite',
+      command: 'vite',
       url: 'http://127.0.0.1:5173/harness.html',
       reuseExistingServer: true,
       timeout: 30_000,
