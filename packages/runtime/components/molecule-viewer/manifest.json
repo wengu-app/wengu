@@ -1,0 +1,11 @@
+{
+  "id": "chem.molecule-viewer",
+  "title": "分子结构（球棍模型）",
+  "apiVersion": 1,
+  "libraries": ["three"],
+  "knowledgePoints": ["chem.organic.ethanol.structure"],
+  "sources": [
+    { "title": "NIST Computational Chemistry Comparison and Benchmark Database (CCCBDB), ethanol, experimental geometry", "url": "https://cccbdb.nist.gov/" }
+  ],
+  "modes": ["learn", "review"]
+}

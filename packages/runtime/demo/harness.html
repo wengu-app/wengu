@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>wengu runtime test harness</title>
+    <style>
+      body { margin: 0; font: 14px system-ui; }
+      #bar { display: flex; gap: 8px; padding: 8px; }
+      #probe { padding: 6px 12px; }
+      #slot { width: 800px; }
+    </style>
+    <script type="module" src="/src/harness.ts"></script>
+  </head>
+  <body>
+    <div id="bar"><button id="probe">probe</button><span id="status">idle</span></div>
+    <div id="slot"></div>
+  </body>
+</html>

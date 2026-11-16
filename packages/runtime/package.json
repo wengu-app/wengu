@@ -1,0 +1,36 @@
+{
+  "name": "@wengu/runtime",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Sandbox host and component contract for Wengu generated visualizations",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./react": "./src/react.tsx"
+  },
+  "scripts": {
+    "build:frame": "node scripts/build-frame.mjs",
+    "dev": "npm run build:frame && vite",
+    "sandbox-server": "node scripts/sandbox-server.mjs",
+    "typecheck": "npm run build:frame && tsc -p tsconfig.json --noEmit",
+    "test": "npm run build:frame && playwright test",
+    "measure:jank": "npm run build:frame && node scripts/measure-jank.mjs"
+  },
+  "dependencies": {
+    "three": "0.187.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/three": "0.187.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "esbuild": "^0.28.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "typescript": "^7.0.0",
+    "vite": "^8.0.0"
+  }
+}
