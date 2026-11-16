@@ -1,0 +1,7 @@
+name = "wengu"
+pages_build_output_dir = "public"
+compatibility_date = "2026-11-01"
+
+[[kv_namespaces]]
+binding = "WAITLIST"
+id = "a80385bd096e4a00b153c701a5be3dde"

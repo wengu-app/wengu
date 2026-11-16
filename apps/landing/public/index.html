@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>温故 Wengu · 因材施教，人人可得</title>
+  <meta name="description" content="温故是一个开源的学习平台：把任何学习材料变成看得见、能互动、记得住的内容。AI 可视化负责理解，间隔重复负责记住。">
+  <!-- 等候名单提交地址，接收 POST JSON {"email": "..."} -->
+  <meta name="waitlist-endpoint" content="/api/waitlist">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="nav wrap">
+    <a class="brand" href="#top" aria-label="温故 首页">
+      <span class="seal" aria-hidden="true">温</span>
+      <span>温故 <span class="latin">Wengu</span></span>
+    </a>
+    <a class="nav-cta" href="#waitlist">加入等候名单</a>
+  </header>
+
+  <main id="top">
+    <!-- Hero -->
+    <section class="hero wrap">
+      <div class="hero-copy">
+        <p class="eyebrow">温故而知新 ——《论语》</p>
+        <h1>因材施教，<br>人人可得。</h1>
+        <p class="lede">温故把任何学习材料变成看得见、能互动、记得住的内容。AI 可视化帮你理解，间隔重复帮你记住。</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#waitlist">加入等候名单</a>
+          <a class="btn btn-ghost" href="#principles">我们的原则</a>
+        </div>
+        <ul class="facts" aria-label="要点">
+          <li>开源</li>
+          <li>本地优先，离线可用</li>
+          <li>兼容 Anki 卡组</li>
+        </ul>
+      </div>
+
+      <figure class="card" aria-label="示意：一张带可视化讲解的复习卡">
+        <div class="card-head">
+          <span class="tag">三角函数</span>
+          <span class="due">今天到期 · 第 4 次复习</span>
+        </div>
+        <p class="card-q">为什么 sin 的导数是 cos？</p>
+        <svg class="viz" id="viz-circle" viewBox="0 0 340 176" role="img" aria-label="可拖动的单位圆：点的纵坐标是 sin θ，速度的竖直分量是 cos θ，右边是 sin 曲线和当前切线"></svg>
+        <p class="viz-readout" id="circle-readout" aria-live="off"></p>
+        <figcaption class="card-a">拖动圆上的点。它匀速转动时，速度（绿）的竖直分量（蓝）始终等于 cos θ，正好是右边 sin 曲线在这一点的斜率。</figcaption>
+        <div class="grades" aria-hidden="true">
+          <span>重来</span><span>困难</span><span class="on">良好</span><span>简单</span>
+        </div>
+      </figure>
+    </section>
+
+    <!-- 两件事 -->
+    <section class="section wrap">
+      <h2 class="section-title">理解，然后记住</h2>
+      <div class="pair">
+        <article>
+          <p class="num">一</p>
+          <h3>AI 可视化负责理解</h3>
+          <p>答错时，温故为这个知识点生成一个能动手操作的讲解：图形、动画、可调的参数。讲解是真正的代码，不受模板限制，生成后先自检，通过的才保存。</p>
+        </article>
+        <article>
+          <p class="num">二</p>
+          <h3>间隔重复负责记住</h3>
+          <p>用开源的 FSRS 算法，在你快要忘记的时候安排复习。每次复习后，遗忘变得更慢。复习路径上没有网络请求，翻卡即时响应。</p>
+        </article>
+      </div>
+
+      <figure class="curve">
+        <div class="curve-head">
+          <p class="curve-title">拖动看看：复习几次，记得多牢</p>
+          <label class="slider">
+            <span>复习次数 <b id="review-count">3</b></span>
+            <input id="review-slider" type="range" min="0" max="4" step="1" value="3">
+          </label>
+        </div>
+        <svg id="viz-curve" viewBox="0 0 600 250" role="img" aria-label="遗忘曲线：不复习时记忆持续下降；每次在快要忘记时复习，下一次遗忘更慢"></svg>
+        <div class="curve-stats">
+          <p><span class="muted">复习间隔</span> <b id="curve-intervals"></b></p>
+          <p><span class="muted">第 120 天还记得的概率</span> <b id="curve-recall"></b></p>
+        </div>
+        <figcaption>曲线按 FSRS 的遗忘公式计算，在记得的概率降到 90% 时安排复习。每次复习后记忆稳定性的增长倍数为示意值。</figcaption>
+      </figure>
+    </section>
+
+    <!-- 可视化示例 -->
+    <section class="section wrap">
+      <h2 class="section-title">任何学科，都可以这样讲</h2>
+      <p class="section-lede">每个讲解都是一段生成的代码，形式不受模板限制。下面是几个手工做的示意，你可以直接上手。</p>
+      <div class="gallery">
+        <figure class="tile">
+          <div class="tile-head"><span class="tag">物理</span><span class="tile-q">什么角度扔得最远？</span></div>
+          <svg id="viz-projectile" viewBox="0 0 300 170" role="img" aria-label="抛体运动轨迹，可调发射角"></svg>
+          <label class="slider"><span>发射角 <b id="angle-val">30°</b></span><input id="angle-slider" type="range" min="10" max="80" step="1" value="30"></label>
+          <figcaption id="projectile-note"></figcaption>
+        </figure>
+        <figure class="tile">
+          <div class="tile-head"><span class="tag">统计</span><span class="tile-q">σ 变了，什么没变？</span></div>
+          <svg id="viz-normal" viewBox="0 0 300 170" role="img" aria-label="正态分布曲线，可调标准差，阴影为正负一个标准差内的面积"></svg>
+          <label class="slider"><span>标准差 σ <b id="sigma-val">1.0</b></span><input id="sigma-slider" type="range" min="0.5" max="2" step="0.05" value="1"></label>
+          <figcaption>曲线变宽变矮，但 ±1σ 内的面积始终约 68.3%。</figcaption>
+        </figure>
+        <figure class="tile">
+          <div class="tile-head"><span class="tag">算法</span><span class="tile-q">为什么二分查找这么快？</span></div>
+          <div class="bsearch" id="viz-bsearch" aria-live="polite"></div>
+          <div class="tile-actions">
+            <button class="btn btn-small btn-ghost" id="bs-step" type="button">下一步</button>
+            <button class="btn btn-small btn-quiet" id="bs-reset" type="button">换一个数</button>
+          </div>
+          <figcaption id="bs-note"></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 因材施教 -->
+    <section class="section wrap">
+      <h2 class="section-title">温故要了解的“材”</h2>
+      <p class="section-lede">过去的个性化学习只能调整固定内容的顺序和进度。现在，内容本身可以为一个人生成。</p>
+      <div class="trio">
+        <article>
+          <h3>你已经会什么</h3>
+          <p>哪些掌握了，哪些快忘了，哪些总是错。</p>
+        </article>
+        <article>
+          <h3>什么讲法对你有效</h3>
+          <p>由你自己的记忆数据判断，不靠学习风格测试。</p>
+        </article>
+        <article>
+          <h3>你的目标和时间</h3>
+          <p>备考和长期学习，内容与节奏不同。</p>
+        </article>
+      </div>
+      <figure class="kmap">
+        <div class="kmap-head">
+          <p class="curve-title">一副卡组在温故眼里的样子（示意）</p>
+          <ul class="legend" id="kmap-legend"></ul>
+        </div>
+        <div class="kmap-grid" id="viz-kmap" role="img" aria-label="知识点掌握情况：大部分已掌握，一部分快忘了，少数总是错，还有一些未学"></div>
+        <figcaption>每个点是一个知识点，不是一张卡。快忘了的先复习，总是错的换一种讲法。</figcaption>
+      </figure>
+    </section>
+
+    <!-- 原则 -->
+    <section class="section wrap" id="principles">
+      <h2 class="section-title">原则，以及因此不做的事</h2>
+      <dl class="principles">
+        <div><dt>效果优先于时长</dt><dd>衡量记住和理解了多少。</dd><dd class="no">不做打卡焦虑、推送轰炸、为留存设计的游戏化</dd></div>
+        <div><dt>正确优先于丰富</dt><dd>生成内容可追溯来源、可纠错。</dd><dd class="no">不做没有来源的生成内容</dd></div>
+        <div><dt>以证据为准</dt><dd>只用认知科学支持的方法。</dd><dd class="no">不做流行但没有依据的做法</dd></div>
+        <div><dt>本地优先</dt><dd>数据在你的设备上，离线可用，同步可选。</dd><dd class="no">不强制登录，不把数据只存在云端</dd></div>
+        <div><dt>来去自由</dt><dd>导入 Anki 卡组，随时带着进度导出。</dd><dd class="no">不用私有格式锁住数据</dd></div>
+        <div><dt>你来掌控</dt><dd>安排可解释，内容可修改，模型可选择。</dd><dd class="no">不做黑箱推荐和无法关闭的 AI 功能</dd></div>
+        <div><dt>开源</dt><dd>全部功能代码公开，收费的只是托管服务。</dd><dd class="no">不把核心功能留在闭源付费版</dd></div>
+        <div><dt>美观和速度是功能</dt><dd>操作即时响应，界面克制。</dd><dd class="no">不做拖慢复习的华丽效果</dd></div>
+      </dl>
+    </section>
+
+    <!-- 路线 -->
+    <section class="section wrap">
+      <h2 class="section-title">一步一步来</h2>
+      <p class="section-lede">温故还在早期开发中。核心假设是“可视化能让人记得更牢”，我们会先用对照实验验证它，再决定后续投入。</p>
+      <ol class="roadmap">
+        <li><span>M1</span>桌面端复习器：导入、复习、浏览编辑、导出</li>
+        <li><span>M2</span>手机端与可选同步</li>
+        <li><span>M3</span>答错时的可视化讲解</li>
+        <li><span>M4</span>上传教材，生成知识点和呈现方式</li>
+        <li><span>M5</span>按个人数据选择讲法和节奏</li>
+        <li><span>M6</span>分享和改进可视化内容的内容库</li>
+      </ol>
+    </section>
+
+    <!-- Waitlist -->
+    <section class="waitlist" id="waitlist">
+      <div class="wrap waitlist-inner">
+        <h2>第一个版本可用时，告诉你。</h2>
+        <p>留下邮箱。只在有可用版本时通知你，不做营销推送。</p>
+        <form id="waitlist-form" novalidate>
+          <label class="sr-only" for="email">邮箱</label>
+          <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required>
+          <!-- 防机器人：真人看不到这个字段 -->
+          <input class="hp" name="company" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <button class="btn btn-primary" type="submit">加入等候名单</button>
+        </form>
+        <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer wrap">
+    <p>温故 Wengu · 开源，计划采用 AGPL-3.0</p>
+    <p class="muted">名字取自《论语》“温故而知新，可以为师矣。”</p>
+  </footer>
+
+  <script src="viz.js" defer></script>
+  <script src="waitlist.js" defer></script>
+</body>
+</html>
