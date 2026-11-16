@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import type { CardParity } from "./parity.js";
 import { compareCard, formatReport, relErr } from "./parity.js";
+import { ankiFuzzFactor, fuzzedInterval } from "../src/index.js";
 import { FIXTURES, expected, loadPackage } from "./helpers.js";
 
 const source = expected("source.json");
@@ -71,11 +72,11 @@ describe.each(["full-latest.apkg", "full-legacy.apkg"])("FSRS parity from %s", (
   });
 
   it("next review intervals fall inside the FSRS fuzz range around ts-fsrs's unfuzzed interval", async () => {
-    // Known discrepancy (not tuned away): for a card that was already
-    // reviewed today (elapsed 0 days), Anki's Hard/Good intervals can land
-    // above the fuzz range of the plain FSRS interval. Anki applies an extra
-    // policy there that ts-fsrs does not reproduce. Everything else must be
-    // inside the range.
+    // For a card that was already reviewed today (elapsed 0 days), Anki's
+    // Good can land above the fuzz range of the plain FSRS interval. Explained
+    // (src/scheduling.ts, rules 2 and 3): Good must be at least Hard + 1, and
+    // Anki fuzzes around that raised minimum. The next test checks every
+    // interval exactly; this one keeps the original, model-free bound.
     const outside: string[] = [];
     for (const r of await compute(pkgName)) {
       for (const x of r.ratings) {
@@ -88,6 +89,36 @@ describe.each(["full-latest.apkg", "full-legacy.apkg"])("FSRS parity from %s", (
       }
     }
     if (outside.length) console.log("Intervals outside the fuzz range (same-day re-review):\n  " + outside.join("\n  "));
+  });
+
+  it("next intervals equal Anki's exactly: ts-fsrs stability + Anki's interval rules + Anki's fuzz", async () => {
+    let compared = 0;
+    for (const r of await compute(pkgName)) {
+      for (const x of r.ratings) {
+        if (x.ankiDays === null) continue;
+        expect(x.ruleDays, `${r.label} ${x.rating}`).toBe(x.ankiDays);
+        compared++;
+      }
+    }
+    expect(compared).toBe(27);
+  });
+
+  it("ankiFuzzFactor() reproduces Anki's fuzz_delta() for every recorded card and interval", async () => {
+    // fuzz_delta() (used by Anki's FSRS helper API) seeds with reps - 1; answering seeds with reps.
+    const pkg = await loadPackage(pkgName);
+    let checked = 0;
+    for (const exp of source.cards) {
+      if (!exp.fuzzDelta) continue;
+      const card = pkg.cards.find((c) => c.id === exp.id)!;
+      const deck = pkg.decks.find((d) => d.id === card.deckId)!;
+      const max = pkg.deckConfigs.find((c) => c.id === deck.configId)!.maximumReviewInterval;
+      const f = ankiFuzzFactor(card.id, card.reps - 1);
+      exp.fuzzDelta.forEach((delta, ivl) => {
+        expect(fuzzedInterval(ivl, 1, max, f) - ivl, `card ${card.id} interval ${ivl}`).toBe(delta);
+        checked++;
+      });
+    }
+    expect(checked).toBeGreaterThan(1000);
   });
 
   it("revlog factor holds the post-review FSRS difficulty, rescaled to 100–1100", async () => {

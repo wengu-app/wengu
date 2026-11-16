@@ -10,7 +10,15 @@ import { get_fuzz_range } from "ts-fsrs";
 import { FSRS6Algorithm, FSRS6_DEFAULT_WEIGHTS, FSRS6_MODEL_BOUNDS, migrateFSRS6Parameters } from "ts-fsrs/models/fsrs-6";
 
 import type { AnkiPackage, Card, RevlogEntry } from "../src/index.js";
-import { fsrsParametersFor } from "../src/index.js";
+import {
+  ankiFuzzFactor,
+  fsrsDecay,
+  fsrsGraduatingEasyInterval,
+  fsrsGraduatingInterval,
+  fsrsInterval,
+  fsrsParametersFor,
+  fsrsPassingIntervals,
+} from "../src/index.js";
 import type { ExpectedCard, ExpectedState } from "./helpers.js";
 
 export interface MemoryState {
@@ -26,8 +34,15 @@ export interface RatingComparison {
   /** Review interval in days (review outcomes only). */
   ankiDays: number | null;
   tsUnfuzzedDays: number | null;
-  /** ts-fsrs unfuzzed interval + Anki's `fuzz_delta()` for that interval. */
+  /**
+   * ts-fsrs unfuzzed interval + Anki's `fuzz_delta()` for that interval. Not expected to match: `fuzz_delta()` seeds
+   * its fuzz with reps - 1 (it re-creates the *previous* answer's fuzz), an answer uses reps.
+   */
   tsWithAnkiFuzz: number | null;
+  /** Our prediction of Anki's interval: ts-fsrs stability + Anki's interval rules + Anki's fuzz (src/scheduling.ts). */
+  ruleDays: number | null;
+  /** The same without fuzz. */
+  ruleUnfuzzedDays: number | null;
   /**
    * FSRS fuzz range around the ts-fsrs unfuzzed interval (ts-fsrs
    * get_fuzz_range with elapsed = 0, i.e. the documented percentage bands
@@ -122,11 +137,30 @@ export function compareCard(pkg: AnkiPackage, card: Card, exp: ExpectedCard, tod
   const elapsed = today - lastReviewDay;
   const ratings: RatingComparison[] = [];
   const names = ["again", "hard", "good", "easy"] as const;
+  const next = names.map((_, i) => algo.next_state(stored, elapsed, i + 1));
+  const rule = (fuzzFactor: number | null): (number | null)[] => {
+    const decay = fsrsDecay(fp.params);
+    const ivl = next.map((s) => fsrsInterval(s.stability, fp.desiredRetention, decay));
+    const max = conf.maximumReviewInterval;
+    const kinds = names.map((n) => exp.next![n].kind);
+    if (card.type === 2) {
+      if (kinds[1] !== "review" || kinds[2] !== "review" || kinds[3] !== "review") return [null, null, null, null];
+      const p = fsrsPassingIntervals({ hard: ivl[1]!, good: ivl[2]!, easy: ivl[3]!, previousInterval: card.interval, maximumInterval: max, fuzzFactor });
+      return [null, p.hard, p.good, p.easy];
+    }
+    return names.map((n, i) =>
+      kinds[i] !== "review" ? null
+      : n === "easy" ? fsrsGraduatingEasyInterval(ivl[2]!, ivl[3]!, max, fuzzFactor)
+      : fsrsGraduatingInterval(ivl[i]!, max, fuzzFactor),
+    );
+  };
+  const ruleFuzzed = rule(ankiFuzzFactor(card.id, card.reps));
+  const ruleUnfuzzed = rule(null);
   names.forEach((rating, i) => {
     const g = i + 1;
     const st = exp.next![rating];
     // Anki answers from the stored (rounded) state, with whole elapsed days.
-    const ts = algo.next_state(stored, elapsed, g);
+    const ts = next[i]!;
     const isReview = st.kind === "review";
     const tsDays = isReview ? Math.min(Math.max(algo.next_interval(ts.stability, fp.desiredRetention), 1), conf.maximumReviewInterval) : null;
     const fuzz = tsDays !== null && exp.fuzzDelta ? (exp.fuzzDelta[tsDays] ?? null) : null;
@@ -138,6 +172,8 @@ export function compareCard(pkg: AnkiPackage, card: Card, exp: ExpectedCard, tod
       ankiDays: isReview ? (st.scheduled_days ?? null) : null,
       tsUnfuzzedDays: tsDays,
       tsWithAnkiFuzz: tsDays !== null && fuzz !== null ? tsDays + fuzz : null,
+      ruleDays: ruleFuzzed[i] ?? null,
+      ruleUnfuzzedDays: ruleUnfuzzed[i] ?? null,
       fuzzRange: tsDays !== null ? fuzzRange(tsDays, 0, conf.maximumReviewInterval) : null,
       tsFsrsFuzzRange: tsDays !== null ? fuzzRange(tsDays, elapsed, conf.maximumReviewInterval) : null,
       ankiSecs: isReview ? null : (st.scheduled_secs ?? st.learning_scheduled_secs ?? null),
@@ -185,7 +221,8 @@ export function formatReport(rows: CardParity[]): string {
   }
   out.push("");
   out.push("Next states at export time. 'elapsed' = Anki's current-state elapsed_days / ours (today − day of last review).");
-  out.push("Per rating: Anki vs ts-fsrs memory state; Anki interval, ts-fsrs unfuzzed interval, fuzz range around it, ts + Anki fuzz_delta():");
+  out.push("Per rating: Anki vs ts-fsrs memory state; Anki interval, ts-fsrs unfuzzed interval, fuzz range around it, ts + Anki fuzz_delta(),");
+  out.push("and 'rule': our prediction with Anki's interval rules and fuzz (src/scheduling.ts; unfuzzed in parentheses):");
   for (const r of rows) {
     out.push(`${r.label}  elapsed ${r.elapsedDaysAnki}/${r.elapsedDaysOurs}  DR ${r.desiredRetention}`);
     for (const x of r.ratings) {
@@ -194,7 +231,8 @@ export function formatReport(rows: CardParity[]): string {
         x.ankiDays !== null
           ? `days Anki ${String(x.ankiDays).padStart(4)}  ts ${String(x.tsUnfuzzedDays).padStart(4)}  fuzz range [${x.fuzzRange![0]},${x.fuzzRange![1]}]` +
             `${x.ankiDays >= x.fuzzRange![0] && x.ankiDays <= x.fuzzRange![1] ? " in " : " OUT"}  ts+fuzz_delta() ${x.tsWithAnkiFuzz}${x.tsWithAnkiFuzz === x.ankiDays ? " =" : " ≠"}` +
-            (x.ankiDays < x.tsFsrsFuzzRange![0] ? `  [below ts-fsrs floor ${x.tsFsrsFuzzRange![0]}]` : "")
+            (x.ankiDays < x.tsFsrsFuzzRange![0] ? `  [below ts-fsrs floor ${x.tsFsrsFuzzRange![0]}]` : "") +
+            `  rule ${x.ruleDays} (${x.ruleUnfuzzedDays})${x.ruleDays === x.ankiDays ? " =" : " ≠"}`
           : `step ${x.ankiKind} ${x.ankiSecs}s`;
       out.push(`   ${x.rating.padEnd(5)} ${mem}   ${ivl}`);
     }
@@ -204,6 +242,7 @@ export function formatReport(rows: CardParity[]): string {
   const exactUnfuzzed = all.filter((x) => x.ankiDays === x.tsUnfuzzedDays).length;
   const exactDelta = all.filter((x) => x.ankiDays === x.tsWithAnkiFuzz).length;
   const belowFloor = all.filter((x) => x.ankiDays! < x.tsFsrsFuzzRange![0]).length;
+  const exactRule = all.filter((x) => x.ankiDays === x.ruleDays).length;
   const memCmp = rows.flatMap((r) => r.ratings).filter((x) => x.anki);
   const maxMemErr = Math.max(
     ...rows.map((r) => Math.max(relErr(r.tsReplay.stability, r.ankiReplay.stability), relErr(r.tsReplay.difficulty, r.ankiReplay.difficulty))),
@@ -213,7 +252,8 @@ export function formatReport(rows: CardParity[]): string {
   out.push(`Summary: ${rows.length} cards, ${memCmp.length} per-rating memory states + ${rows.length} replays, max relative error ${maxMemErr.toExponential(2)}.`);
   out.push(
     `Review intervals: ${all.length} compared; inside fuzz range ${inRange}/${all.length}; equal to unfuzzed ts-fsrs ${exactUnfuzzed}/${all.length}; ` +
-      `equal to ts-fsrs + Anki fuzz_delta() ${exactDelta}/${all.length}; below ts-fsrs's own fuzz floor ${belowFloor}/${all.length}.`,
+      `equal to ts-fsrs + Anki fuzz_delta() ${exactDelta}/${all.length}; below ts-fsrs's own fuzz floor ${belowFloor}/${all.length}; ` +
+      `equal to our rule-based prediction ${exactRule}/${all.length}.`,
   );
   return out.join("\n");
 }

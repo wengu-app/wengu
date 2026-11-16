@@ -11,7 +11,8 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "fixtures": "fixtures/.venv/bin/python fixtures/generate.py"
+    "fixtures": "fixtures/.venv/bin/python fixtures/generate.py",
+    "fixtures:intervals": "fixtures/.venv/bin/python fixtures/intervals.py"
   },
   "dependencies": {
     "fflate": "0.8.3",
