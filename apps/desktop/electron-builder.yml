@@ -109,8 +109,8 @@ mac:
   # Signing/notarization need an Apple Developer ID (CSC_LINK, APPLE_ID…); without them the build is ad-hoc signed.
   notarize: false
   extendInfo:
-    # menu bar / Dock / About name; the bundle on disk stays Wengu.app
-    CFBundleName: 温故
+    # Finder / Launchpad show 温故; the bundle on disk stays Wengu.app. Do NOT override CFBundleName: Electron
+    # derives the helper app names ("<CFBundleName> Helper.app") from it and aborts at launch if they don't exist.
     CFBundleDisplayName: 温故
     NSHumanReadableCopyright: Copyright © 2026 Wengu contributors
 
