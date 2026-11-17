@@ -63,6 +63,31 @@ jobs:
       - name: Build and package
         run: corepack pnpm --filter @wengu/desktop run ${{ matrix.script }}
 
+      # A build that packages fine can still be killed at launch by macOS if its code signature is broken.
+      - name: Verify signature and launch (macOS)
+        if: runner.os == 'macOS'
+        working-directory: apps/desktop/dist
+        run: |
+          for app in mac-arm64/Wengu.app mac/Wengu.app; do
+            echo "== $app"
+            codesign --verify --deep --strict --verbose=2 "$app"
+            codesign -dv "$app" 2>&1 | grep -E 'Signature|flags|TeamIdentifier' || true
+          done
+          host=mac-arm64; [ "$(uname -m)" = "x86_64" ] && host=mac
+          "$host/Wengu.app/Contents/MacOS/Wengu" --user-data-dir="$RUNNER_TEMP/wengu-smoke" > "$RUNNER_TEMP/wengu-smoke.log" 2>&1 &
+          pid=$!
+          sleep 20
+          if kill -0 "$pid" 2>/dev/null; then
+            echo "app still running after 20 s"
+            kill "$pid"
+          else
+            wait "$pid" || code=$?
+            echo "app exited early with code ${code:-0}"
+            cat "$RUNNER_TEMP/wengu-smoke.log"
+            ls ~/Library/Logs/DiagnosticReports/ 2>/dev/null | tail -5
+            exit 1
+          fi
+
       - uses: actions/upload-artifact@v4
         with:
           name: wengu-${{ matrix.name }}
