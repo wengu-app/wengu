@@ -85,6 +85,7 @@ try {
     check("progress events reached the page", a.phases.includes("knowledge-points") && a.phases.includes("finishing"), a.phases);
     check("answer recorded", a.undoLabel === "Answer good", a.undoLabel);
     check("media blob from OPFS decodes as an image", a.imageSize[0] > 0, a.imageSize);
+    check("exportApkg returns .apkg bytes; exportApkgFile an OPFS-backed File", a.export.isUint8Array && a.export.zip && a.export.isFile && a.export.bytes > 1000 && a.export.file > 1000, a.export);
     const b = await run(page, "step=check");
     check("persists across worker restart (review log)", b.revlog === 62, b.revlog);
     check("undo stack persists across worker restart", b.undoLabel === "Answer good", b.undoLabel);

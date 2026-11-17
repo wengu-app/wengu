@@ -19,13 +19,14 @@
  * package's collection was created on a different day than this one.
  */
 import type { AnkiPackage, Card, Deck, Notetype } from "@wengu/anki";
+import { noteSortFieldAndChecksum } from "@wengu/anki";
 
 import { sha256Hex } from "../media/store.js";
 import type { ImportOptions, ImportPhase, ImportResult } from "../types.js";
 import type { Engine } from "./engine.js";
 import type { KpRow } from "./rows.js";
 import { FIELD_SEP, ITEM_INSERT, KP_INSERT, REVLOG_INSERT, kpValues } from "./rows.js";
-import { searchText, sortFieldText } from "./text.js";
+import { searchText } from "./text.js";
 import { clearUndo } from "./undo.js";
 
 const DAY_DUE_LIMIT = 1_000_000_000;
@@ -225,7 +226,7 @@ export async function importPackage(e: Engine, pkg: AnkiPackage, options: Import
       const fields = applyRenames(n.fields);
       const renamed = fields.some((f, j) => f !== n.fields[j]);
       const nt = e.noteTypes.get(ntId)!;
-      const sortField = renamed ? sortFieldText(fields[nt.sortFieldIndex] ?? "") : n.sortField;
+      const sortField = renamed ? noteSortFieldAndChecksum({ fields }, nt).sortField : n.sortField;
       const ex = empty ? undefined : byGuid(n.guid);
       if (ex) {
         kpMap.set(n.id, { id: ex.id, isNew: false });

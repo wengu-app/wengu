@@ -2,7 +2,7 @@
  * The Wengu engine: all collection operations, synchronous over `SqlDatabase` (media I/O is async).
  * Runs inside the database worker in the app, or directly in Node (tests, benchmarks, tools).
  */
-import type { AnkiPackage, Deck, DeckConfig, Notetype } from "@wengu/anki";
+import type { AnkiPackage, Deck, DeckConfig, Notetype, WriteOptions } from "@wengu/anki";
 import { fsrsParametersFor, renderCard } from "@wengu/anki";
 
 import type { SqlDatabase } from "../db/driver.js";
@@ -40,7 +40,7 @@ import type {
 } from "../types.js";
 import * as browse from "./browse.js";
 import { defaultPreset, newDeck, stockNoteType, type StockNoteType } from "./defaults.js";
-import { exportPackage } from "./exporter.js";
+import { exportPackage, writeApkg } from "./exporter.js";
 import { importPackage } from "./importer.js";
 import type { DeckStatsRow, ItemRow, KpRow } from "./rows.js";
 import { ITEM_COLS, REVLOG_INSERT, itemToPublic, kpToPublic, noteTypeToPublic, restoredQueue } from "./rows.js";
@@ -61,6 +61,10 @@ export interface EngineOptions {
   fuzz?: boolean;
   /** Reads an .apkg (needed by importAnki(bytes)). */
   readPackage?: (bytes: Uint8Array) => Promise<AnkiPackage>;
+  /** sql.js-compatible SQLite for the .apkg writer (the core passes its own through a shim). */
+  sqlJs?: NonNullable<WriteOptions["sqlJs"]>;
+  /** Where `exportApkgFile` streams to (default: an in-memory Blob). */
+  exportSink?: () => Promise<ExportSink>;
 }
 
 const UNDO_LIMIT = 30;
@@ -1015,6 +1019,55 @@ export class Engine implements WenguApi {
   async exportAnki(options: ExportOptions = {}): Promise<AnkiPackage> {
     return exportPackage(this, options);
   }
+
+  /** Warnings of the last .apkg export (data the legacy format cannot hold, validation warnings). */
+  lastExportWarnings: string[] = [];
+
+  async exportApkg(options: ExportOptions = {}): Promise<Uint8Array> {
+    const chunks: Uint8Array[] = [];
+    let total = 0;
+    this.lastExportWarnings = await writeApkg(this, options, this.opts.sqlJs, (c) => {
+      // Media chunks are the model's own arrays; the package is assembled below, so no copy is needed here.
+      chunks.push(c);
+      total += c.length;
+    });
+    const out = new Uint8Array(total);
+    let off = 0;
+    for (const c of chunks) {
+      out.set(c, off);
+      off += c.length;
+    }
+    return out;
+  }
+
+  async exportApkgFile(options: ExportOptions = {}): Promise<Blob> {
+    const sink = await (this.opts.exportSink ?? memorySink)();
+    try {
+      this.lastExportWarnings = await writeApkg(this, options, this.opts.sqlJs, (c) => sink.write(c));
+    } catch (err) {
+      await sink.abort();
+      throw err;
+    }
+    return sink.close();
+  }
+}
+
+/** Destination of a streamed export. `write` is called synchronously, in order; the sink queues as needed. */
+export interface ExportSink {
+  write(chunk: Uint8Array): void;
+  close(): Promise<Blob>;
+  abort(): Promise<void>;
+}
+
+async function memorySink(): Promise<ExportSink> {
+  const parts: Uint8Array[] = [];
+  return {
+    write: (c) => parts.push(c.slice()),
+    close: async () => new Blob(parts as Uint8Array<ArrayBuffer>[], { type: "application/octet-stream" }),
+    abort: async () => {
+      parts.length = 0;
+    },
+  };
 }
 
 export function cmpName(a: string, b: string): number {

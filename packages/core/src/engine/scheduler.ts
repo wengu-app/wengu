@@ -4,6 +4,7 @@
  */
 import {
   ankiFuzzFactor,
+  cardDataJson,
   fsrsDecay,
   fsrsElapsedDays,
   fsrsGraduatingEasyInterval,
@@ -14,6 +15,7 @@ import {
 import { FSRS6Algorithm, FSRS6_DEFAULT_WEIGHTS, FSRS6_MODEL_BOUNDS, migrateFSRS6Parameters } from "ts-fsrs/models/fsrs-6";
 
 import type { ItemState, MemoryState, Rating, RatingName, RatingOutcome } from "../types.js";
+import { cardDataOf } from "./carddata.js";
 
 export const RATING_NAMES: readonly RatingName[] = ["again", "hard", "good", "easy"];
 
@@ -204,18 +206,14 @@ const round = (x: number, digits: number) => {
   return Math.round(x * f) / f;
 };
 
-/** Card data after an answer, in Anki's layout: pos first, then s, d, dr, decay, lrt, then anything else kept. */
+/** Card data after an answer: Anki's layout (pos, s, d, dr, decay, lrt, then everything else kept), via @wengu/anki. */
 function nextCardData(raw: string, memory: MemoryState, desiredRetention: number, decay: number, nowSecs: number): string {
-  const old = parseCardData(raw);
-  const out: Record<string, unknown> = {};
-  if ("pos" in old) out["pos"] = old["pos"];
-  out["s"] = round(memory.stability, 4);
-  out["d"] = round(memory.difficulty, 3);
-  out["dr"] = round(desiredRetention, 2);
-  out["decay"] = round(decay, 3);
-  out["lrt"] = nowSecs;
-  for (const [k, v] of Object.entries(old)) if (!(k in out)) out[k] = v;
-  return JSON.stringify(out);
+  const data = cardDataOf(raw);
+  data.memoryState = { stability: round(memory.stability, 4), difficulty: round(memory.difficulty, 3) };
+  data.desiredRetention = round(desiredRetention, 2);
+  data.decay = round(decay, 3);
+  data.lastReviewTime = nowSecs;
+  return cardDataJson(data);
 }
 
 /** Revlog `factor` under FSRS: post-review difficulty mapped to 100–1100 (observed in Anki's exports). */

@@ -1,7 +1,8 @@
 import type { Sqlite3Static } from "@sqlite.org/sqlite-wasm";
 import type { ReadOptions } from "@wengu/anki";
 
-import { deserializeDatabase } from "./sqlite-wasm.js";
+import { SqliteWasmDatabase, deserializeDatabase } from "./sqlite-wasm.js";
+import type { SqlValue } from "./driver.js";
 
 type SqlJsStatic = NonNullable<ReadOptions["sqlJs"]>;
 
@@ -13,8 +14,11 @@ type SqlJsStatic = NonNullable<ReadOptions["sqlJs"]>;
 export function sqlJsShim(sqlite3: Sqlite3Static): SqlJsStatic {
   class Database {
     private readonly db;
+    /** Fast path (raw C exports) for the writer's bulk inserts. */
+    private readonly fast;
     constructor(bytes?: Uint8Array) {
       this.db = bytes ? deserializeDatabase(sqlite3, bytes) : new sqlite3.oo1.DB(":memory:", "c");
+      this.fast = new SqliteWasmDatabase(sqlite3, this.db);
     }
     exec(sql: string): { columns: string[]; values: unknown[][] }[] {
       const values: never[] = [];
@@ -23,20 +27,18 @@ export function sqlJsShim(sqlite3: Sqlite3Static): SqlJsStatic {
       return columns.length ? [{ columns, values }] : [];
     }
     run(sql: string, params?: unknown[]): this {
-      this.db.exec({ sql, ...(params ? { bind: params as never } : {}) });
+      if (params && params.length) this.fast.run(sql, params as SqlValue[]);
+      else this.db.exec(sql);
       return this;
     }
     prepare(sql: string) {
-      const stmt = this.db.prepare(sql);
+      const fast = this.fast;
       return {
         run(params?: unknown[]): void {
-          if (params && params.length) stmt.bind(params as never);
-          stmt.stepReset();
-          stmt.clearBindings();
+          fast.run(sql, (params ?? []) as SqlValue[]);
         },
         free(): boolean {
-          stmt.finalize();
-          return true;
+          return true; // cached statements are finalised on close()
         },
       };
     }
@@ -44,7 +46,7 @@ export function sqlJsShim(sqlite3: Sqlite3Static): SqlJsStatic {
       return sqlite3.capi.sqlite3_js_db_export(this.db.pointer!);
     }
     close(): void {
-      this.db.close();
+      this.fast.close(); // finalises cached statements, then closes the database
     }
   }
   return { Database } as unknown as SqlJsStatic;

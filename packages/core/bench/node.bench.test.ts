@@ -30,6 +30,7 @@ it("benchmark (Node, in-memory SQLite WASM)", async () => {
     search: (q) => tick(() => engine.search(q)),
     stats: () => tick(() => engine.stats()),
     exportAnki: () => engine.exportAnki(),
+    exportApkg: () => engine.exportApkg(),
     info: () => tick(() => engine.info()),
   };
   const rows = await runScenario(api, pkg, (s) => console.log(s));

@@ -360,16 +360,16 @@ describe("statistics, media, export of one deck", () => {
 
     const misc = engine.deckIdByName("Wengu Test::Misc")!;
     const pkg = await engine.exportAnki({ deckId: misc });
-    expect(pkg.decks.map((d) => d.name)).toEqual(["Wengu Test::Misc"]);
+    // Anki's deck export (as @wengu/anki's packageForExport reproduces it) includes the parent decks and Default.
+    expect(pkg.decks.map((d) => d.name)).toEqual(["Default", "Wengu Test", "Wengu Test::Misc"]);
     expect(pkg.cards.every((c) => c.deckId === misc)).toBe(true);
     expect(pkg.media.map((m) => m.name)).toEqual(["猫 cat.png"]);
     expect(pkg.revlog.every((r) => pkg.cards.some((c) => c.id === r.cardId))).toBe(true);
     expect(pkg.revlog.length).toBeGreaterThan(0);
 
-    // importing that deck into a new collection keeps ids and history (the missing parent deck is created)
+    // importing that deck into a new collection keeps ids and history
     const { engine: other } = await engineAt(FIXTURE_NOW_SECS);
     await other.importAnki(pkg);
-    expect(other.deckIdByName("Wengu Test")).toBeDefined();
     expect(normaliseForCompare(await other.exportAnki({ deckId: misc }))).toEqual(normaliseForCompare(pkg));
   });
 });

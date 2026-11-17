@@ -502,4 +502,16 @@ export interface WenguApi {
   /** Imports an `.apkg`/`.colpkg` (bytes) or an already parsed `AnkiPackage`. */
   importAnki(input: Uint8Array | AnkiPackage, options?: ImportOptions): Promise<ImportResult>;
   exportAnki(options?: ExportOptions): Promise<AnkiPackage>;
+  /**
+   * Exports an .apkg file (written by @wengu/anki in the legacy-2 format every Anki since 2.1.50 imports).
+   * Built in the worker; the bytes are transferred, not copied. Peak worker memory ≈ 2 × exported media + the
+   * collection database; for media-heavy exports prefer `exportApkgFile`.
+   */
+  exportApkg(options?: ExportOptions): Promise<Uint8Array>;
+  /**
+   * The same file streamed to storage as it is written (OPFS in the browser) and returned as a disk-backed
+   * Blob (`File`): peak worker memory ≈ 1 × exported media + the collection database. Only the latest
+   * export file is kept. Save it with e.g. `URL.createObjectURL(file)` + a download link.
+   */
+  exportApkgFile(options?: ExportOptions): Promise<Blob>;
 }

@@ -21,7 +21,7 @@ export function loadSqlite(): Promise<Sqlite3Static> {
   return sqlite3Promise;
 }
 
-export interface NodeEngineOptions extends Omit<EngineOptions, "readPackage" | "storage" | "sqliteVersion"> {
+export interface NodeEngineOptions extends Omit<EngineOptions, "readPackage" | "storage" | "sqliteVersion" | "sqlJs"> {
   /** Start from a database image (from `engine.db.exportBytes()`). */
   bytes?: Uint8Array;
   media?: MediaStore;
@@ -37,6 +37,7 @@ export async function openNodeEngine(opts: NodeEngineOptions = {}): Promise<Engi
     storage: "memory",
     sqliteVersion: sqlite3.version.libVersion,
     readPackage: (bytes) => readAnkiPackage(bytes, { sqlJs: shim }),
+    sqlJs: shim,
   });
 }
 

@@ -22,6 +22,7 @@ function serializeError(e: unknown): SerializedError {
 
 /** Buffers of large binary results, transferred instead of copied. */
 function transferables(value: unknown): Transferable[] {
+  if (value instanceof Uint8Array && value.buffer instanceof ArrayBuffer) return [value.buffer];
   const pkg = value as Partial<AnkiPackage> | null;
   if (pkg && Array.isArray(pkg.media) && Array.isArray(pkg.notes)) {
     const seen = new Set<ArrayBufferLike>();

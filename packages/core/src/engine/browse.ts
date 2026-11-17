@@ -1,6 +1,6 @@
 /** Browsing, searching and editing knowledge points. */
 import type { Notetype } from "@wengu/anki";
-import { clozeNumbers, htmlToText, renderCard } from "@wengu/anki";
+import { cardOrdinalsForNote, htmlToText, newGuid, noteSortFieldAndChecksum } from "@wengu/anki";
 
 import type { SqlValue } from "../db/driver.js";
 import type {
@@ -19,7 +19,7 @@ import type { UndoRecorder } from "./undo.js";
 import type { ItemRow, KpRow } from "./rows.js";
 import { FIELD_SEP, ITEM_COLS, ITEM_INSERT, KP_INSERT, itemToPublic, itemValues, kpToPublic, kpValues, noteTypeToPublic } from "./rows.js";
 import { itemStateOf } from "./scheduler.js";
-import { fieldChecksum, newGuid, normaliseSearch, normaliseTags, searchText, sortFieldText, splitTags } from "./text.js";
+import { normaliseSearch, normaliseTags, searchText, splitTags } from "./text.js";
 
 const totalCache = new WeakMap<Engine, { key: string; total: number }>();
 
@@ -158,34 +158,14 @@ export function getKnowledgePoint(e: Engine, id: number): KnowledgePointDetail |
   };
 }
 
-/** Derived columns of a knowledge point from its fields. */
+/** Derived columns of a knowledge point from its fields (sort field and checksum exactly as Anki computes them). */
 function derived(nt: Notetype, fields: string[]): Pick<KpRow, "sort_field" | "checksum" | "search_text"> {
-  return {
-    sort_field: sortFieldText(fields[nt.sortFieldIndex] ?? ""),
-    checksum: fieldChecksum(fields[0] ?? ""),
-    search_text: searchText(fields),
-  };
+  const { sortField, checksum } = noteSortFieldAndChecksum({ fields }, nt);
+  return { sort_field: sortField, checksum, search_text: searchText(fields) };
 }
 
 function fitFields(nt: Notetype, fields: readonly string[]): string[] {
   return nt.fields.map((_, i) => (fields[i] ?? "").replace(/\x1f/g, " "));
-}
-
-/** Template ordinals a note needs review items for: non-empty fronts (normal) or cloze numbers (cloze). */
-export function requiredOrds(nt: Notetype, fields: string[]): number[] {
-  if (nt.kind === "cloze") {
-    const nums = new Set<number>();
-    for (const f of fields) for (const n of clozeNumbers(f)) nums.add(n);
-    return nums.size ? [...nums].sort((a, b) => a - b).map((n) => n - 1) : [0];
-  }
-  const empty = nt.fields.map(() => "");
-  const ords: number[] = [];
-  for (const t of nt.templates) {
-    const withFields = renderCard({ notetype: nt, note: { fields, tags: [] }, cardOrd: t.ord }).question;
-    const blank = renderCard({ notetype: nt, note: { fields: empty, tags: [] }, cardOrd: t.ord }).question;
-    if (withFields !== blank) ords.push(t.ord);
-  }
-  return ords;
 }
 
 /** Writes a knowledge point's tags (row, tag index, registry). */
@@ -243,7 +223,7 @@ export function addKnowledgePoint(e: Engine, input: AddKnowledgePointInput): Add
   if (!nt) throw new Error(`no note type ${input.noteTypeId}`);
   if (!e.decks.has(input.deckId)) throw new Error(`no deck ${input.deckId}`);
   const fields = fitFields(nt, input.fields);
-  const ords = requiredOrds(nt, fields);
+  const ords = cardOrdinalsForNote(nt, fields);
   if (!ords.length) throw new Error("the knowledge point would have no review items: fill in the fields its card templates use");
   const nowSecs = Math.floor(e.clock.now() / 1000);
   return e.undoable("Add", (undo) => {
@@ -284,7 +264,7 @@ export function updateKnowledgePoint(e: Engine, input: UpdateKnowledgePointInput
         ]);
         const existing = e.db.all<{ ord: number; deck_id: number }>("SELECT ord, deck_id FROM review_items WHERE kp_id = ? ORDER BY ord", [kp.id]);
         const have = new Set(existing.map((r) => r.ord));
-        const missing = requiredOrds(nt, fields).filter((o) => !have.has(o));
+        const missing = cardOrdinalsForNote(nt, fields).filter((o) => !have.has(o));
         if (missing.length) {
           const deckId = existing[0]?.deck_id ?? e.createDeck("Default");
           added = newItemsFor(e, kp.id, nt, missing, deckId, nowSecs, undo);

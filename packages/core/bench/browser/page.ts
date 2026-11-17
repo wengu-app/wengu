@@ -59,6 +59,11 @@ async function step(name: string): Promise<unknown> {
     await img.decode();
     out["imageSize"] = [img.naturalWidth, img.naturalHeight];
     out["mediaNames"] = Object.keys(media);
+    const apkg = await client.exportApkg({});
+    const file = await client.exportApkgFile({});
+    const fileBytes = new Uint8Array(await file.arrayBuffer());
+    const zipMagic = (b: Uint8Array) => b[0] === 0x50 && b[1] === 0x4b;
+    out["export"] = { bytes: apkg.byteLength, isUint8Array: apkg instanceof Uint8Array, file: file.size, isFile: file instanceof File, zip: zipMagic(apkg) && zipMagic(fileBytes) };
   }
   if (name === "check") {
     out["revlog"] = (await client.info()).counts.reviewLog;
@@ -108,6 +113,7 @@ async function bench(): Promise<unknown> {
     search: (q) => client.search(q),
     stats: () => client.stats(),
     exportAnki: () => client.exportAnki(),
+    exportApkg: () => client.exportApkg({}),
     info: () => client.info(),
   };
   const rows = await runScenario(api, pkg, log);

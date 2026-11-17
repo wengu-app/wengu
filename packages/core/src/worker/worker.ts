@@ -15,6 +15,7 @@ import { readAnkiPackage } from "@wengu/anki";
 import { SqliteWasmDatabase } from "../db/sqlite-wasm.js";
 import { sqlJsShim } from "../db/sqljs-shim.js";
 import { Engine } from "../engine/engine.js";
+import type { ExportSink } from "../engine/engine.js";
 import { MemoryMediaStore, OpfsMediaStore } from "../media/store.js";
 import type { OpenOptions, Port } from "../rpc/protocol.js";
 import { serve } from "../rpc/server.js";
@@ -53,7 +54,7 @@ export async function openEngine(options: OpenOptions): Promise<Engine> {
   const readPackage = (bytes: Uint8Array) => readAnkiPackage(bytes, { sqlJs: shim });
   if (options.storage === "memory") {
     const db = new SqliteWasmDatabase(sqlite3, new sqlite3.oo1.DB(":memory:", "c"));
-    return Engine.open(db, new MemoryMediaStore(), { storage: "memory", sqliteVersion: sqlite3.version.libVersion, readPackage });
+    return Engine.open(db, new MemoryMediaStore(), { storage: "memory", sqliteVersion: sqlite3.version.libVersion, readPackage, sqlJs: shim });
   }
   await acquireLock();
   try {
@@ -68,7 +69,7 @@ export async function openEngine(options: OpenOptions): Promise<Engine> {
     // pool VFS does not officially support WAL and large imports get 2x slower; revisit if commits matter.)
     db.exec("PRAGMA locking_mode = EXCLUSIVE; PRAGMA journal_mode = PERSIST; PRAGMA synchronous = NORMAL;");
     const media = await OpfsMediaStore.open();
-    const engine = Engine.open(db, media, { storage: "opfs-sahpool", sqliteVersion: sqlite3.version.libVersion, readPackage });
+    const engine = Engine.open(db, media, { storage: "opfs-sahpool", sqliteVersion: sqlite3.version.libVersion, readPackage, sqlJs: shim, exportSink: opfsExportSink });
     // Page cache: up to 128 MB (a 50k-note collection with history is ~75 MB), so after first use reads rarely
     // touch OPFS. Memory grows only as pages are actually read.
     db.exec("PRAGMA cache_size = -131072");
@@ -78,6 +79,35 @@ export async function openEngine(options: OpenOptions): Promise<Engine> {
     releaseLock = null;
     throw e;
   }
+}
+
+/** Streams an export into OPFS (`wengu-exports/export-<time>.apkg`, older exports deleted) and returns the File. */
+async function opfsExportSink(): Promise<ExportSink> {
+  const root = await navigator.storage.getDirectory();
+  const dir = await root.getDirectoryHandle("wengu-exports", { create: true });
+  for await (const name of (dir as unknown as { keys(): AsyncIterable<string> }).keys()) await dir.removeEntry(name).catch(() => undefined);
+  const handle = await dir.getFileHandle(`export-${Date.now()}.apkg`, { create: true });
+  const writable = await handle.createWritable();
+  let chain: Promise<void> = Promise.resolve();
+  let failure: unknown = null;
+  return {
+    // The writer hands over chunks synchronously; writes are chained (media chunks are not modified later).
+    write(chunk) {
+      chain = chain.then(() => writable.write(chunk as Uint8Array<ArrayBuffer>)).catch((e: unknown) => {
+        failure ??= e;
+      });
+    },
+    async close() {
+      await chain;
+      if (failure) throw failure;
+      await writable.close();
+      return handle.getFile();
+    },
+    async abort() {
+      await chain;
+      await writable.abort().catch(() => undefined);
+    },
+  };
 }
 
 export async function closeEngine(engine: Engine): Promise<void> {

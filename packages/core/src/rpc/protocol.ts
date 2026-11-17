@@ -31,6 +31,8 @@ export const API_METHODS = [
   "listMedia",
   "importAnki",
   "exportAnki",
+  "exportApkg",
+  "exportApkgFile",
 ] as const satisfies readonly (keyof WenguApi)[];
 
 // Compile-time check that API_METHODS lists every method.

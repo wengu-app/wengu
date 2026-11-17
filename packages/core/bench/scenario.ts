@@ -15,6 +15,7 @@ export interface BenchApi {
   search(q: BrowseQuery): Promise<{ total: number }>;
   stats(): Promise<Stats>;
   exportAnki(): Promise<AnkiPackage>;
+  exportApkg?(): Promise<Uint8Array>;
   info(): Promise<{ counts: Record<string, number> }>;
 }
 
@@ -98,6 +99,11 @@ export async function runScenario(api: BenchApi, pkg: AnkiPackage, log: (s: stri
   add(await measure("search: next page of a text search", 5, (i) => api.search({ text: "theorem", offset: 50 * (i + 1) })));
   add(await measure("statistics", 5, () => api.stats()));
   add(await measure("export whole collection to AnkiPackage", 1, () => api.exportAnki()));
+  if (api.exportApkg) {
+    let size = 0;
+    add(await measure("export whole collection to .apkg bytes", 1, async () => (size = (await api.exportApkg!()).byteLength)));
+    rows[rows.length - 1]!.note = `${(size / 1e6).toFixed(1)} MB`;
+  }
   return rows;
 }
 
