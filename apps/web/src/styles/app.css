@@ -616,14 +616,6 @@ kbd {
 .nt-row:last-child { border-bottom: 0; }
 .nt-info { display: grid; min-width: 0; }
 .nt-name { font-weight: 700; }
-.agent-setup { display: grid; gap: 6px; margin-top: 14px; }
-.agent-setup p { margin: 6px 0 0; }
-.code-block { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--c-sunken); font-family: var(--font-mono); font-size: 12.5px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; user-select: all; }
-.agent-list { margin-top: 20px; display: grid; gap: 6px; justify-items: start; }
-.agent-list ul { list-style: none; padding: 0; margin: 8px 0 0; width: 100%; }
-.agent-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 2px solid var(--c-line); flex-wrap: wrap; }
-.agent-row:last-child { border-bottom: 0; }
-.agent-row code { font-family: var(--font-mono); color: var(--c-muted); }
 
 /* ---------------------------------------------------------------------------------------------- make (制卡) */
 .top-make kbd { margin-left: 2px; }
