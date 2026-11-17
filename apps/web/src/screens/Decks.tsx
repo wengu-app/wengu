@@ -382,9 +382,9 @@ function Forecast({ stats, counts, t, lang }: { stats: Stats; counts: { new: num
         label: t("stats.todayLabel"),
         sub: md.format(date),
         segs: [
-          { n: counts.review, color: "var(--c-review)", label: t("decks.review") },
-          { n: counts.learning, color: "var(--c-learn)", label: t("decks.learning") },
-          { n: counts.new, color: "var(--c-newc)", label: t("decks.new") },
+          { n: counts.review, color: "var(--c-review)" },
+          { n: counts.learning, color: "var(--c-learn)" },
+          { n: counts.new, color: "var(--c-newc)" },
         ],
       };
     return { label: i === 1 ? t("home.tomorrow") : wd.format(date), sub: md.format(date), faded: true, segs: [{ n: stats.upcoming[i] ?? 0, color: "var(--c-review)" }] };
@@ -405,7 +405,6 @@ function Forecast({ stats, counts, t, lang }: { stats: Stats; counts: { new: num
           <i className="seg-review" />
           {t("decks.review")}
         </span>
-        <span className="cb-legend-note">{t("home.layer")}</span>
       </div>
     </>
   );

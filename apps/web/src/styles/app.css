@@ -257,15 +257,12 @@ kbd {
 .cb-col:hover { transform: translateY(-4px); }
 .cb-n { font-size: 13px; font-weight: 700; text-anchor: middle; fill: var(--c-faint); }
 .cb-bubble { font-size: 15px; font-weight: 700; text-anchor: middle; fill: var(--c-bg); }
-.cb-seg { font-size: 15px; font-weight: 700; }
-.cb-u { font-size: 11px; font-weight: 600; }
 .cb-day { font-size: 12px; font-weight: 700; text-anchor: middle; fill: var(--c-muted); }
 .cb-day.is-today { fill: var(--c-bg); }
 .cb-sub { font-size: 10.5px; font-weight: 600; text-anchor: middle; fill: var(--c-faint); }
 .cb-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 2px; font-size: 12px; font-weight: 600; color: var(--c-muted); }
 .cb-legend span { display: flex; align-items: center; gap: 6px; }
 .cb-legend i { width: 10px; height: 10px; border-radius: 50%; }
-.cb-legend-note { margin-left: auto; color: var(--c-faint); }
 .seg-new { background: var(--c-newc); } .seg-learn { background: var(--c-learn); } .seg-review { background: var(--c-review); }
 
 /* memory widgets */

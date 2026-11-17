@@ -5,8 +5,6 @@ export interface CuboidSeg {
   n: number;
   /** CSS colour of the front face. */
   color: string;
-  /** Shown next to the column when `labelled` (only for the first column). */
-  label?: string;
 }
 
 export interface CuboidCol {
@@ -22,15 +20,15 @@ const top = (c: string) => `color-mix(in srgb, ${c} 62%, #fff)`;
 const fade = (c: string) => `color-mix(in srgb, ${c} 55%, var(--c-surface))`;
 
 /**
- * One column of stacked cuboids per day, one layer per card. The first column is wider and labels its parts; when it
- * is much taller than the rest it is drawn shorter with a break mark.
+ * One column of stacked cuboids per day, one layer per card. The first column carries a total bubble; when it is much
+ * taller than the rest it is drawn shorter with a break mark.
  */
 export function Cuboids({ cols, unitLabel, ariaLabel }: { cols: CuboidCol[]; unitLabel?: (n: number) => string; ariaLabel: string }) {
   const W = 660;
   const H = 300;
   const base = 246;
   const maxH = 190;
-  const slots = cols.length + 1.8;
+  const slots = cols.length + 0.6;
   const slot = W / slots;
   const w = Math.min(24, slot * 0.52);
   const dx = Math.min(9, slot * 0.2);
@@ -43,14 +41,13 @@ export function Cuboids({ cols, unitLabel, ariaLabel }: { cols: CuboidCol[]; uni
     <svg viewBox={`0 0 ${W} ${H}`} className="cuboids" role="img" aria-label={ariaLabel}>
       {cols.map((col, i) => {
         const tot = totals[i]!;
-        const x0 = i ? slot * (i + 1.8) + (slot - w - dx) / 2 : (slot - w - dx) / 2 + 4;
+        const x0 = i ? slot * (i + 0.6) + (slot - w - dx) / 2 : (slot - w - dx) / 2 + 4;
         const cx = x0 + (w + dx) / 2;
         const scale = tot * unit > maxH ? maxH / (tot * unit) : 1;
         const cut = scale < 1;
         const parts: ReactNode[] = [];
         let y = base;
         let topColor: string | null = null;
-        const placed: { seg: CuboidSeg; yt: number; h: number }[] = [];
         parts.push(<path key="shadow" d={`M${x0 - 3},${base + 2} h${w + 6} l${dx},${dy} h${-(w + 6)} z`} fill="#000" opacity={0.06} />);
         if (!tot) {
           parts.push(
@@ -76,7 +73,6 @@ export function Cuboids({ cols, unitLabel, ariaLabel }: { cols: CuboidCol[]; uni
                 })}
             </g>,
           );
-          placed.push({ seg, yt, h });
           y = yt;
           topColor = c;
         });
@@ -102,22 +98,6 @@ export function Cuboids({ cols, unitLabel, ariaLabel }: { cols: CuboidCol[]; uni
                 </text>
               </g>,
             );
-            placed.forEach(({ seg, yt, h }, k) => {
-              if (h < 14 || !seg.label) return;
-              const ym = yt + h / 2 + dy / 2;
-              const lx = x0 + w + dx + 6;
-              parts.push(
-                <g key={`l${k}`}>
-                  <path d={`M${lx},${ym} h7`} style={{ stroke: seg.color }} strokeWidth={2} strokeLinecap="round" />
-                  <text x={lx + 11} y={ym + 4.5} className="cb-seg" style={{ fill: seg.color }}>
-                    {seg.n}
-                    <tspan className="cb-u" dx={3}>
-                      {seg.label}
-                    </tspan>
-                  </text>
-                </g>,
-              );
-            });
           }
           parts.push(
             <g key="day">
