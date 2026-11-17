@@ -28,6 +28,8 @@ export interface ShowCard {
   media: Record<string, Blob>;
   /** Start on the answer side (e.g. re-showing a card after an edit). */
   side: "question" | "answer";
+  /** Restored when reconnecting on a typed-answer card. */
+  typeCompare?: string | null;
   /** Wengu mode: deck class → Wengu emphasis classes (see emphasisMap). */
   emphasis: Record<string, string[]>;
   /** Text direction hint for Wengu mode. */

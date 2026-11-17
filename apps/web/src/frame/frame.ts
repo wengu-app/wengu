@@ -290,6 +290,9 @@ async function show(card: ShowCard): Promise<void> {
       answerStash = typeset(stash);
     }
   }
+  if (card.side === "answer") {
+    for (const el of Array.from(qa.querySelectorAll(".wg-typeans-result"))) el.innerHTML = card.typeCompare ?? "";
+  }
   await typeset(qa);
   // The answer may have been requested while this side was still rendering: the reveal takes over from here.
   if (current !== card || (revealed && card.side === "question")) return;

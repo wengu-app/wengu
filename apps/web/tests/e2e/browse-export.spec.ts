@@ -14,7 +14,9 @@ test("browse, edit, add, delete; export with progress and read it back", async (
     await page.keyboard.press("3");
   }
   await waitSide(page, "question");
-  await page.keyboard.press("Escape");
+  // This test covers editing/export. Use the host's exit button: CDP can hang on key-up when Escape destroys
+  // the focused card iframe, even though the app has already returned to the deck list.
+  await page.getByRole("button", { name: "Back to decks" }).click();
 
   // search + edit a field in HTML mode, add a tag
   const editor = await openNote(page, "capital", "France");
