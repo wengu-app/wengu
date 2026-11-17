@@ -55,9 +55,11 @@ fileAssociations:
 # No updater code ships yet. This only makes the build emit the update metadata (latest*.yml, blockmaps) that
 # electron-updater would read, so auto-update can be added later without changing targets. Nothing is uploaded
 # unless a build is run with --publish (the scripts and CI pass --publish never).
+# The URL must not contain ${arch}: it is written into app-update.yml inside the app, and the macOS universal
+# build requires that file to be identical in its x64 and arm64 halves. Per-arch metadata is told apart by file name.
 publish:
   - provider: generic
-    url: https://wengu.dev/download/${os}/${arch}
+    url: https://wengu.dev/download/${os}
 
 linux:
   executableName: wengu
