@@ -315,12 +315,12 @@ export function clozeNumbers(text: string): number[] {
 // HTML helpers
 // ---------------------------------------------------------------------------
 
-/** Attribute encoding as observed in Anki output: ASCII alphanumerics and non-ASCII kept, everything else as an entity. */
+/** Attribute encoding as observed in Anki output: ASCII alphanumerics and code points above U+00FF kept, everything else as an entity. */
 export function encodeAttribute(s: string): string {
   let out = "";
   for (const ch of s) {
     const c = ch.codePointAt(0)!;
-    if (c > 0x7f || (c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122)) out += ch;
+    if (c > 0xff || (c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122)) out += ch;
     else if (ch === "<") out += "&lt;";
     else if (ch === ">") out += "&gt;";
     else if (ch === '"') out += "&quot;";
@@ -358,8 +358,9 @@ function latexSource(full?: string, inline?: string, display?: string): string {
   if (full !== undefined) src = full;
   else if (inline !== undefined) src = `$${inline}$`;
   else src = `\\begin{displaymath}${display}\\end{displaymath}`;
-  // HTML in LaTeX: line breaks become newlines, other tags are dropped.
-  return decodeEntities(src.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, ""));
+  // HTML in LaTeX: line breaks become newlines, other tags are dropped, non-breaking spaces become plain spaces
+  // (as Anki does). The image file name is a hash of this text, so it must match Anki's byte for byte.
+  return decodeEntities(src.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, "")).replace(/\u00a0/g, " ");
 }
 
 function latexFileName(latex: string, svg: boolean): string {

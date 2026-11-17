@@ -120,6 +120,9 @@ export function readSchema18(db: Database, all: QueryFn): SchemaParts {
     const id = num(r[0]);
     const c = new ProtoMessage(r[4] as Uint8Array);
     const extra = unknownFields(c, NT_KNOWN, otherJson(c));
+    // Anki's legacy JSON calls this `did`. Although no longer used for
+    // scheduling, it is still exported and must survive a round trip.
+    if (c.has(4)) extra["did"] = c.int(4);
     const requirements: CardRequirement[] = c.messages(8).map((m) => ({
       cardOrd: m.uint(1),
       kind: REQ_KINDS[m.uint(2)] ?? "none",

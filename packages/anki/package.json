@@ -14,7 +14,8 @@
     "fixtures": "fixtures/.venv/bin/python fixtures/generate.py",
     "fixtures:intervals": "fixtures/.venv/bin/python fixtures/intervals.py",
     "fixtures:sortfield": "fixtures/.venv/bin/python fixtures/sortfield.py",
-    "fixtures:writer-refs": "fixtures/.venv/bin/python fixtures/writer_refs.py"
+    "fixtures:writer-refs": "fixtures/.venv/bin/python fixtures/writer_refs.py",
+    "verify:real": "node scripts/verify-real.mjs"
   },
   "dependencies": {
     "fflate": "0.8.3",
