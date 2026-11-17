@@ -1,0 +1,527 @@
+{
+  "schemaVersion": 1,
+  "knowledgePoint": {
+    "id": "physics.kinematics.projectile-motion",
+    "title": "斜抛运动：水平匀速 + 竖直匀变速",
+    "subject": "物理",
+    "content": "不计空气阻力时，以初速度 v₀、仰角 θ 抛出的物体只受重力。它的运动可以分解为两个互不影响的分运动：水平方向速度 vₓ = v₀cosθ 保持不变（匀速直线运动）；竖直方向初速度 v₀sinθ、加速度 g 向下（竖直上抛，匀变速直线运动）。轨迹是抛物线。在同一水平面上落地时，飞行时间 t = 2v₀sinθ / g，射程 R = v₀² sin2θ / g，所以 v₀ 一定时 θ = 45° 射程最大，且互余的两个角（如 30° 和 60°）射程相同。最高点处竖直速度为零，但水平速度不为零。取 g = 9.8 m/s²。",
+    "language": "zh-CN",
+    "sources": [
+      {
+        "title": "人教版高中物理 必修第二册",
+        "locator": "第五章 抛体运动"
+      }
+    ]
+  },
+  "modes": [
+    "learn",
+    "review"
+  ],
+  "provider": "openai",
+  "generatorModel": "gpt-6-astra",
+  "judgeModel": "gpt-6-astra",
+  "reasoningEffort": {
+    "generate": "medium",
+    "judge": "medium"
+  },
+  "accepted": true,
+  "finalAttempt": 2,
+  "attempts": [
+    {
+      "n": 1,
+      "startedAt": "2026-11-16T17:11:29.813Z",
+      "durationMs": 131186,
+      "calls": [
+        {
+          "purpose": "generate",
+          "model": "gpt-6-astra",
+          "durationMs": 117443,
+          "usage": {
+            "inputTokens": 4345,
+            "cachedInputTokens": 4003,
+            "outputTokens": 6254,
+            "reasoningTokens": 1411
+          },
+          "costUsd": 0.320123
+        }
+      ],
+      "findings": [
+        {
+          "stage": "sandbox",
+          "severity": "error",
+          "code": "runtime-error",
+          "message": "ResizeObserver loop completed with undelivered notifications.",
+          "where": "learn/light"
+        }
+      ],
+      "passed": false,
+      "sourceFile": "attempts/1/component.js",
+      "design": "用同一时刻的抛体与水平、竖直投影，把抛物线拆成两个互不影响的分运动；等时间隔的圆点直接显示水平位移相等、竖直位移不等。学习者可拖动时间、改变初速度与角度，并叠加互余角轨迹比较射程。复习时停在最高点，要求选择正确的速度分解图，提交后再揭示速度与解释。",
+      "sandbox": {
+        "screenshots": [
+          {
+            "file": "attempts/1/learn-light.png",
+            "label": "learn mode, light theme",
+            "mode": "learn",
+            "scheme": "light",
+            "inkRatio": 0.0518,
+            "width": 720,
+            "height": 873
+          },
+          {
+            "file": "attempts/1/learn-dark.png",
+            "label": "learn mode, after switching to the dark theme while mounted",
+            "mode": "learn",
+            "scheme": "dark",
+            "inkRatio": 0.0638,
+            "width": 720,
+            "height": 873
+          },
+          {
+            "file": "attempts/1/learn-dark-interacted.png",
+            "label": "learn mode, dark, after automated clicks/slider moves/drag",
+            "mode": "learn",
+            "scheme": "dark",
+            "inkRatio": 0.0673,
+            "width": 720,
+            "height": 873
+          },
+          {
+            "file": "attempts/1/review-light.png",
+            "label": "review mode, light theme",
+            "mode": "review",
+            "scheme": "light",
+            "inkRatio": 0.0337,
+            "width": 720,
+            "height": 736
+          },
+          {
+            "file": "attempts/1/review-dark.png",
+            "label": "review mode, after switching to the dark theme while mounted",
+            "mode": "review",
+            "scheme": "dark",
+            "inkRatio": 0.0426,
+            "width": 720,
+            "height": 736
+          },
+          {
+            "file": "attempts/1/review-correct-light.png",
+            "label": "review mode, light, after the scripted correct answer",
+            "mode": "review",
+            "scheme": "light",
+            "inkRatio": 0.0458,
+            "width": 720,
+            "height": 882
+          },
+          {
+            "file": "attempts/1/review-incorrect-dark.png",
+            "label": "review mode, dark, after the scripted incorrect answer",
+            "mode": "review",
+            "scheme": "dark",
+            "inkRatio": 0.0542,
+            "width": 720,
+            "height": 882
+          }
+        ],
+        "runs": [
+          {
+            "mode": "learn",
+            "ready": true,
+            "mountMs": 10.200000047683716,
+            "events": [
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 148.5
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 250.20000004768372
+              },
+              {
+                "type": "ready",
+                "mountMs": 10.200000047683716,
+                "totalMs": 102.90000009536743,
+                "t": 250.30000007152557
+              },
+              {
+                "type": "error",
+                "phase": "runtime",
+                "message": "ResizeObserver loop completed with undelivered notifications.",
+                "t": 584.8000000715256
+              }
+            ],
+            "consoleErrors": [],
+            "results": [],
+            "finalHeight": 873
+          },
+          {
+            "mode": "review",
+            "ready": true,
+            "mountMs": 46.60000002384186,
+            "events": [
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 131.10000002384186
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 277.90000009536743
+              },
+              {
+                "type": "ready",
+                "mountMs": 46.60000002384186,
+                "totalMs": 147.40000009536743,
+                "t": 277.90000009536743
+              },
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 2950.600000023842
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 3029.7000000476837
+              },
+              {
+                "type": "ready",
+                "mountMs": 35.59999990463257,
+                "totalMs": 79.30000007152557,
+                "t": 3029.8000000715256
+              },
+              {
+                "type": "result",
+                "result": {
+                  "outcome": "correct",
+                  "score": 1,
+                  "detail": "最高点速度分解：水平向右，竖直为零",
+                  "response": {
+                    "choice": "right"
+                  }
+                },
+                "t": 4642.900000095367
+              },
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 5658.700000047684
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 5761.400000095367
+              },
+              {
+                "type": "ready",
+                "mountMs": 31.5,
+                "totalMs": 102.80000007152557,
+                "t": 5761.400000095367
+              },
+              {
+                "type": "result",
+                "result": {
+                  "outcome": "incorrect",
+                  "score": 0,
+                  "detail": "最高点速度分解：水平向右，竖直向下",
+                  "response": {
+                    "choice": "down"
+                  }
+                },
+                "t": 7363.100000023842
+              }
+            ],
+            "consoleErrors": [],
+            "results": [
+              {
+                "step": "before-interaction",
+                "outcome": null
+              },
+              {
+                "step": "correct",
+                "outcome": "correct",
+                "detail": "最高点速度分解：水平向右，竖直为零"
+              },
+              {
+                "step": "incorrect",
+                "outcome": "incorrect",
+                "detail": "最高点速度分解：水平向右，竖直向下"
+              }
+            ],
+            "finalHeight": 736
+          }
+        ],
+        "durationMs": 13698
+      }
+    },
+    {
+      "n": 2,
+      "startedAt": "2026-11-16T17:13:41.029Z",
+      "durationMs": 71082,
+      "calls": [
+        {
+          "purpose": "generate",
+          "model": "gpt-6-astra",
+          "durationMs": 42632,
+          "usage": {
+            "inputTokens": 9205,
+            "cachedInputTokens": 4342,
+            "outputTokens": 4977,
+            "reasoningTokens": 59
+          },
+          "costUsd": 0.301822
+        },
+        {
+          "purpose": "judge",
+          "model": "gpt-6-astra",
+          "durationMs": 15316,
+          "usage": {
+            "inputTokens": 5523,
+            "cachedInputTokens": 0,
+            "outputTokens": 414,
+            "reasoningTokens": 205
+          },
+          "costUsd": 0.07593
+        }
+      ],
+      "findings": [],
+      "passed": true,
+      "sourceFile": "attempts/2/component.js",
+      "design": "用抛体与水平、竖直投影，把同一条抛物线拆成两个互不影响的分运动；等时间隔的圆点显示水平位移相等、竖直位移不等。学习者可拖动时间、改变初速度与角度，并叠加互余角轨迹比较射程。复习时停在最高点，要求选择正确的速度分解图，提交后揭示答案与解释。",
+      "sandbox": {
+        "screenshots": [
+          {
+            "file": "attempts/2/learn-light.png",
+            "label": "learn mode, light theme",
+            "mode": "learn",
+            "scheme": "light",
+            "inkRatio": 0.0518,
+            "width": 720,
+            "height": 853
+          },
+          {
+            "file": "attempts/2/learn-dark.png",
+            "label": "learn mode, after switching to the dark theme while mounted",
+            "mode": "learn",
+            "scheme": "dark",
+            "inkRatio": 0.064,
+            "width": 720,
+            "height": 853
+          },
+          {
+            "file": "attempts/2/learn-dark-interacted.png",
+            "label": "learn mode, dark, after automated clicks/slider moves/drag",
+            "mode": "learn",
+            "scheme": "dark",
+            "inkRatio": 0.0673,
+            "width": 720,
+            "height": 853
+          },
+          {
+            "file": "attempts/2/review-light.png",
+            "label": "review mode, light theme",
+            "mode": "review",
+            "scheme": "light",
+            "inkRatio": 0.0333,
+            "width": 720,
+            "height": 716
+          },
+          {
+            "file": "attempts/2/review-dark.png",
+            "label": "review mode, after switching to the dark theme while mounted",
+            "mode": "review",
+            "scheme": "dark",
+            "inkRatio": 0.0425,
+            "width": 720,
+            "height": 716
+          },
+          {
+            "file": "attempts/2/review-correct-light.png",
+            "label": "review mode, light, after the scripted correct answer",
+            "mode": "review",
+            "scheme": "light",
+            "inkRatio": 0.0471,
+            "width": 720,
+            "height": 862
+          },
+          {
+            "file": "attempts/2/review-incorrect-dark.png",
+            "label": "review mode, dark, after the scripted incorrect answer",
+            "mode": "review",
+            "scheme": "dark",
+            "inkRatio": 0.0494,
+            "width": 720,
+            "height": 862
+          }
+        ],
+        "runs": [
+          {
+            "mode": "learn",
+            "ready": true,
+            "mountMs": 46.199999928474426,
+            "events": [
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 104.80000007152557
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 276.7000000476837
+              },
+              {
+                "type": "ready",
+                "mountMs": 46.199999928474426,
+                "totalMs": 172.79999995231628,
+                "t": 276.7000000476837
+              }
+            ],
+            "consoleErrors": [],
+            "results": [],
+            "finalHeight": 853
+          },
+          {
+            "mode": "review",
+            "ready": true,
+            "mountMs": 36.5,
+            "events": [
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 89
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 229.69999992847443
+              },
+              {
+                "type": "ready",
+                "mountMs": 36.5,
+                "totalMs": 141.5,
+                "t": 229.79999995231628
+              },
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 2868.0999999046326
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 2944
+              },
+              {
+                "type": "ready",
+                "mountMs": 29.59999990463257,
+                "totalMs": 76.10000002384186,
+                "t": 2944
+              },
+              {
+                "type": "result",
+                "result": {
+                  "outcome": "correct",
+                  "score": 1,
+                  "detail": "最高点速度分解：水平向右，竖直为零",
+                  "response": {
+                    "choice": "right"
+                  }
+                },
+                "t": 4588.799999952316
+              },
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 5717.099999904633
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 5800.599999904633
+              },
+              {
+                "type": "ready",
+                "mountMs": 28.899999976158142,
+                "totalMs": 83.69999992847443,
+                "t": 5800.699999928474
+              },
+              {
+                "type": "result",
+                "result": {
+                  "outcome": "incorrect",
+                  "score": 0,
+                  "detail": "最高点速度分解：水平向右，竖直向下",
+                  "response": {
+                    "choice": "down"
+                  }
+                },
+                "t": 7405.599999904633
+              }
+            ],
+            "consoleErrors": [],
+            "results": [
+              {
+                "step": "before-interaction",
+                "outcome": null
+              },
+              {
+                "step": "correct",
+                "outcome": "correct",
+                "detail": "最高点速度分解：水平向右，竖直为零"
+              },
+              {
+                "step": "incorrect",
+                "outcome": "incorrect",
+                "detail": "最高点速度分解：水平向右，竖直向下"
+              }
+            ],
+            "finalHeight": 716
+          }
+        ],
+        "durationMs": 13079
+      },
+      "judge": {
+        "scores": {
+          "conveysIdea": 5,
+          "correctness": 5,
+          "legibility": 5,
+          "visualQuality": 5,
+          "reviewQuestion": 5
+        },
+        "issues": [],
+        "summary": "各截图均渲染完整，明暗主题下文字、轨迹和控件清晰，无明显裁切或重叠。等时间隔位置点及水平、竖直投影直观呈现分运动关系；互余角对比正确展示射程相同而轨迹、飞行时间不同。所示速度、时间、射程及公式与 g＝9.8 m/s² 一致。复习题作答前隐藏速度提示，能检验最高点速度分解及速度与加速度的区别；正确和错误作答后均明确反馈并揭示正确答案。",
+        "accept": true
+      }
+    }
+  ],
+  "totals": {
+    "inputTokens": 19073,
+    "cachedInputTokens": 8345,
+    "outputTokens": 11645,
+    "reasoningTokens": 1675,
+    "costUsd": 0.6979,
+    "wallMs": 202328,
+    "calls": 3
+  },
+  "files": {
+    "source": "component.js",
+    "manifest": "manifest.json",
+    "props": "props.json",
+    "screenshots": [
+      "screenshots/learn-light.png",
+      "screenshots/learn-dark.png",
+      "screenshots/learn-dark-interacted.png",
+      "screenshots/review-light.png",
+      "screenshots/review-dark.png",
+      "screenshots/review-correct-light.png",
+      "screenshots/review-incorrect-dark.png"
+    ]
+  },
+  "startedAt": "2026-11-16T17:11:29.784Z",
+  "finishedAt": "2026-11-16T17:14:52.112Z",
+  "stoppedReason": "accepted"
+}

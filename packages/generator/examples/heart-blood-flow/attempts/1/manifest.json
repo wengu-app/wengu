@@ -1,0 +1,19 @@
+{
+  "id": "gen.bio.circulation.heart-blood-flow",
+  "title": "血液流经心脏的路径",
+  "apiVersion": 1,
+  "libraries": [],
+  "knowledgePoints": [
+    "bio.circulation.heart-blood-flow"
+  ],
+  "sources": [
+    {
+      "title": "人教版初中生物 七年级下册",
+      "locator": "第四章 第三节 输送血液的泵——心脏"
+    }
+  ],
+  "modes": [
+    "learn",
+    "review"
+  ]
+}

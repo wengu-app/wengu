@@ -1,0 +1,19 @@
+{
+  "id": "gen.math.trigonometry.unit-circle-sine",
+  "title": "把单位圆展开成正弦曲线",
+  "apiVersion": 1,
+  "libraries": [],
+  "knowledgePoints": [
+    "math.trigonometry.unit-circle-sine"
+  ],
+  "sources": [
+    {
+      "title": "人教A版高中数学 必修第一册",
+      "locator": "第五章 三角函数 5.2 三角函数的概念、5.4 三角函数的图象与性质"
+    }
+  ],
+  "modes": [
+    "learn",
+    "review"
+  ]
+}

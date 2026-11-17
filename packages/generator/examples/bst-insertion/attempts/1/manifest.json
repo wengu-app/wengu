@@ -1,0 +1,19 @@
+{
+  "id": "gen.cs.data-structures.bst-insertion",
+  "title": "二叉搜索树：沿比较路径插入",
+  "apiVersion": 1,
+  "libraries": [],
+  "knowledgePoints": [
+    "cs.data-structures.bst-insertion"
+  ],
+  "sources": [
+    {
+      "title": "Cormen et al., Introduction to Algorithms, 4th ed.",
+      "locator": "§12.3 Insertion and deletion"
+    }
+  ],
+  "modes": [
+    "learn",
+    "review"
+  ]
+}

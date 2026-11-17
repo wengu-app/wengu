@@ -1,0 +1,19 @@
+{
+  "id": "gen.physics.kinematics.projectile-motion",
+  "title": "斜抛运动：一条轨迹，两个分运动",
+  "apiVersion": 1,
+  "libraries": [],
+  "knowledgePoints": [
+    "physics.kinematics.projectile-motion"
+  ],
+  "sources": [
+    {
+      "title": "人教版高中物理 必修第二册",
+      "locator": "第五章 抛体运动"
+    }
+  ],
+  "modes": [
+    "learn",
+    "review"
+  ]
+}

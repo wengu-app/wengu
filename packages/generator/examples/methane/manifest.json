@@ -1,0 +1,25 @@
+{
+  "id": "gen.chem.molecular-geometry.methane-tetrahedral",
+  "title": "甲烷：从平面到空间",
+  "apiVersion": 1,
+  "libraries": [
+    "three"
+  ],
+  "knowledgePoints": [
+    "chem.molecular-geometry.methane-tetrahedral"
+  ],
+  "sources": [
+    {
+      "title": "人教版高中化学 选择性必修2《物质结构与性质》",
+      "locator": "第二章 第二节 分子的空间结构"
+    },
+    {
+      "title": "NIST CCCBDB, methane experimental geometry",
+      "url": "https://cccbdb.nist.gov/"
+    }
+  ],
+  "modes": [
+    "learn",
+    "review"
+  ]
+}

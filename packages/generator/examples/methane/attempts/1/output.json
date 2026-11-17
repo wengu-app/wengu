@@ -1,0 +1,47 @@
+{
+  "title": "甲烷：从平面到空间",
+  "design": "用可旋转的三维球棍模型对照平面“十字形”和正四面体，虚线连接四个氢原子，让顶点与中心的关系直接可见。学习模式可选择任意两条 C−H 键测量夹角，看到正四面体的六个键角全部相同；复习模式隐藏角度和结构名称，让学习者观察候选模型并确认真实结构。",
+  "source": "(see component.js)",
+  "reviewTest": {
+    "correct": [
+      {
+        "action": "click",
+        "selector": "#model-b",
+        "x": null,
+        "y": null,
+        "x2": null,
+        "y2": null,
+        "value": null
+      },
+      {
+        "action": "click",
+        "selector": "#confirm",
+        "x": null,
+        "y": null,
+        "x2": null,
+        "y2": null,
+        "value": null
+      }
+    ],
+    "incorrect": [
+      {
+        "action": "click",
+        "selector": "#model-a",
+        "x": null,
+        "y": null,
+        "x2": null,
+        "y2": null,
+        "value": null
+      },
+      {
+        "action": "click",
+        "selector": "#confirm",
+        "x": null,
+        "y": null,
+        "x2": null,
+        "y2": null,
+        "value": null
+      }
+    ]
+  }
+}

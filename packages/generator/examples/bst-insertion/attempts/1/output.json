@@ -1,0 +1,29 @@
+{
+  "title": "二叉搜索树：沿比较路径插入",
+  "design": "在同一棵树上逐次比较，走过的边被高亮，新键最终落在空位置，原有结点始终不动。学习者可以切换插入键，或将平衡树换成有序插入形成的链，直接比较路径长度与比较次数。复习时隐藏路径，让学习者点击 35 应落入的空位置，作答后再揭示完整路径。",
+  "source": "(see component.js)",
+  "reviewTest": {
+    "correct": [
+      {
+        "action": "click",
+        "selector": "#slot-LRL",
+        "x": null,
+        "y": null,
+        "x2": null,
+        "y2": null,
+        "value": null
+      }
+    ],
+    "incorrect": [
+      {
+        "action": "click",
+        "selector": "#slot-LLR",
+        "x": null,
+        "y": null,
+        "x2": null,
+        "y2": null,
+        "value": null
+      }
+    ]
+  }
+}

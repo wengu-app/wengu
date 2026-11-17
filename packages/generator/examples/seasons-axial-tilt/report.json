@@ -1,0 +1,571 @@
+{
+  "schemaVersion": 1,
+  "knowledgePoint": {
+    "id": "geo.earth.seasons-axial-tilt",
+    "title": "四季的成因：地轴倾斜",
+    "subject": "地理",
+    "content": "地球绕太阳公转时，地轴相对公转轨道面的垂线倾斜约 23.5°（黄赤交角约 23°26′），而且地轴在空间中的指向基本不变（北端始终指向北极星附近）。因此一年中太阳直射点在南北回归线之间移动：北半球夏至（约 6 月 22 日）直射北回归线，北半球正午太阳高度大、白昼长，获得的太阳辐射多，是夏季；冬至（约 12 月 22 日）直射南回归线，北半球是冬季，南半球则相反；春分、秋分直射赤道，全球昼夜等长。四季不是由日地距离造成的：地球在 1 月初过近日点，这时北半球反而是冬季。",
+    "language": "zh-CN",
+    "sources": [
+      {
+        "title": "人教版高中地理 必修第一册 / 选择性必修1",
+        "locator": "地球的运动：公转的地理意义"
+      }
+    ]
+  },
+  "modes": [
+    "learn",
+    "review"
+  ],
+  "provider": "openai",
+  "generatorModel": "gpt-6-astra",
+  "judgeModel": "gpt-6-astra",
+  "reasoningEffort": {
+    "generate": "medium",
+    "judge": "medium"
+  },
+  "accepted": true,
+  "finalAttempt": 2,
+  "attempts": [
+    {
+      "n": 1,
+      "startedAt": "2026-11-16T17:17:00.948Z",
+      "durationMs": 174976,
+      "calls": [
+        {
+          "purpose": "generate",
+          "model": "gpt-6-astra",
+          "durationMs": 133442,
+          "usage": {
+            "inputTokens": 4346,
+            "cachedInputTokens": 4003,
+            "outputTokens": 6261,
+            "reasoningTokens": 2070
+          },
+          "costUsd": 0.320483
+        },
+        {
+          "purpose": "judge",
+          "model": "gpt-6-astra",
+          "durationMs": 27798,
+          "usage": {
+            "inputTokens": 5112,
+            "cachedInputTokens": 0,
+            "outputTokens": 720,
+            "reasoningTokens": 260
+          },
+          "costUsd": 0.08712
+        }
+      ],
+      "findings": [
+        {
+          "stage": "judge",
+          "severity": "error",
+          "code": "judge-major",
+          "message": "左侧正确的夏至位置与右侧误选的冬至位置都被相同的蓝色圆环圈出，但上方提示是“正确位置已圈出”。图形无法区分正确答案与错误选择，与提示相冲突；虽然下方文字说明正确，仍容易让学习者误读。 → fix: 正确位置使用绿色圆环及“正确答案”标记；误选位置使用红色虚线圈或叉号，并标记“你的选择”。同步将顶部提示改为明确区分两种标记的说明。",
+          "where": "复习模式，深色主题，脚本答错后的公转示意图"
+        },
+        {
+          "stage": "judge",
+          "severity": "warning",
+          "code": "judge-minor",
+          "message": "轨道线与背景明度接近，椭圆上下两段较难辨认，削弱了四个地球位置属于同一公转轨道的视觉联系。 → fix: 提高深色主题下轨道线的亮度或不透明度，使其清楚可见，同时保持弱于地轴和太阳光线的视觉层级。",
+          "where": "所有深色主题截图中的公转轨道"
+        },
+        {
+          "stage": "judge",
+          "severity": "error",
+          "code": "low-reviewQuestion",
+          "message": "reviewer scored reviewQuestion 3/5 (needs 4): 核心教学设计有效：平行地轴、太阳光剖面、直射纬度及昼长联动，能展示倾斜如何造成季节变化；无倾斜对照也直观。所示夏至数值正确，复习作答前未泄露答案，页面无明显裁切。主要问题是答错后的正确位置与误选位置使用相同圈选样式，须修正反馈标记后再展示给学习者。"
+        }
+      ],
+      "passed": false,
+      "sourceFile": "attempts/1/component.js",
+      "design": "四个公转位置上的地轴始终平行，学习者点击地球即可比较四季。联动的太阳光剖面、直射纬度和北纬40°昼长，将地轴倾斜与受光变化连起来；还可切换“不倾斜”的对照情形。复习时隐藏季节与数据，请学习者根据地轴和太阳的位置选出北半球夏至。",
+      "sandbox": {
+        "screenshots": [
+          {
+            "file": "attempts/1/learn-light.png",
+            "label": "learn mode, light theme",
+            "mode": "learn",
+            "scheme": "light",
+            "inkRatio": 0.0768,
+            "width": 720,
+            "height": 812
+          },
+          {
+            "file": "attempts/1/learn-dark.png",
+            "label": "learn mode, after switching to the dark theme while mounted",
+            "mode": "learn",
+            "scheme": "dark",
+            "inkRatio": 0.0782,
+            "width": 720,
+            "height": 812
+          },
+          {
+            "file": "attempts/1/learn-dark-interacted.png",
+            "label": "learn mode, dark, after automated clicks/slider moves/drag",
+            "mode": "learn",
+            "scheme": "dark",
+            "inkRatio": 0.0843,
+            "width": 720,
+            "height": 812
+          },
+          {
+            "file": "attempts/1/review-light.png",
+            "label": "review mode, light theme",
+            "mode": "review",
+            "scheme": "light",
+            "inkRatio": 0.044,
+            "width": 720,
+            "height": 443
+          },
+          {
+            "file": "attempts/1/review-dark.png",
+            "label": "review mode, after switching to the dark theme while mounted",
+            "mode": "review",
+            "scheme": "dark",
+            "inkRatio": 0.046,
+            "width": 720,
+            "height": 443
+          },
+          {
+            "file": "attempts/1/review-correct-light.png",
+            "label": "review mode, light, after the scripted correct answer",
+            "mode": "review",
+            "scheme": "light",
+            "inkRatio": 0.0786,
+            "width": 720,
+            "height": 818
+          },
+          {
+            "file": "attempts/1/review-incorrect-dark.png",
+            "label": "review mode, dark, after the scripted incorrect answer",
+            "mode": "review",
+            "scheme": "dark",
+            "inkRatio": 0.0801,
+            "width": 720,
+            "height": 818
+          }
+        ],
+        "runs": [
+          {
+            "mode": "learn",
+            "ready": true,
+            "mountMs": 10.100000023841858,
+            "events": [
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 256.60000002384186
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 354.60000002384186
+              },
+              {
+                "type": "ready",
+                "mountMs": 10.100000023841858,
+                "totalMs": 98.89999997615814,
+                "t": 354.60000002384186
+              }
+            ],
+            "consoleErrors": [],
+            "results": [],
+            "finalHeight": 812
+          },
+          {
+            "mode": "review",
+            "ready": true,
+            "mountMs": 19.5,
+            "events": [
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 96.69999992847443
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 284.09999990463257
+              },
+              {
+                "type": "ready",
+                "mountMs": 19.5,
+                "totalMs": 188.09999990463257,
+                "t": 284.09999990463257
+              },
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 2888.6999999284744
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 2954.399999976158
+              },
+              {
+                "type": "ready",
+                "mountMs": 22.5,
+                "totalMs": 65.80000007152557,
+                "t": 2954.399999976158
+              },
+              {
+                "type": "result",
+                "result": {
+                  "outcome": "correct",
+                  "score": 1,
+                  "detail": "选择位置甲作为北半球夏至；正确为甲。",
+                  "response": {
+                    "position": "甲"
+                  }
+                },
+                "t": 4553.199999928474
+              },
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 5572
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 5644.099999904633
+              },
+              {
+                "type": "ready",
+                "mountMs": 23.799999952316284,
+                "totalMs": 73.79999995231628,
+                "t": 5644.199999928474
+              },
+              {
+                "type": "result",
+                "result": {
+                  "outcome": "incorrect",
+                  "score": 0,
+                  "detail": "选择位置丙作为北半球夏至；正确为甲。",
+                  "response": {
+                    "position": "丙"
+                  }
+                },
+                "t": 7270.099999904633
+              }
+            ],
+            "consoleErrors": [],
+            "results": [
+              {
+                "step": "before-interaction",
+                "outcome": null
+              },
+              {
+                "step": "correct",
+                "outcome": "correct",
+                "detail": "选择位置甲作为北半球夏至；正确为甲。"
+              },
+              {
+                "step": "incorrect",
+                "outcome": "incorrect",
+                "detail": "选择位置丙作为北半球夏至；正确为甲。"
+              }
+            ],
+            "finalHeight": 443
+          }
+        ],
+        "durationMs": 13682
+      },
+      "judge": {
+        "scores": {
+          "conveysIdea": 5,
+          "correctness": 4,
+          "legibility": 4,
+          "visualQuality": 4,
+          "reviewQuestion": 3
+        },
+        "issues": [
+          {
+            "severity": "major",
+            "where": "复习模式，深色主题，脚本答错后的公转示意图",
+            "problem": "左侧正确的夏至位置与右侧误选的冬至位置都被相同的蓝色圆环圈出，但上方提示是“正确位置已圈出”。图形无法区分正确答案与错误选择，与提示相冲突；虽然下方文字说明正确，仍容易让学习者误读。",
+            "fix": "正确位置使用绿色圆环及“正确答案”标记；误选位置使用红色虚线圈或叉号，并标记“你的选择”。同步将顶部提示改为明确区分两种标记的说明。"
+          },
+          {
+            "severity": "minor",
+            "where": "所有深色主题截图中的公转轨道",
+            "problem": "轨道线与背景明度接近，椭圆上下两段较难辨认，削弱了四个地球位置属于同一公转轨道的视觉联系。",
+            "fix": "提高深色主题下轨道线的亮度或不透明度，使其清楚可见，同时保持弱于地轴和太阳光线的视觉层级。"
+          }
+        ],
+        "summary": "核心教学设计有效：平行地轴、太阳光剖面、直射纬度及昼长联动，能展示倾斜如何造成季节变化；无倾斜对照也直观。所示夏至数值正确，复习作答前未泄露答案，页面无明显裁切。主要问题是答错后的正确位置与误选位置使用相同圈选样式，须修正反馈标记后再展示给学习者。",
+        "accept": false
+      }
+    },
+    {
+      "n": 2,
+      "startedAt": "2026-11-16T17:19:55.926Z",
+      "durationMs": 76085,
+      "calls": [
+        {
+          "purpose": "generate",
+          "model": "gpt-6-astra",
+          "durationMs": 37818,
+          "usage": {
+            "inputTokens": 8912,
+            "cachedInputTokens": 4343,
+            "outputTokens": 4401,
+            "reasoningTokens": 47
+          },
+          "costUsd": 0.270083
+        },
+        {
+          "purpose": "judge",
+          "model": "gpt-6-astra",
+          "durationMs": 25210,
+          "usage": {
+            "inputTokens": 5125,
+            "cachedInputTokens": 0,
+            "outputTokens": 633,
+            "reasoningTokens": 424
+          },
+          "costUsd": 0.0829
+        }
+      ],
+      "findings": [],
+      "passed": true,
+      "sourceFile": "attempts/2/component.js",
+      "design": "四个公转位置上的地轴始终平行，点击地球即可比较四季。联动的太阳光剖面、直射纬度和北纬40°昼长，将地轴倾斜与受光变化连起来，还可切换“不倾斜”的对照情形。复习时隐藏季节与数据，请学习者选出北半球夏至；作答后用绿色实线与红色虚线明确区分正确答案和误选位置。",
+      "sandbox": {
+        "screenshots": [
+          {
+            "file": "attempts/2/learn-light.png",
+            "label": "learn mode, light theme",
+            "mode": "learn",
+            "scheme": "light",
+            "inkRatio": 0.08,
+            "width": 720,
+            "height": 812
+          },
+          {
+            "file": "attempts/2/learn-dark.png",
+            "label": "learn mode, after switching to the dark theme while mounted",
+            "mode": "learn",
+            "scheme": "dark",
+            "inkRatio": 0.0814,
+            "width": 720,
+            "height": 812
+          },
+          {
+            "file": "attempts/2/learn-dark-interacted.png",
+            "label": "learn mode, dark, after automated clicks/slider moves/drag",
+            "mode": "learn",
+            "scheme": "dark",
+            "inkRatio": 0.0876,
+            "width": 720,
+            "height": 812
+          },
+          {
+            "file": "attempts/2/review-light.png",
+            "label": "review mode, light theme",
+            "mode": "review",
+            "scheme": "light",
+            "inkRatio": 0.0497,
+            "width": 720,
+            "height": 443
+          },
+          {
+            "file": "attempts/2/review-dark.png",
+            "label": "review mode, after switching to the dark theme while mounted",
+            "mode": "review",
+            "scheme": "dark",
+            "inkRatio": 0.0521,
+            "width": 720,
+            "height": 443
+          },
+          {
+            "file": "attempts/2/review-correct-light.png",
+            "label": "review mode, light, after the scripted correct answer",
+            "mode": "review",
+            "scheme": "light",
+            "inkRatio": 0.0837,
+            "width": 720,
+            "height": 818
+          },
+          {
+            "file": "attempts/2/review-incorrect-dark.png",
+            "label": "review mode, dark, after the scripted incorrect answer",
+            "mode": "review",
+            "scheme": "dark",
+            "inkRatio": 0.084,
+            "width": 720,
+            "height": 818
+          }
+        ],
+        "runs": [
+          {
+            "mode": "learn",
+            "ready": true,
+            "mountMs": 28.5,
+            "events": [
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 103.10000002384186
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 241
+              },
+              {
+                "type": "ready",
+                "mountMs": 28.5,
+                "totalMs": 138.79999995231628,
+                "t": 241
+              }
+            ],
+            "consoleErrors": [],
+            "results": [],
+            "finalHeight": 812
+          },
+          {
+            "mode": "review",
+            "ready": true,
+            "mountMs": 32.89999997615814,
+            "events": [
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 88
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 217.70000004768372
+              },
+              {
+                "type": "ready",
+                "mountMs": 32.89999997615814,
+                "totalMs": 130.70000004768372,
+                "t": 217.70000004768372
+              },
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 2795.2000000476837
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 2893.5
+              },
+              {
+                "type": "ready",
+                "mountMs": 25.399999976158142,
+                "totalMs": 98.5,
+                "t": 2893.5
+              },
+              {
+                "type": "result",
+                "result": {
+                  "outcome": "correct",
+                  "score": 1,
+                  "detail": "选择位置甲作为北半球夏至；正确为甲。",
+                  "response": {
+                    "position": "甲"
+                  }
+                },
+                "t": 4496.200000047684
+              },
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 5523.700000047684
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 5624
+              },
+              {
+                "type": "ready",
+                "mountMs": 30.100000023841858,
+                "totalMs": 100.60000002384186,
+                "t": 5624
+              },
+              {
+                "type": "result",
+                "result": {
+                  "outcome": "incorrect",
+                  "score": 0,
+                  "detail": "选择位置丙作为北半球夏至；正确为甲。",
+                  "response": {
+                    "position": "丙"
+                  }
+                },
+                "t": 7212.100000023842
+              }
+            ],
+            "consoleErrors": [],
+            "results": [
+              {
+                "step": "before-interaction",
+                "outcome": null
+              },
+              {
+                "step": "correct",
+                "outcome": "correct",
+                "detail": "选择位置甲作为北半球夏至；正确为甲。"
+              },
+              {
+                "step": "incorrect",
+                "outcome": "incorrect",
+                "detail": "选择位置丙作为北半球夏至；正确为甲。"
+              }
+            ],
+            "finalHeight": 443
+          }
+        ],
+        "durationMs": 13010
+      },
+      "judge": {
+        "scores": {
+          "conveysIdea": 5,
+          "correctness": 5,
+          "legibility": 4,
+          "visualQuality": 4,
+          "reviewQuestion": 5
+        },
+        "issues": [],
+        "summary": "通过。各截图均无明显裁切、重叠或主题切换失效。四处平行地轴、太阳光剖面及昼长条形图共同呈现倾斜与受光变化的关系；不倾斜对照进一步强化因果理解。夏至直射纬度、北纬40°正午太阳高度和昼长数值正确，轨道比例及剖面参照方式也有说明。复习题未提前泄露季节与数据，答后以颜色、线型和文字清楚区分正确位置与误选位置，并解释原因。",
+        "accept": true
+      }
+    }
+  ],
+  "totals": {
+    "inputTokens": 23495,
+    "cachedInputTokens": 8346,
+    "outputTokens": 12015,
+    "reasoningTokens": 2801,
+    "costUsd": 0.7606,
+    "wallMs": 251082,
+    "calls": 4
+  },
+  "files": {
+    "source": "component.js",
+    "manifest": "manifest.json",
+    "props": "props.json",
+    "screenshots": [
+      "screenshots/learn-light.png",
+      "screenshots/learn-dark.png",
+      "screenshots/learn-dark-interacted.png",
+      "screenshots/review-light.png",
+      "screenshots/review-dark.png",
+      "screenshots/review-correct-light.png",
+      "screenshots/review-incorrect-dark.png"
+    ]
+  },
+  "startedAt": "2026-11-16T17:17:00.931Z",
+  "finishedAt": "2026-11-16T17:21:12.013Z",
+  "stoppedReason": "accepted"
+}

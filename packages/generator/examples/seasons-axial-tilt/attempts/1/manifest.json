@@ -1,0 +1,19 @@
+{
+  "id": "gen.geo.earth.seasons-axial-tilt",
+  "title": "倾斜的地轴，交替的四季",
+  "apiVersion": 1,
+  "libraries": [],
+  "knowledgePoints": [
+    "geo.earth.seasons-axial-tilt"
+  ],
+  "sources": [
+    {
+      "title": "人教版高中地理 必修第一册 / 选择性必修1",
+      "locator": "地球的运动：公转的地理意义"
+    }
+  ],
+  "modes": [
+    "learn",
+    "review"
+  ]
+}

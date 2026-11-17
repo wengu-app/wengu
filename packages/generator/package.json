@@ -1,0 +1,34 @@
+{
+  "name": "@wengu/generator",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Generates Wengu components (sandboxed interactive visualizations) from knowledge points, with self-check and repair",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build:libs": "node scripts/build-libs.mjs",
+    "generate": "node scripts/build-libs.mjs --if-missing && node src/cli.ts generate",
+    "evaluate": "node scripts/build-libs.mjs --if-missing && node src/cli.ts evaluate",
+    "view": "node scripts/build-libs.mjs --if-missing && node src/cli.ts view",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node scripts/build-libs.mjs --if-missing && vitest run"
+  },
+  "dependencies": {
+    "@wengu/runtime": "workspace:*",
+    "acorn": "8.15.0",
+    "esbuild": "^0.28.0",
+    "playwright": "1.63.0",
+    "pngjs": "7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/pngjs": "6.0.5",
+    "d3": "7.9.0",
+    "katex": "0.16.22",
+    "typescript": "^7.0.0",
+    "vitest": "^5.1.0"
+  }
+}

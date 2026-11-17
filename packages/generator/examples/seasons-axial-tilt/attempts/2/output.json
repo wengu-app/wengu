@@ -1,0 +1,29 @@
+{
+  "title": "倾斜的地轴，交替的四季",
+  "design": "四个公转位置上的地轴始终平行，点击地球即可比较四季。联动的太阳光剖面、直射纬度和北纬40°昼长，将地轴倾斜与受光变化连起来，还可切换“不倾斜”的对照情形。复习时隐藏季节与数据，请学习者选出北半球夏至；作答后用绿色实线与红色虚线明确区分正确答案和误选位置。",
+  "source": "(see component.js)",
+  "reviewTest": {
+    "correct": [
+      {
+        "action": "click",
+        "selector": "#position-0",
+        "x": null,
+        "y": null,
+        "x2": null,
+        "y2": null,
+        "value": null
+      }
+    ],
+    "incorrect": [
+      {
+        "action": "click",
+        "selector": "#position-2",
+        "x": null,
+        "y": null,
+        "x2": null,
+        "y2": null,
+        "value": null
+      }
+    ]
+  }
+}

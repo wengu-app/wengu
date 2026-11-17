@@ -1,0 +1,316 @@
+{
+  "schemaVersion": 1,
+  "knowledgePoint": {
+    "id": "cs.data-structures.bst-insertion",
+    "title": "二叉搜索树的插入",
+    "subject": "计算机科学",
+    "content": "二叉搜索树（BST）中，每个结点的左子树上所有键都小于该结点的键，右子树上所有键都大于该结点的键。插入键 k 时，从根结点开始比较：k 小于当前结点就走向左孩子，大于就走向右孩子；一直走到空位置，把 k 作为新的叶子结点放在那里。插入不会移动已有结点。比较次数等于新结点的深度，平均 O(log n)，但如果按有序顺序插入（如 1,2,3,4,5），树会退化成一条链，插入变成 O(n)。示例：依次插入 50, 30, 70, 20, 40, 60, 80 得到一棵完全平衡的树；再插入 35 时，路径是 50→30→40，35 成为 40 的左孩子。",
+    "language": "zh-CN",
+    "sources": [
+      {
+        "title": "Cormen et al., Introduction to Algorithms, 4th ed.",
+        "locator": "§12.3 Insertion and deletion"
+      }
+    ]
+  },
+  "modes": [
+    "learn",
+    "review"
+  ],
+  "provider": "openai",
+  "generatorModel": "gpt-6-astra",
+  "judgeModel": "gpt-6-astra",
+  "reasoningEffort": {
+    "generate": "medium",
+    "judge": "medium"
+  },
+  "accepted": true,
+  "finalAttempt": 1,
+  "attempts": [
+    {
+      "n": 1,
+      "startedAt": "2026-11-16T17:21:15.593Z",
+      "durationMs": 122830,
+      "calls": [
+        {
+          "purpose": "generate",
+          "model": "gpt-6-astra",
+          "durationMs": 90775,
+          "usage": {
+            "inputTokens": 4344,
+            "cachedInputTokens": 4003,
+            "outputTokens": 4685,
+            "reasoningTokens": 1034
+          },
+          "costUsd": 0.241663
+        },
+        {
+          "purpose": "judge",
+          "model": "gpt-6-astra",
+          "durationMs": 15405,
+          "usage": {
+            "inputTokens": 5060,
+            "cachedInputTokens": 0,
+            "outputTokens": 434,
+            "reasoningTokens": 110
+          },
+          "costUsd": 0.0723
+        }
+      ],
+      "findings": [
+        {
+          "stage": "judge",
+          "severity": "warning",
+          "code": "judge-minor",
+          "message": "普通连线与背景的对比度偏低，空位置的虚线尤其淡。虽然结点数值清楚，但父子关系需要更费力辨认，而这些连接关系正是判断插入位置的依据。 → fix: 分别加深浅色主题、提亮深色主题中的普通连线和虚线，使其在未高亮时也清楚可辨；继续用蓝色和较粗线条区分比较路径。",
+          "where": "所有截图的树图区，尤其是深色主题中的未高亮连线和通往空位置的虚线"
+        }
+      ],
+      "passed": true,
+      "sourceFile": "attempts/1/component.js",
+      "design": "在同一棵树上逐次比较，走过的边被高亮，新键最终落在空位置，原有结点始终不动。学习者可以切换插入键，或将平衡树换成有序插入形成的链，直接比较路径长度与比较次数。复习时隐藏路径，让学习者点击 35 应落入的空位置，作答后再揭示完整路径。",
+      "sandbox": {
+        "screenshots": [
+          {
+            "file": "attempts/1/learn-light.png",
+            "label": "learn mode, light theme",
+            "mode": "learn",
+            "scheme": "light",
+            "inkRatio": 0.0469,
+            "width": 720,
+            "height": 846
+          },
+          {
+            "file": "attempts/1/learn-dark.png",
+            "label": "learn mode, after switching to the dark theme while mounted",
+            "mode": "learn",
+            "scheme": "dark",
+            "inkRatio": 0.054,
+            "width": 720,
+            "height": 846
+          },
+          {
+            "file": "attempts/1/learn-dark-interacted.png",
+            "label": "learn mode, dark, after automated clicks/slider moves/drag",
+            "mode": "learn",
+            "scheme": "dark",
+            "inkRatio": 0.058,
+            "width": 720,
+            "height": 797
+          },
+          {
+            "file": "attempts/1/review-light.png",
+            "label": "review mode, light theme",
+            "mode": "review",
+            "scheme": "light",
+            "inkRatio": 0.0273,
+            "width": 720,
+            "height": 654
+          },
+          {
+            "file": "attempts/1/review-dark.png",
+            "label": "review mode, after switching to the dark theme while mounted",
+            "mode": "review",
+            "scheme": "dark",
+            "inkRatio": 0.033,
+            "width": 720,
+            "height": 654
+          },
+          {
+            "file": "attempts/1/review-correct-light.png",
+            "label": "review mode, light, after the scripted correct answer",
+            "mode": "review",
+            "scheme": "light",
+            "inkRatio": 0.0358,
+            "width": 720,
+            "height": 668
+          },
+          {
+            "file": "attempts/1/review-incorrect-dark.png",
+            "label": "review mode, dark, after the scripted incorrect answer",
+            "mode": "review",
+            "scheme": "dark",
+            "inkRatio": 0.0422,
+            "width": 720,
+            "height": 668
+          }
+        ],
+        "runs": [
+          {
+            "mode": "learn",
+            "ready": true,
+            "mountMs": 15,
+            "events": [
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 211.60000002384186
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 310.5
+              },
+              {
+                "type": "ready",
+                "mountMs": 15,
+                "totalMs": 99.70000004768372,
+                "t": 310.5
+              }
+            ],
+            "consoleErrors": [],
+            "results": [],
+            "finalHeight": 797
+          },
+          {
+            "mode": "review",
+            "ready": true,
+            "mountMs": 57.5,
+            "events": [
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 101.5
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 289.10000002384186
+              },
+              {
+                "type": "ready",
+                "mountMs": 57.5,
+                "totalMs": 188.40000009536743,
+                "t": 289.10000002384186
+              },
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 2931.399999976158
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 3016.1999999284744
+              },
+              {
+                "type": "ready",
+                "mountMs": 33,
+                "totalMs": 85.09999990463257,
+                "t": 3016.1999999284744
+              },
+              {
+                "type": "result",
+                "result": {
+                  "outcome": "correct",
+                  "score": 1,
+                  "detail": "将 35 放在 40 的左孩子空位。",
+                  "response": {
+                    "key": 35,
+                    "slot": "LRL",
+                    "expected": "LRL"
+                  }
+                },
+                "t": 4623.899999976158
+              },
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 5634
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 5731.699999928474
+              },
+              {
+                "type": "ready",
+                "mountMs": 34.199999928474426,
+                "totalMs": 97.89999997615814,
+                "t": 5731.699999928474
+              },
+              {
+                "type": "result",
+                "result": {
+                  "outcome": "incorrect",
+                  "score": 0,
+                  "detail": "将 35 放在 20 的右孩子空位。",
+                  "response": {
+                    "key": 35,
+                    "slot": "LLR",
+                    "expected": "LRL"
+                  }
+                },
+                "t": 7337.600000023842
+              }
+            ],
+            "consoleErrors": [],
+            "results": [
+              {
+                "step": "before-interaction",
+                "outcome": null
+              },
+              {
+                "step": "correct",
+                "outcome": "correct",
+                "detail": "将 35 放在 40 的左孩子空位。"
+              },
+              {
+                "step": "incorrect",
+                "outcome": "incorrect",
+                "detail": "将 35 放在 20 的右孩子空位。"
+              }
+            ],
+            "finalHeight": 654
+          }
+        ],
+        "durationMs": 16566
+      },
+      "judge": {
+        "scores": {
+          "conveysIdea": 5,
+          "correctness": 5,
+          "legibility": 4,
+          "visualQuality": 4,
+          "reviewQuestion": 5
+        },
+        "issues": [
+          {
+            "severity": "minor",
+            "where": "所有截图的树图区，尤其是深色主题中的未高亮连线和通往空位置的虚线",
+            "problem": "普通连线与背景的对比度偏低，空位置的虚线尤其淡。虽然结点数值清楚，但父子关系需要更费力辨认，而这些连接关系正是判断插入位置的依据。",
+            "fix": "分别加深浅色主题、提亮深色主题中的普通连线和虚线，使其在未高亮时也清楚可辨；继续用蓝色和较粗线条区分比较路径。"
+          }
+        ],
+        "summary": "可接受。树结构、35 的插入位置、比较路径及比较次数均正确。平衡树与有序插入形成的链直观呈现了结构差异；复习作答前未泄露具体路径，作答后正确位置、错误选择和完整比较过程都有清晰反馈。各截图未见裁切、重叠或渲染失败，主要改进点是提高普通连线的对比度。",
+        "accept": true
+      }
+    }
+  ],
+  "totals": {
+    "inputTokens": 9404,
+    "cachedInputTokens": 4003,
+    "outputTokens": 5119,
+    "reasoningTokens": 1144,
+    "costUsd": 0.314,
+    "wallMs": 122849,
+    "calls": 2
+  },
+  "files": {
+    "source": "component.js",
+    "manifest": "manifest.json",
+    "props": "props.json",
+    "screenshots": [
+      "screenshots/learn-light.png",
+      "screenshots/learn-dark.png",
+      "screenshots/learn-dark-interacted.png",
+      "screenshots/review-light.png",
+      "screenshots/review-dark.png",
+      "screenshots/review-correct-light.png",
+      "screenshots/review-incorrect-dark.png"
+    ]
+  },
+  "startedAt": "2026-11-16T17:21:15.578Z",
+  "finishedAt": "2026-11-16T17:23:18.427Z",
+  "stoppedReason": "accepted"
+}

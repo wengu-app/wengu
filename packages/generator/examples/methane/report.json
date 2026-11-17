@@ -1,0 +1,331 @@
+{
+  "schemaVersion": 1,
+  "knowledgePoint": {
+    "id": "chem.molecular-geometry.methane-tetrahedral",
+    "title": "甲烷的正四面体结构",
+    "subject": "化学",
+    "content": "甲烷（CH₄）分子中，碳原子位于中心，与四个氢原子各形成一个 C−H 单键（键长约 109 pm）。根据价层电子对互斥理论（VSEPR），中心碳原子周围的四对成键电子相互排斥，尽可能远离，因此四个氢原子位于正四面体的四个顶点，碳原子在正四面体中心。任意两个 C−H 键之间的夹角都是 109.5°（准确值约 109.47°）。在平面结构式里把甲烷画成“十字形”（键角 90°），只是书写习惯，并不是真实的空间形状。",
+    "language": "zh-CN",
+    "sources": [
+      {
+        "title": "人教版高中化学 选择性必修2《物质结构与性质》",
+        "locator": "第二章 第二节 分子的空间结构"
+      },
+      {
+        "title": "NIST CCCBDB, methane experimental geometry",
+        "url": "https://cccbdb.nist.gov/"
+      }
+    ]
+  },
+  "modes": [
+    "learn",
+    "review"
+  ],
+  "provider": "openai",
+  "generatorModel": "gpt-6-astra",
+  "judgeModel": "gpt-6-astra",
+  "reasoningEffort": {
+    "generate": "medium",
+    "judge": "medium"
+  },
+  "accepted": true,
+  "finalAttempt": 1,
+  "attempts": [
+    {
+      "n": 1,
+      "startedAt": "2026-11-16T17:06:22.502Z",
+      "durationMs": 127959,
+      "calls": [
+        {
+          "purpose": "generate",
+          "model": "gpt-6-astra",
+          "durationMs": 93920,
+          "usage": {
+            "inputTokens": 4345,
+            "cachedInputTokens": 4342,
+            "outputTokens": 4998,
+            "reasoningTokens": 1034
+          },
+          "costUsd": 0.254272
+        },
+        {
+          "purpose": "judge",
+          "model": "gpt-6-astra",
+          "durationMs": 18982,
+          "usage": {
+            "inputTokens": 5220,
+            "cachedInputTokens": 0,
+            "outputTokens": 614,
+            "reasoningTokens": 170
+          },
+          "costUsd": 0.0829
+        }
+      ],
+      "findings": [
+        {
+          "stage": "judge",
+          "severity": "warning",
+          "code": "judge-minor",
+          "message": "模型在画布中偏小，留白较多；初始视角下 H₄ 紧邻中心 C，相关键和四面体虚线集中在很小的范围内，使第四个顶点及其空间关系不够醒目。 → fix: 适当放大模型，并调整默认视角，让四个氢原子的投影更充分分离，同时为旋转保留边缘余量。",
+          "where": "学习模式初始截图（明、暗主题）及复习作答后截图：三维模型区域"
+        },
+        {
+          "stage": "judge",
+          "severity": "warning",
+          "code": "judge-minor",
+          "message": "旋转后部分氢球明显变暗，但其黑色标签未随之调整，尤其下方 H₂ 的文字与球体对比不足。 → fix: 让原子标签独立于球体光照渲染，采用高对比文字或描边，确保旋转到背光方向时仍清楚可读。",
+          "where": "学习模式暗色主题、自动拖动后的截图：氢原子标签"
+        }
+      ],
+      "passed": true,
+      "sourceFile": "attempts/1/component.js",
+      "design": "用可旋转的三维球棍模型对照平面“十字形”和正四面体，虚线连接四个氢原子，让顶点与中心的关系直接可见。学习模式可选择任意两条 C−H 键测量夹角，看到正四面体的六个键角全部相同；复习模式隐藏角度和结构名称，让学习者观察候选模型并确认真实结构。",
+      "sandbox": {
+        "screenshots": [
+          {
+            "file": "attempts/1/learn-light.png",
+            "label": "learn mode, light theme",
+            "mode": "learn",
+            "scheme": "light",
+            "inkRatio": 0.0366,
+            "width": 720,
+            "height": 735
+          },
+          {
+            "file": "attempts/1/learn-dark.png",
+            "label": "learn mode, after switching to the dark theme while mounted",
+            "mode": "learn",
+            "scheme": "dark",
+            "inkRatio": 0.046,
+            "width": 720,
+            "height": 735
+          },
+          {
+            "file": "attempts/1/learn-dark-interacted.png",
+            "label": "learn mode, dark, after automated clicks/slider moves/drag",
+            "mode": "learn",
+            "scheme": "dark",
+            "inkRatio": 0.046,
+            "width": 720,
+            "height": 735
+          },
+          {
+            "file": "attempts/1/review-light.png",
+            "label": "review mode, light theme",
+            "mode": "review",
+            "scheme": "light",
+            "inkRatio": 0.0815,
+            "width": 720,
+            "height": 813
+          },
+          {
+            "file": "attempts/1/review-dark.png",
+            "label": "review mode, after switching to the dark theme while mounted",
+            "mode": "review",
+            "scheme": "dark",
+            "inkRatio": 0.0895,
+            "width": 720,
+            "height": 813
+          },
+          {
+            "file": "attempts/1/review-correct-light.png",
+            "label": "review mode, light, after the scripted correct answer",
+            "mode": "review",
+            "scheme": "light",
+            "inkRatio": 0.0871,
+            "width": 720,
+            "height": 846
+          },
+          {
+            "file": "attempts/1/review-incorrect-dark.png",
+            "label": "review mode, dark, after the scripted incorrect answer",
+            "mode": "review",
+            "scheme": "dark",
+            "inkRatio": 0.095,
+            "width": 720,
+            "height": 846
+          }
+        ],
+        "runs": [
+          {
+            "mode": "learn",
+            "ready": true,
+            "mountMs": 464.60000002384186,
+            "events": [
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 231.20000004768372
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 792.8000000715256
+              },
+              {
+                "type": "ready",
+                "mountMs": 464.60000002384186,
+                "totalMs": 562.4000000953674,
+                "t": 792.8000000715256
+              }
+            ],
+            "consoleErrors": [],
+            "results": [],
+            "finalHeight": 735
+          },
+          {
+            "mode": "review",
+            "ready": true,
+            "mountMs": 201.19999992847443,
+            "events": [
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 144.10000002384186
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 436.10000002384186
+              },
+              {
+                "type": "ready",
+                "mountMs": 201.19999992847443,
+                "totalMs": 292.7000000476837,
+                "t": 436.10000002384186
+              },
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 3173.600000023842
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 3460.600000023842
+              },
+              {
+                "type": "ready",
+                "mountMs": 162.40000009536743,
+                "totalMs": 287.2000000476837,
+                "t": 3460.600000023842
+              },
+              {
+                "type": "result",
+                "result": {
+                  "outcome": "correct",
+                  "score": 1,
+                  "detail": "选择模型 B；正确模型为 B（正四面体）。",
+                  "response": {
+                    "choice": "b",
+                    "correctModel": "b"
+                  }
+                },
+                "t": 5290.899999976158
+              },
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 6380.5
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 6605.899999976158
+              },
+              {
+                "type": "ready",
+                "mountMs": 138.39999997615814,
+                "totalMs": 225.69999992847443,
+                "t": 6605.899999976158
+              },
+              {
+                "type": "result",
+                "result": {
+                  "outcome": "incorrect",
+                  "score": 0,
+                  "detail": "选择模型 A；正确模型为 B（正四面体）。",
+                  "response": {
+                    "choice": "a",
+                    "correctModel": "b"
+                  }
+                },
+                "t": 8447.5
+              }
+            ],
+            "consoleErrors": [],
+            "results": [
+              {
+                "step": "before-interaction",
+                "outcome": null
+              },
+              {
+                "step": "correct",
+                "outcome": "correct",
+                "detail": "选择模型 B；正确模型为 B（正四面体）。"
+              },
+              {
+                "step": "incorrect",
+                "outcome": "incorrect",
+                "detail": "选择模型 A；正确模型为 B（正四面体）。"
+              }
+            ],
+            "finalHeight": 813
+          }
+        ],
+        "durationMs": 15002
+      },
+      "judge": {
+        "scores": {
+          "conveysIdea": 4,
+          "correctness": 5,
+          "legibility": 4,
+          "visualQuality": 4,
+          "reviewQuestion": 5
+        },
+        "issues": [
+          {
+            "severity": "minor",
+            "where": "学习模式初始截图（明、暗主题）及复习作答后截图：三维模型区域",
+            "problem": "模型在画布中偏小，留白较多；初始视角下 H₄ 紧邻中心 C，相关键和四面体虚线集中在很小的范围内，使第四个顶点及其空间关系不够醒目。",
+            "fix": "适当放大模型，并调整默认视角，让四个氢原子的投影更充分分离，同时为旋转保留边缘余量。"
+          },
+          {
+            "severity": "minor",
+            "where": "学习模式暗色主题、自动拖动后的截图：氢原子标签",
+            "problem": "旋转后部分氢球明显变暗，但其黑色标签未随之调整，尤其下方 H₂ 的文字与球体对比不足。",
+            "fix": "让原子标签独立于球体光照渲染，采用高对比文字或描边，确保旋转到背光方向时仍清楚可读。"
+          }
+        ],
+        "summary": "模型、顶点连线和选中键角共同呈现了正四面体结构，109.47°、等长 C—H 单键及中心/顶点关系均符合知识点。两种主题均正常渲染，没有可见裁切或错误。复习题在提交前隐藏结构名称与角度，提交后能明确区分正误并展示正确模型。主要可改进之处是模型占比、默认视角和背光标签的可读性。",
+        "accept": true
+      }
+    }
+  ],
+  "totals": {
+    "inputTokens": 9565,
+    "cachedInputTokens": 4342,
+    "outputTokens": 5612,
+    "reasoningTokens": 1204,
+    "costUsd": 0.3372,
+    "wallMs": 127975,
+    "calls": 2
+  },
+  "files": {
+    "source": "component.js",
+    "manifest": "manifest.json",
+    "props": "props.json",
+    "screenshots": [
+      "screenshots/learn-light.png",
+      "screenshots/learn-dark.png",
+      "screenshots/learn-dark-interacted.png",
+      "screenshots/review-light.png",
+      "screenshots/review-dark.png",
+      "screenshots/review-correct-light.png",
+      "screenshots/review-incorrect-dark.png"
+    ]
+  },
+  "startedAt": "2026-11-16T17:06:22.489Z",
+  "finishedAt": "2026-11-16T17:08:30.464Z",
+  "stoppedReason": "accepted"
+}

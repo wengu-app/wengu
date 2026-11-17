@@ -1,0 +1,29 @@
+{
+  "title": "斜抛运动：一条轨迹，两个分运动",
+  "design": "用同一时刻的抛体与水平、竖直投影，把抛物线拆成两个互不影响的分运动；等时间隔的圆点直接显示水平位移相等、竖直位移不等。学习者可拖动时间、改变初速度与角度，并叠加互余角轨迹比较射程。复习时停在最高点，要求选择正确的速度分解图，提交后再揭示速度与解释。",
+  "source": "(see component.js)",
+  "reviewTest": {
+    "correct": [
+      {
+        "action": "click",
+        "selector": "#answer-right",
+        "x": null,
+        "y": null,
+        "x2": null,
+        "y2": null,
+        "value": null
+      }
+    ],
+    "incorrect": [
+      {
+        "action": "click",
+        "selector": "#answer-down",
+        "x": null,
+        "y": null,
+        "x2": null,
+        "y2": null,
+        "value": null
+      }
+    ]
+  }
+}

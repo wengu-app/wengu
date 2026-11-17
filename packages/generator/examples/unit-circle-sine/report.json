@@ -1,0 +1,327 @@
+{
+  "schemaVersion": 1,
+  "knowledgePoint": {
+    "id": "math.trigonometry.unit-circle-sine",
+    "title": "单位圆与正弦函数",
+    "subject": "数学",
+    "content": "在平面直角坐标系中，以原点为圆心、半径为 1 的圆叫单位圆。角 α 的始边是 x 轴正半轴，终边与单位圆交于点 P，则 P 的坐标是 (cos α, sin α)：sin α 就是 P 的纵坐标，cos α 就是 P 的横坐标。当 α 从 0 增加到 2π，P 沿单位圆转一圈，它的纵坐标随 α 变化的图像就是正弦曲线 y = sin α：在 α = π/2 处取最大值 1，在 α = 3π/2 处取最小值 −1，在 0、π、2π 处为 0；第一、二象限 sin α > 0，第三、四象限 sin α < 0。转过一圈后数值重复，所以正弦函数的周期是 2π。",
+    "language": "zh-CN",
+    "sources": [
+      {
+        "title": "人教A版高中数学 必修第一册",
+        "locator": "第五章 三角函数 5.2 三角函数的概念、5.4 三角函数的图象与性质"
+      }
+    ]
+  },
+  "modes": [
+    "learn",
+    "review"
+  ],
+  "provider": "openai",
+  "generatorModel": "gpt-6-astra",
+  "judgeModel": "gpt-6-astra",
+  "reasoningEffort": {
+    "generate": "medium",
+    "judge": "medium"
+  },
+  "accepted": true,
+  "finalAttempt": 1,
+  "attempts": [
+    {
+      "n": 1,
+      "startedAt": "2026-11-16T17:14:55.490Z",
+      "durationMs": 121879,
+      "calls": [
+        {
+          "purpose": "generate",
+          "model": "gpt-6-astra",
+          "durationMs": 90367,
+          "usage": {
+            "inputTokens": 4352,
+            "cachedInputTokens": 4003,
+            "outputTokens": 4978,
+            "reasoningTokens": 869
+          },
+          "costUsd": 0.256393
+        },
+        {
+          "purpose": "judge",
+          "model": "gpt-6-astra",
+          "durationMs": 17518,
+          "usage": {
+            "inputTokens": 4628,
+            "cachedInputTokens": 0,
+            "outputTokens": 506,
+            "reasoningTokens": 164
+          },
+          "costUsd": 0.07158
+        }
+      ],
+      "findings": [
+        {
+          "stage": "judge",
+          "severity": "warning",
+          "code": "judge-minor",
+          "message": "The circle outline and radius have very low contrast against the background. The highlighted sine height remains clear, but the geometry explaining where that height comes from is harder to see. → fix: Use brighter theme-specific strokes for the circle and radius, keeping them secondary to the highlighted height but clearly distinguishable from the background.",
+          "where": "All dark-theme screenshots: unit-circle outline and radius OP"
+        },
+        {
+          "stage": "judge",
+          "severity": "warning",
+          "code": "judge-minor",
+          "message": "Numerous diagram labels and the coordinate caption have browser text-selection highlights after dragging, adding distracting blue blocks to the visualization. → fix: Disable text selection on the draggable visualization and its labels with user-select: none, and prevent native selection during pointer dragging.",
+          "where": "Learn mode, dark, after automated clicks/slider moves/drag"
+        }
+      ],
+      "passed": true,
+      "sourceFile": "attempts/1/component.js",
+      "design": "并排呈现单位圆与正弦曲线，用同色的纵向线段和等高的点强调：正弦值就是圆上点的纵坐标。学习者拖动角度或播放一周，观察两个点同步变化，并用关键角度按钮定位零点与极值。复习时隐藏曲线和投影，要求为指定角度选择曲线点的高度，提交后再揭示纵坐标与正弦值的对应关系。",
+      "sandbox": {
+        "screenshots": [
+          {
+            "file": "attempts/1/learn-light.png",
+            "label": "learn mode, light theme",
+            "mode": "learn",
+            "scheme": "light",
+            "inkRatio": 0.0465,
+            "width": 720,
+            "height": 641
+          },
+          {
+            "file": "attempts/1/learn-dark.png",
+            "label": "learn mode, after switching to the dark theme while mounted",
+            "mode": "learn",
+            "scheme": "dark",
+            "inkRatio": 0.0523,
+            "width": 720,
+            "height": 641
+          },
+          {
+            "file": "attempts/1/learn-dark-interacted.png",
+            "label": "learn mode, dark, after automated clicks/slider moves/drag",
+            "mode": "learn",
+            "scheme": "dark",
+            "inkRatio": 0.0652,
+            "width": 720,
+            "height": 641
+          },
+          {
+            "file": "attempts/1/review-light.png",
+            "label": "review mode, light theme",
+            "mode": "review",
+            "scheme": "light",
+            "inkRatio": 0.0372,
+            "width": 720,
+            "height": 649
+          },
+          {
+            "file": "attempts/1/review-dark.png",
+            "label": "review mode, after switching to the dark theme while mounted",
+            "mode": "review",
+            "scheme": "dark",
+            "inkRatio": 0.0387,
+            "width": 720,
+            "height": 649
+          },
+          {
+            "file": "attempts/1/review-correct-light.png",
+            "label": "review mode, light, after the scripted correct answer",
+            "mode": "review",
+            "scheme": "light",
+            "inkRatio": 0.0648,
+            "width": 720,
+            "height": 649
+          },
+          {
+            "file": "attempts/1/review-incorrect-dark.png",
+            "label": "review mode, dark, after the scripted incorrect answer",
+            "mode": "review",
+            "scheme": "dark",
+            "inkRatio": 0.0667,
+            "width": 720,
+            "height": 649
+          }
+        ],
+        "runs": [
+          {
+            "mode": "learn",
+            "ready": true,
+            "mountMs": 15.399999976158142,
+            "events": [
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 134.89999997615814
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 231
+              },
+              {
+                "type": "ready",
+                "mountMs": 15.399999976158142,
+                "totalMs": 96.79999995231628,
+                "t": 231
+              }
+            ],
+            "consoleErrors": [],
+            "results": [],
+            "finalHeight": 641
+          },
+          {
+            "mode": "review",
+            "ready": true,
+            "mountMs": 11.700000047683716,
+            "events": [
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 124.70000004768372
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 220.20000004768372
+              },
+              {
+                "type": "ready",
+                "mountMs": 11.700000047683716,
+                "totalMs": 96.39999997615814,
+                "t": 220.20000004768372
+              },
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 2854
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 2910.4000000953674
+              },
+              {
+                "type": "ready",
+                "mountMs": 10.5,
+                "totalMs": 56.60000002384186,
+                "t": 2910.4000000953674
+              },
+              {
+                "type": "result",
+                "result": {
+                  "outcome": "correct",
+                  "score": 1,
+                  "detail": "选择 sin(7π/6) = −1/2",
+                  "response": {
+                    "angle": 210,
+                    "value": -0.5
+                  }
+                },
+                "t": 4755.100000023842
+              },
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 5758.700000047684
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 5851.200000047684
+              },
+              {
+                "type": "ready",
+                "mountMs": 11.899999976158142,
+                "totalMs": 92.70000004768372,
+                "t": 5851.200000047684
+              },
+              {
+                "type": "result",
+                "result": {
+                  "outcome": "incorrect",
+                  "score": 0,
+                  "detail": "选择 sin(7π/6) = −√3/2",
+                  "response": {
+                    "angle": 210,
+                    "value": -0.8660254037844386
+                  }
+                },
+                "t": 7652.400000095367
+              }
+            ],
+            "consoleErrors": [],
+            "results": [
+              {
+                "step": "before-interaction",
+                "outcome": null
+              },
+              {
+                "step": "correct",
+                "outcome": "correct",
+                "detail": "选择 sin(7π/6) = −1/2"
+              },
+              {
+                "step": "incorrect",
+                "outcome": "incorrect",
+                "detail": "选择 sin(7π/6) = −√3/2"
+              }
+            ],
+            "finalHeight": 649
+          }
+        ],
+        "durationMs": 13926
+      },
+      "judge": {
+        "scores": {
+          "conveysIdea": 5,
+          "correctness": 5,
+          "legibility": 4,
+          "visualQuality": 4,
+          "reviewQuestion": 5
+        },
+        "issues": [
+          {
+            "severity": "minor",
+            "where": "All dark-theme screenshots: unit-circle outline and radius OP",
+            "problem": "The circle outline and radius have very low contrast against the background. The highlighted sine height remains clear, but the geometry explaining where that height comes from is harder to see.",
+            "fix": "Use brighter theme-specific strokes for the circle and radius, keeping them secondary to the highlighted height but clearly distinguishable from the background."
+          },
+          {
+            "severity": "minor",
+            "where": "Learn mode, dark, after automated clicks/slider moves/drag",
+            "problem": "Numerous diagram labels and the coordinate caption have browser text-selection highlights after dragging, adding distracting blue blocks to the visualization.",
+            "fix": "Disable text selection on the draggable visualization and its labels with user-select: none, and prevent native selection during pointer dragging."
+          }
+        ],
+        "summary": "The aligned points and matching vertical segments clearly demonstrate that sine is the unit-circle point’s height. Displayed angles, coordinates, curve positions, extrema, and signs are correct. Review mode hides the numerical answer and curve before submission, then provides accurate feedback distinguishing the selected wrong height from the correct point. No clipping or rendering failures are visible; only minor dark-theme contrast and drag-selection polish remain.",
+        "accept": true
+      }
+    }
+  ],
+  "totals": {
+    "inputTokens": 8980,
+    "cachedInputTokens": 4003,
+    "outputTokens": 5484,
+    "reasoningTokens": 1033,
+    "costUsd": 0.328,
+    "wallMs": 121907,
+    "calls": 2
+  },
+  "files": {
+    "source": "component.js",
+    "manifest": "manifest.json",
+    "props": "props.json",
+    "screenshots": [
+      "screenshots/learn-light.png",
+      "screenshots/learn-dark.png",
+      "screenshots/learn-dark-interacted.png",
+      "screenshots/review-light.png",
+      "screenshots/review-dark.png",
+      "screenshots/review-correct-light.png",
+      "screenshots/review-incorrect-dark.png"
+    ]
+  },
+  "startedAt": "2026-11-16T17:14:55.474Z",
+  "finishedAt": "2026-11-16T17:16:57.381Z",
+  "stoppedReason": "accepted"
+}

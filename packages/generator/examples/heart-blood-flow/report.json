@@ -1,0 +1,312 @@
+{
+  "schemaVersion": 1,
+  "knowledgePoint": {
+    "id": "bio.circulation.heart-blood-flow",
+    "title": "血液流经心脏的路径",
+    "subject": "生物",
+    "content": "人的心脏有四个腔：右心房、右心室、左心房、左心室。左右两侧不直接相通。体循环回来的含氧少的静脉血经上、下腔静脉流入右心房，经三尖瓣（右房室瓣）进入右心室，再经肺动脉瓣进入肺动脉，送往肺部（肺循环）。在肺部完成气体交换后，含氧丰富的动脉血经肺静脉流回左心房，经二尖瓣（左房室瓣）进入左心室，再经主动脉瓣进入主动脉，送往全身（体循环）。瓣膜保证血液只能单向流动：心房→心室→动脉。左心室壁最厚，因为它要把血液泵往全身。注意：肺动脉里流的是静脉血，肺静脉里流的是动脉血。",
+    "language": "zh-CN",
+    "sources": [
+      {
+        "title": "人教版初中生物 七年级下册",
+        "locator": "第四章 第三节 输送血液的泵——心脏"
+      }
+    ]
+  },
+  "modes": [
+    "learn",
+    "review"
+  ],
+  "provider": "openai",
+  "generatorModel": "gpt-6-astra",
+  "judgeModel": "gpt-6-astra",
+  "reasoningEffort": {
+    "generate": "medium",
+    "judge": "medium"
+  },
+  "accepted": true,
+  "finalAttempt": 1,
+  "attempts": [
+    {
+      "n": 1,
+      "startedAt": "2026-11-16T17:08:34.080Z",
+      "durationMs": 172138,
+      "calls": [
+        {
+          "purpose": "generate",
+          "model": "gpt-6-astra",
+          "durationMs": 140014,
+          "usage": {
+            "inputTokens": 4357,
+            "cachedInputTokens": 4003,
+            "outputTokens": 6809,
+            "reasoningTokens": 2070
+          },
+          "costUsd": 0.347993
+        },
+        {
+          "purpose": "judge",
+          "model": "gpt-6-astra",
+          "durationMs": 17975,
+          "usage": {
+            "inputTokens": 5550,
+            "cachedInputTokens": 0,
+            "outputTokens": 556,
+            "reasoningTokens": 222
+          },
+          "costUsd": 0.0833
+        }
+      ],
+      "findings": [
+        {
+          "stage": "judge",
+          "severity": "warning",
+          "code": "judge-minor",
+          "message": "瓣膜名称集中写成“三尖瓣→肺动脉瓣”和“主动脉瓣←二尖瓣”，没有与路线上的各个瓣膜符号直接对齐。流动顺序正确，但初学者需要自行对应名称和位置。 → fix: 将每个瓣膜名称分别放在对应符号附近，或用短引线连接，明确区分房室之间的瓣膜与心室出口的瓣膜。",
+          "where": "学习模式及答题后的示意图：两组心腔下方的瓣膜名称"
+        }
+      ],
+      "passed": true,
+      "sourceFile": "attempts/1/component.js",
+      "design": "用一条闭合的有向路线，把全身、右心、肺和左心串起来；两组心腔分开呈现，避免误以为左右心直接相通。学习者可逐站追踪血液，观察含氧量在肺和全身处改变，并查看瓣膜和左心室厚壁的作用。复习时隐藏血液颜色，要求判断右心室通向肺部的血管及其血液类型。",
+      "sandbox": {
+        "screenshots": [
+          {
+            "file": "attempts/1/learn-light.png",
+            "label": "learn mode, light theme",
+            "mode": "learn",
+            "scheme": "light",
+            "inkRatio": 0.0456,
+            "width": 720,
+            "height": 788
+          },
+          {
+            "file": "attempts/1/learn-dark.png",
+            "label": "learn mode, after switching to the dark theme while mounted",
+            "mode": "learn",
+            "scheme": "dark",
+            "inkRatio": 0.0464,
+            "width": 720,
+            "height": 788
+          },
+          {
+            "file": "attempts/1/learn-dark-interacted.png",
+            "label": "learn mode, dark, after automated clicks/slider moves/drag",
+            "mode": "learn",
+            "scheme": "dark",
+            "inkRatio": 0.0475,
+            "width": 720,
+            "height": 788
+          },
+          {
+            "file": "attempts/1/review-light.png",
+            "label": "review mode, light theme",
+            "mode": "review",
+            "scheme": "light",
+            "inkRatio": 0.0464,
+            "width": 720,
+            "height": 887
+          },
+          {
+            "file": "attempts/1/review-dark.png",
+            "label": "review mode, after switching to the dark theme while mounted",
+            "mode": "review",
+            "scheme": "dark",
+            "inkRatio": 0.0473,
+            "width": 720,
+            "height": 887
+          },
+          {
+            "file": "attempts/1/review-correct-light.png",
+            "label": "review mode, light, after the scripted correct answer",
+            "mode": "review",
+            "scheme": "light",
+            "inkRatio": 0.056,
+            "width": 720,
+            "height": 889
+          },
+          {
+            "file": "attempts/1/review-incorrect-dark.png",
+            "label": "review mode, dark, after the scripted incorrect answer",
+            "mode": "review",
+            "scheme": "dark",
+            "inkRatio": 0.0588,
+            "width": 720,
+            "height": 889
+          }
+        ],
+        "runs": [
+          {
+            "mode": "learn",
+            "ready": true,
+            "mountMs": 12.899999976158142,
+            "events": [
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 231.80000007152557
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 366.7000000476837
+              },
+              {
+                "type": "ready",
+                "mountMs": 12.899999976158142,
+                "totalMs": 135.60000002384186,
+                "t": 366.7000000476837
+              }
+            ],
+            "consoleErrors": [],
+            "results": [],
+            "finalHeight": 788
+          },
+          {
+            "mode": "review",
+            "ready": true,
+            "mountMs": 11.200000047683716,
+            "events": [
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 89.60000002384186
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 217.29999995231628
+              },
+              {
+                "type": "ready",
+                "mountMs": 11.200000047683716,
+                "totalMs": 129,
+                "t": 217.29999995231628
+              },
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 2971
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 3071.7999999523163
+              },
+              {
+                "type": "ready",
+                "mountMs": 14.200000047683716,
+                "totalMs": 101.89999997615814,
+                "t": 3071.899999976158
+              },
+              {
+                "type": "result",
+                "result": {
+                  "outcome": "correct",
+                  "score": 1,
+                  "detail": "选择：肺动脉，含氧少的静脉血",
+                  "response": {
+                    "choice": "answer-pa-venous"
+                  }
+                },
+                "t": 4685.100000023842
+              },
+              {
+                "type": "status",
+                "status": "loading",
+                "t": 5706
+              },
+              {
+                "type": "status",
+                "status": "ready",
+                "t": 5786.600000023842
+              },
+              {
+                "type": "ready",
+                "mountMs": 13.400000095367432,
+                "totalMs": 80.80000007152557,
+                "t": 5786.700000047684
+              },
+              {
+                "type": "result",
+                "result": {
+                  "outcome": "incorrect",
+                  "score": 0,
+                  "detail": "选择：肺动脉，含氧丰富的动脉血",
+                  "response": {
+                    "choice": "answer-pa-arterial"
+                  }
+                },
+                "t": 7388.100000023842
+              }
+            ],
+            "consoleErrors": [],
+            "results": [
+              {
+                "step": "before-interaction",
+                "outcome": null
+              },
+              {
+                "step": "correct",
+                "outcome": "correct",
+                "detail": "选择：肺动脉，含氧少的静脉血"
+              },
+              {
+                "step": "incorrect",
+                "outcome": "incorrect",
+                "detail": "选择：肺动脉，含氧丰富的动脉血"
+              }
+            ],
+            "finalHeight": 887
+          }
+        ],
+        "durationMs": 14100
+      },
+      "judge": {
+        "scores": {
+          "conveysIdea": 5,
+          "correctness": 5,
+          "legibility": 5,
+          "visualQuality": 4,
+          "reviewQuestion": 5
+        },
+        "issues": [
+          {
+            "severity": "minor",
+            "where": "学习模式及答题后的示意图：两组心腔下方的瓣膜名称",
+            "problem": "瓣膜名称集中写成“三尖瓣→肺动脉瓣”和“主动脉瓣←二尖瓣”，没有与路线上的各个瓣膜符号直接对齐。流动顺序正确，但初学者需要自行对应名称和位置。",
+            "fix": "将每个瓣膜名称分别放在对应符号附近，或用短引线连接，明确区分房室之间的瓣膜与心室出口的瓣膜。"
+          }
+        ],
+        "summary": "闭合有向路线清晰呈现完整血流路径，颜色在肺部和全身处转换，左右心分隔及左心室厚壁也有明确表达。示意图注明非解剖位置、未按比例绘制，未发现事实错误、裁切或主题切换后的可读性问题。复习题作答前隐藏血液颜色和目标血管名称，正确与错误作答后的反馈均清楚且准确。整体可用于学习，瓣膜标签定位仍可优化。",
+        "accept": true
+      }
+    }
+  ],
+  "totals": {
+    "inputTokens": 9907,
+    "cachedInputTokens": 4003,
+    "outputTokens": 7365,
+    "reasoningTokens": 2292,
+    "costUsd": 0.4313,
+    "wallMs": 172152,
+    "calls": 2
+  },
+  "files": {
+    "source": "component.js",
+    "manifest": "manifest.json",
+    "props": "props.json",
+    "screenshots": [
+      "screenshots/learn-light.png",
+      "screenshots/learn-dark.png",
+      "screenshots/learn-dark-interacted.png",
+      "screenshots/review-light.png",
+      "screenshots/review-dark.png",
+      "screenshots/review-correct-light.png",
+      "screenshots/review-incorrect-dark.png"
+    ]
+  },
+  "startedAt": "2026-11-16T17:08:34.070Z",
+  "finishedAt": "2026-11-16T17:11:26.221Z",
+  "stoppedReason": "accepted"
+}

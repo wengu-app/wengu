@@ -1,0 +1,29 @@
+{
+  "title": "沿比较路径插入",
+  "design": "用固定位置的结点和可点击的空位展示 BST 插入：只有新叶子出现，已有结点始终不动。学习模式可逐步比较不同的键，并切换到有序插入形成的链，观察比较次数的变化。复习模式隐藏路径，让学习者直接选择 35 的插入位置，作答后再揭示完整路径。",
+  "source": "(see component.js)",
+  "reviewTest": {
+    "correct": [
+      {
+        "action": "click",
+        "selector": "[data-slot=\"40-L\"]",
+        "x": null,
+        "y": null,
+        "x2": null,
+        "y2": null,
+        "value": null
+      }
+    ],
+    "incorrect": [
+      {
+        "action": "click",
+        "selector": "[data-slot=\"20-R\"]",
+        "x": null,
+        "y": null,
+        "x2": null,
+        "y2": null,
+        "value": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "knowledgePoint": {
+    "id": "chem.molecular-geometry.methane-tetrahedral",
+    "title": "甲烷的正四面体结构",
+    "subject": "化学",
+    "language": "zh-CN",
+    "content": "甲烷（CH₄）分子中，碳原子位于中心，与四个氢原子各形成一个 C−H 单键（键长约 109 pm）。根据价层电子对互斥理论（VSEPR），中心碳原子周围的四对成键电子相互排斥，尽可能远离，因此四个氢原子位于正四面体的四个顶点，碳原子在正四面体中心。任意两个 C−H 键之间的夹角都是 109.5°（准确值约 109.47°）。在平面结构式里把甲烷画成“十字形”（键角 90°），只是书写习惯，并不是真实的空间形状。",
+    "sources": [
+      { "title": "人教版高中化学 选择性必修2《物质结构与性质》", "locator": "第二章 第二节 分子的空间结构" },
+      { "title": "NIST CCCBDB, methane experimental geometry", "url": "https://cccbdb.nist.gov/" }
+    ]
+  },
+  "modes": ["learn", "review"]
+}

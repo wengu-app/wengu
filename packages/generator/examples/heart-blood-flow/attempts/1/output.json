@@ -1,0 +1,29 @@
+{
+  "title": "血液流经心脏的路径",
+  "design": "用一条闭合的有向路线，把全身、右心、肺和左心串起来；两组心腔分开呈现，避免误以为左右心直接相通。学习者可逐站追踪血液，观察含氧量在肺和全身处改变，并查看瓣膜和左心室厚壁的作用。复习时隐藏血液颜色，要求判断右心室通向肺部的血管及其血液类型。",
+  "source": "(see component.js)",
+  "reviewTest": {
+    "correct": [
+      {
+        "action": "click",
+        "selector": "#answer-pa-venous",
+        "x": null,
+        "y": null,
+        "x2": null,
+        "y2": null,
+        "value": null
+      }
+    ],
+    "incorrect": [
+      {
+        "action": "click",
+        "selector": "#answer-pa-arterial",
+        "x": null,
+        "y": null,
+        "x2": null,
+        "y2": null,
+        "value": null
+      }
+    ]
+  }
+}

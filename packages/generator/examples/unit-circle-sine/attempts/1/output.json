@@ -1,0 +1,47 @@
+{
+  "title": "把单位圆展开成正弦曲线",
+  "design": "并排呈现单位圆与正弦曲线，用同色的纵向线段和等高的点强调：正弦值就是圆上点的纵坐标。学习者拖动角度或播放一周，观察两个点同步变化，并用关键角度按钮定位零点与极值。复习时隐藏曲线和投影，要求为指定角度选择曲线点的高度，提交后再揭示纵坐标与正弦值的对应关系。",
+  "source": "(see component.js)",
+  "reviewTest": {
+    "correct": [
+      {
+        "action": "click",
+        "selector": "#choice-negative-half",
+        "x": null,
+        "y": null,
+        "x2": null,
+        "y2": null,
+        "value": null
+      },
+      {
+        "action": "click",
+        "selector": "#check",
+        "x": null,
+        "y": null,
+        "x2": null,
+        "y2": null,
+        "value": null
+      }
+    ],
+    "incorrect": [
+      {
+        "action": "click",
+        "selector": "#choice-negative-root",
+        "x": null,
+        "y": null,
+        "x2": null,
+        "y2": null,
+        "value": null
+      },
+      {
+        "action": "click",
+        "selector": "#check",
+        "x": null,
+        "y": null,
+        "x2": null,
+        "y2": null,
+        "value": null
+      }
+    ]
+  }
+}

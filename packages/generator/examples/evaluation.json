@@ -1,0 +1,188 @@
+{
+  "date": "2026-11-16",
+  "model": "gpt-6-astra",
+  "judgeModel": "gpt-6-astra",
+  "reasoningEffort": {
+    "generate": "medium",
+    "judge": "medium"
+  },
+  "totals": {
+    "inputTokens": 80424,
+    "cachedInputTokens": 33042,
+    "outputTokens": 47240,
+    "costUsd": 2.869
+  },
+  "rows": [
+    {
+      "name": "methane",
+      "title": "甲烷的正四面体结构",
+      "subject": "化学",
+      "accepted": true,
+      "attempts": 1,
+      "wallSeconds": 128,
+      "inputTokens": 9565,
+      "cachedInputTokens": 4342,
+      "outputTokens": 5612,
+      "reasoningTokens": 1204,
+      "costUsd": 0.3372,
+      "libraries": [
+        "three"
+      ],
+      "sourceBytes": 11850,
+      "finalScores": {
+        "conveysIdea": 4,
+        "correctness": 5,
+        "legibility": 4,
+        "visualQuality": 4,
+        "reviewQuestion": 5
+      },
+      "failedAttempts": [],
+      "judgeIssues": [
+        "minor: 模型在画布中偏小，留白较多；初始视角下 H₄ 紧邻中心 C，相关键和四面体虚线集中在很小的范围内，使第四个顶点及其空间关系不够醒目。",
+        "minor: 旋转后部分氢球明显变暗，但其黑色标签未随之调整，尤其下方 H₂ 的文字与球体对比不足。"
+      ]
+    },
+    {
+      "name": "heart-blood-flow",
+      "title": "血液流经心脏的路径",
+      "subject": "生物",
+      "accepted": true,
+      "attempts": 1,
+      "wallSeconds": 172,
+      "inputTokens": 9907,
+      "cachedInputTokens": 4003,
+      "outputTokens": 7365,
+      "reasoningTokens": 2292,
+      "costUsd": 0.4313,
+      "libraries": [],
+      "sourceBytes": 13614,
+      "finalScores": {
+        "conveysIdea": 5,
+        "correctness": 5,
+        "legibility": 5,
+        "visualQuality": 4,
+        "reviewQuestion": 5
+      },
+      "failedAttempts": [],
+      "judgeIssues": [
+        "minor: 瓣膜名称集中写成“三尖瓣→肺动脉瓣”和“主动脉瓣←二尖瓣”，没有与路线上的各个瓣膜符号直接对齐。流动顺序正确，但初学者需要自行对应名称和位置。"
+      ]
+    },
+    {
+      "name": "projectile-motion",
+      "title": "斜抛运动：水平匀速 + 竖直匀变速",
+      "subject": "物理",
+      "accepted": true,
+      "attempts": 2,
+      "wallSeconds": 202,
+      "inputTokens": 19073,
+      "cachedInputTokens": 8345,
+      "outputTokens": 11645,
+      "reasoningTokens": 1675,
+      "costUsd": 0.6979,
+      "libraries": [],
+      "sourceBytes": 13963,
+      "finalScores": {
+        "conveysIdea": 5,
+        "correctness": 5,
+        "legibility": 5,
+        "visualQuality": 5,
+        "reviewQuestion": 5
+      },
+      "failedAttempts": [
+        {
+          "n": 1,
+          "errors": [
+            "sandbox/runtime-error: ResizeObserver loop completed with undelivered notifications."
+          ]
+        }
+      ],
+      "judgeIssues": []
+    },
+    {
+      "name": "unit-circle-sine",
+      "title": "单位圆与正弦函数",
+      "subject": "数学",
+      "accepted": true,
+      "attempts": 1,
+      "wallSeconds": 122,
+      "inputTokens": 8980,
+      "cachedInputTokens": 4003,
+      "outputTokens": 5484,
+      "reasoningTokens": 1033,
+      "costUsd": 0.328,
+      "libraries": [],
+      "sourceBytes": 10548,
+      "finalScores": {
+        "conveysIdea": 5,
+        "correctness": 5,
+        "legibility": 4,
+        "visualQuality": 4,
+        "reviewQuestion": 5
+      },
+      "failedAttempts": [],
+      "judgeIssues": [
+        "minor: The circle outline and radius have very low contrast against the background. The highlighted sine height remains clear, but the geometry explaining where that height comes from is harder to see.",
+        "minor: Numerous diagram labels and the coordinate caption have browser text-selection highlights after dragging, adding distracting blue blocks to the visualization."
+      ]
+    },
+    {
+      "name": "seasons-axial-tilt",
+      "title": "四季的成因：地轴倾斜",
+      "subject": "地理",
+      "accepted": true,
+      "attempts": 2,
+      "wallSeconds": 251,
+      "inputTokens": 23495,
+      "cachedInputTokens": 8346,
+      "outputTokens": 12015,
+      "reasoningTokens": 2801,
+      "costUsd": 0.7606,
+      "libraries": [],
+      "sourceBytes": 12531,
+      "finalScores": {
+        "conveysIdea": 5,
+        "correctness": 5,
+        "legibility": 4,
+        "visualQuality": 4,
+        "reviewQuestion": 5
+      },
+      "failedAttempts": [
+        {
+          "n": 1,
+          "errors": [
+            "judge/judge-major: 左侧正确的夏至位置与右侧误选的冬至位置都被相同的蓝色圆环圈出，但上方提示是“正确位置已圈出”。图形无法区分正确答案与错误选择，与提示相冲突；虽然下方文字说明正确，仍容易让学习者误读。 → fix: 正确位置使用绿色圆环及“正确答案”标记；误选位置使用红色虚线圈或叉号，并标记“你的选择”。同步将顶部提示改为明确区分两种标记的说明。",
+            "judge/low-reviewQuestion: reviewer scored reviewQuestion 3/5 (needs 4): 核心教学设计有效：平行地轴、太阳光剖面、直射纬度及昼长联动，能展示倾斜如何造成季节变化；无倾斜对照也直观。所示夏至数值正确，复习作答前未泄露答案，页面无明显裁切。主要问题是答错后的正确位置与误选位置使用相同圈选样式，须修正反馈标记后再展示给学习者。"
+          ]
+        }
+      ],
+      "judgeIssues": []
+    },
+    {
+      "name": "bst-insertion",
+      "title": "二叉搜索树的插入",
+      "subject": "计算机科学",
+      "accepted": true,
+      "attempts": 1,
+      "wallSeconds": 123,
+      "inputTokens": 9404,
+      "cachedInputTokens": 4003,
+      "outputTokens": 5119,
+      "reasoningTokens": 1144,
+      "costUsd": 0.314,
+      "libraries": [],
+      "sourceBytes": 10647,
+      "finalScores": {
+        "conveysIdea": 5,
+        "correctness": 5,
+        "legibility": 4,
+        "visualQuality": 4,
+        "reviewQuestion": 5
+      },
+      "failedAttempts": [],
+      "judgeIssues": [
+        "minor: 普通连线与背景的对比度偏低，空位置的虚线尤其淡。虽然结点数值清楚，但父子关系需要更费力辨认，而这些连接关系正是判断插入位置的依据。"
+      ]
+    }
+  ]
+}

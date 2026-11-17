@@ -1,0 +1,13 @@
+{
+  "knowledgePoint": {
+    "id": "cs.data-structures.bst-insertion",
+    "title": "二叉搜索树的插入",
+    "subject": "计算机科学",
+    "language": "zh-CN",
+    "content": "二叉搜索树（BST）中，每个结点的左子树上所有键都小于该结点的键，右子树上所有键都大于该结点的键。插入键 k 时，从根结点开始比较：k 小于当前结点就走向左孩子，大于就走向右孩子；一直走到空位置，把 k 作为新的叶子结点放在那里。插入不会移动已有结点。比较次数等于新结点的深度，平均 O(log n)，但如果按有序顺序插入（如 1,2,3,4,5），树会退化成一条链，插入变成 O(n)。示例：依次插入 50, 30, 70, 20, 40, 60, 80 得到一棵完全平衡的树；再插入 35 时，路径是 50→30→40，35 成为 40 的左孩子。",
+    "sources": [
+      { "title": "Cormen et al., Introduction to Algorithms, 4th ed.", "locator": "§12.3 Insertion and deletion" }
+    ]
+  },
+  "modes": ["learn", "review"]
+}
