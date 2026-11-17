@@ -77,10 +77,10 @@
 
 ## 当前开发状态
 
-M0 的导入导出、排期、沙箱和生成原型已实现；三副真实热门卡组验证仍待补齐。
+M0 的导入导出、排期、沙箱和生成原型已实现。真实热门卡组（Ultimate Geography、MCAT、日语核心词汇等）的导入、渲染和导出往返已用 Anki 官方库逐项对照，结果一致；对照脚本是 `corepack pnpm --filter @wengu/anki verify:real <卡组路径>`。
 M1 的导入、复习、浏览编辑、统计、导出和本地持久化已实现，连续两周自用验收尚未完成。
-大卡组复习的 100 毫秒延迟目标尚未稳定通过，仍需优化。
-Linux AppImage 和 deb 已构建，AppImage 已运行验证；macOS、Windows 和三平台构建工作流尚未验证。
+5 万笔记卡组上评分到显示下一张卡的延迟 P95 约 60 毫秒，达到 100 毫秒以内的目标。
+Linux AppImage 和 deb 已构建，AppImage 已运行验证。macOS（Apple 芯片和 Intel 分开打包）和 Windows 安装包由 GitHub Actions 构建；macOS 包只有临时签名、未公证，Apple 芯片版在 CI 中验证过可以启动，Intel 版和 Windows 版尚未在真机上运行。
 桌面端暂不支持自动更新。桌面数据位置、运行限制和完整命令见 [apps/desktop/README.md](apps/desktop/README.md)。
 
 在仓库根目录运行：

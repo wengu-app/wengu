@@ -109,6 +109,10 @@ try {
     await holder.close();
     const e = await run(other, "step=check");
     check("after the first tab closes, the second can open", e.revlog === 61, e.revlog);
+    const interrupted = await run(other, "step=crash-transaction");
+    const recovered = await run(other, "step=snapshot");
+    check("hot journal recovers all spilled pages after worker termination",
+      JSON.stringify(recovered.snapshot) === JSON.stringify(interrupted.before));
   } else {
     const page = await context.newPage();
     page.on("console", (m) => console.log("[page]", m.text()));

@@ -20,12 +20,15 @@ import { MemoryMediaStore, OpfsMediaStore } from "../media/store.js";
 import type { OpenOptions, Port } from "../rpc/protocol.js";
 import { serve } from "../rpc/server.js";
 
+import { bufferRollbackJournal } from "./buffered-journal-vfs.js";
+
 const VFS_NAME = "wengu-sahpool";
 const VFS_DIR = ".wengu-sahpool";
 const LOCK_NAME = "wengu-database";
 
 type PoolUtil = Awaited<ReturnType<Sqlite3Static["installOpfsSAHPoolVfs"]>>;
 let pool: PoolUtil | null = null;
+let journalBuffered = false;
 let releaseLock: (() => void) | null = null;
 
 /** Holds a Web Lock for as long as the database is open, so a second tab fails fast with a clear message. */
@@ -59,6 +62,7 @@ export async function openEngine(options: OpenOptions): Promise<Engine> {
   await acquireLock();
   try {
     pool ??= await sqlite3.installOpfsSAHPoolVfs({ name: VFS_NAME, directory: VFS_DIR, initialCapacity: 6 });
+    if (!journalBuffered) { bufferRollbackJournal(sqlite3, VFS_NAME); journalBuffered = true; }
     if (pool.isPaused()) await pool.unpauseVfs();
     const raw = new pool.OpfsSAHPoolDb(options.dbName ?? "/wengu.sqlite3");
     const db = new SqliteWasmDatabase(sqlite3, raw);

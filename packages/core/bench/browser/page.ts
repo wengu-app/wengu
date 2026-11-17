@@ -65,6 +65,18 @@ async function step(name: string): Promise<unknown> {
     const zipMagic = (b: Uint8Array) => b[0] === 0x50 && b[1] === 0x4b;
     out["export"] = { bytes: apkg.byteLength, isUint8Array: apkg instanceof Uint8Array, file: file.size, isFile: file instanceof File, zip: zipMagic(apkg) && zipMagic(fileBytes) };
   }
+  if (name === "crash-transaction") {
+    out["before"] = await client.exportAnki();
+    await new Promise<void>((resolve) => {
+      worker.addEventListener("message", (ev: MessageEvent) => {
+        if (ev.data?.t === "bench-result") resolve();
+      });
+      worker.postMessage({ t: "bench", op: "uncommitted" });
+    });
+    worker.terminate();
+    return out;
+  }
+  if (name === "snapshot") out["snapshot"] = await client.exportAnki();
   if (name === "check") {
     out["revlog"] = (await client.info()).counts.reviewLog;
     out["undoLabel"] = await client.undoLabel();

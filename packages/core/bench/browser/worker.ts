@@ -6,6 +6,11 @@ self.addEventListener("message", (ev: MessageEvent) => {
   if (m.t !== "bench") return;
   const e = currentEngine();
   if (!e) return void self.postMessage({ t: "bench-result", error: "not open" });
+  if (m.op === "uncommitted") {
+    // Force dirty database pages out of SQLite's cache, then let the page terminate this worker.
+    e.db.exec("PRAGMA cache_size = 4; BEGIN IMMEDIATE; UPDATE review_items SET reps = reps + 1000;");
+    return void self.postMessage({ t: "bench-result", value: true });
+  }
   if (m.op === "timings") return void self.postMessage({ t: "bench-result", value: e.answerTimings.splice(0) });
   if (m.op === "pragma") {
     e.db.exec(m.sql!);
