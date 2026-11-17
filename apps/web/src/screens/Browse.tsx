@@ -6,7 +6,7 @@ import { formatNumber } from "../lib/format.ts";
 import { useLang, useT, type MessageKey } from "../lib/i18n.ts";
 import { Icon } from "../ui/Icon.tsx";
 import { VirtualList, type VirtualListHandle } from "../ui/VirtualList.tsx";
-import { AddNoteDialog, flattenDecks, NoteEditor } from "./Editor.tsx";
+import { flattenDecks, NoteEditor } from "./Editor.tsx";
 
 const PAGE = 200;
 const ROW_H = 56;
@@ -33,7 +33,6 @@ export function Browse(props: { initialDeckId: Id | null; initialNoteId: Id | nu
   const [activeIndex, setActiveIndex] = useState(-1);
   const [decks, setDecks] = useState<DeckNode[]>([]);
   const [tags, setTags] = useState<string[]>([]);
-  const [adding, setAdding] = useState(false);
   const [queryMs, setQueryMs] = useState<number | null>(null);
   const loading = useRef(new Set<number>());
   const generation = useRef(0);
@@ -206,7 +205,7 @@ export function Browse(props: { initialDeckId: Id | null; initialNoteId: Id | nu
                 {t("browse.clear")}
               </button>
             )}
-            <button type="button" className="btn btn-small btn-ghost" onClick={() => setAdding(true)} data-testid="add-note">
+            <button type="button" className="btn btn-small btn-ghost" onClick={() => navigate({ name: "make", deckId: filters.deckId })} data-testid="add-note">
               <Icon name="plus" size={16} /> {t("browse.add")}
             </button>
           </div>
@@ -287,15 +286,6 @@ export function Browse(props: { initialDeckId: Id | null; initialNoteId: Id | nu
           <p className="empty-detail">{t("browse.select")}</p>
         )}
       </div>
-      <AddNoteDialog
-        open={adding}
-        deckId={filters.deckId}
-        onClose={() => setAdding(false)}
-        onAdded={(id) => {
-          setSelected(id);
-          navigate({ name: "browse", deckId: filters.deckId, noteId: id }, true);
-        }}
-      />
     </div>
   );
 }

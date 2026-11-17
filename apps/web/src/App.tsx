@@ -2,12 +2,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Id, WenguClient } from "@wengu/core";
 
 import { AppProvider, navigate, routeHash, useApp, useRoute, type Route, type Toast } from "./lib/app.tsx";
+import { useAgentBridge } from "./lib/agents.ts";
 import { useDesktopCommands } from "./lib/desktop.ts";
 import { useT, type MessageKey } from "./lib/i18n.ts";
 import { Browse } from "./screens/Browse.tsx";
 import { Decks } from "./screens/Decks.tsx";
 import { ExportDialog } from "./screens/ExportDialog.tsx";
 import { ImportDialog, isAnkiFile } from "./screens/ImportDialog.tsx";
+import { Make } from "./screens/Make.tsx";
 import { Review } from "./screens/Review.tsx";
 import { Settings } from "./screens/Settings.tsx";
 import { Stats } from "./screens/Stats.tsx";
@@ -30,6 +32,7 @@ export function App({ db }: { db: WenguClient }) {
   return (
     <AppProvider db={db} onImport={onImport} onExport={onExport} toasts={setToasts}>
       <Shell />
+      <AgentBridge />
       <input
         ref={fileInput}
         type="file"
@@ -55,6 +58,11 @@ export function App({ db }: { db: WenguClient }) {
   );
 }
 
+function AgentBridge() {
+  useAgentBridge();
+  return null;
+}
+
 function Shell() {
   const route = useRoute();
   const { info, openImport, openExport } = useApp();
@@ -62,14 +70,20 @@ function Shell() {
   const empty = info.counts.knowledgePoints === 0 && info.counts.decks <= 1;
   const focus = route.name === "review";
 
-  // "/" opens Browse with the search box focused, like the search field in the top bar.
+  // "/" opens Browse with the search box focused, like the search field in the top bar; "A" opens Make (as in Anki).
   useEffect(() => {
     if (focus) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
       const tgt = e.target as HTMLElement | null;
       if (tgt && (tgt.tagName === "INPUT" || tgt.tagName === "TEXTAREA" || tgt.tagName === "SELECT" || tgt.isContentEditable)) return;
       if (document.querySelector("dialog[open]")) return;
+      if (e.key === "a" && route.name !== "make") {
+        e.preventDefault();
+        navigate({ name: "make", deckId: null });
+        return;
+      }
+      if (e.key !== "/") return;
       e.preventDefault();
       if (route.name !== "browse") navigate({ name: "browse", deckId: null, noteId: null });
       setTimeout(() => document.querySelector<HTMLInputElement>('[data-testid="browse-search"]')?.focus(), 0);
@@ -99,6 +113,13 @@ function Shell() {
               <span className="topsearch-space" />
             )}
             <div className="topbar-actions">
+              {route.name !== "make" && (
+                <a className="btn btn-primary btn-small top-make" href={routeHash({ name: "make", deckId: null })} aria-label={t("nav.make")} title={`${t("nav.make")} (A)`}>
+                  <Icon name="plus" />
+                  <span className="btn-text">{t("nav.make")}</span>
+                  <kbd>A</kbd>
+                </a>
+              )}
               <TopLink route={{ name: "stats" }} icon="stats" label="nav.stats" current={route.name === "stats"} />
               <button type="button" className="btn btn-ghost btn-small" onClick={() => openImport()} aria-label={t("nav.import")} title={t("nav.import")}>
                 <Icon name="import" />
@@ -137,6 +158,8 @@ function Screen({ route, empty }: { route: Route; empty: boolean }) {
       return <Review key={String(route.deckId)} deckId={route.deckId} onExit={() => navigate({ name: "decks" })} />;
     case "browse":
       return <Browse initialDeckId={route.deckId} initialNoteId={route.noteId} />;
+    case "make":
+      return <Make key={String(route.deckId)} initialDeckId={route.deckId} />;
     case "stats":
       return <Stats />;
     case "settings":

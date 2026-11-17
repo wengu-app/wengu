@@ -58,15 +58,17 @@ test("browse, edit, add, delete; export with progress and read it back", async (
 
   // add a note
   await page.getByTestId("add-note").click();
-  const dialog = page.getByRole("dialog");
-  await dialog.getByLabel("Note type").selectOption({ label: "Basic" });
-  await dialog.getByTestId("add-field-0").locator(".fe-rich").click();
+  await page.getByRole("tab", { name: "Basic", exact: true }).first().click();
+  await page.getByTestId("add-field-0").locator(".fe-rich").click();
   await page.keyboard.type("温故而知新");
-  await dialog.getByTestId("add-field-1").locator(".fe-rich").click();
+  await page.getByTestId("add-field-1").locator(".fe-rich").click();
   await page.keyboard.type("Review the old, learn the new");
-  await dialog.getByTestId("add-note-submit").click();
+  await page.getByLabel("Tags").fill("lunyu ");
+  await page.getByTestId("add-note-submit").click();
   await expect(page.getByText("Note added")).toBeVisible();
-  await dialog.getByRole("button", { name: "Close" }).first().click();
+  await expect.poll(() => page.evaluate(async () => (await window.__wenguDb!.search({ text: "温故而知新" })).rows.length)).toBe(1);
+  await page.getByRole("button", { name: "Done" }).click();
+  await expect(page.getByTestId("browse-search")).toBeVisible();
 
   // delete a note, then undo from the toast
   await openNote(page, "goodbye", "再见");

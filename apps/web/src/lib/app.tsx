@@ -119,6 +119,7 @@ export type Route =
   | { name: "decks" }
   | { name: "review"; deckId: Id | null }
   | { name: "browse"; deckId: Id | null; noteId: Id | null }
+  | { name: "make"; deckId: Id | null }
   | { name: "stats" }
   | { name: "settings" };
 
@@ -132,6 +133,8 @@ export function parseRoute(hash: string): Route {
       return { name: "review", deckId: num(parts[1] ?? null) };
     case "browse":
       return { name: "browse", deckId: num(q.get("deck")), noteId: num(q.get("note")) };
+    case "make":
+      return { name: "make", deckId: num(q.get("deck")) };
     case "stats":
       return { name: "stats" };
     case "settings":
@@ -154,6 +157,8 @@ export function routeHash(r: Route): string {
       const s = q.toString();
       return `#/browse${s ? "?" + s : ""}`;
     }
+    case "make":
+      return `#/make${r.deckId !== null ? "?deck=" + r.deckId : ""}`;
     case "stats":
       return "#/stats";
     case "settings":

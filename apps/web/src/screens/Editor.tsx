@@ -50,7 +50,19 @@ function fromEditable(el: HTMLElement): string {
   return html;
 }
 
-function FieldEditor(props: { name: string; value: string; onChange(v: string): void; rtl: boolean; autoFocus?: boolean; testId?: string }) {
+export function FieldEditor(props: {
+  name: string;
+  value: string;
+  onChange(v: string): void;
+  rtl: boolean;
+  autoFocus?: boolean;
+  testId?: string;
+  /** Drawn on an index card (Make screen) instead of a boxed field. */
+  variant?: "card";
+  placeholder?: string;
+  /** Shows the cloze tool; returns the number for the next deletion. */
+  nextCloze?(): number;
+}) {
   const { media } = useApp();
   const t = useT();
   const [mode, setMode] = useState<"rich" | "html">("rich");
@@ -86,8 +98,16 @@ function FieldEditor(props: { name: string; value: string; onChange(v: string): 
     emit();
   };
 
+  const cloze = () => {
+    if (!props.nextCloze) return;
+    ref.current?.focus();
+    const sel = window.getSelection()?.toString() ?? "";
+    document.execCommand("insertText", false, `{{c${props.nextCloze()}::${sel}}}`);
+    emit();
+  };
+
   return (
-    <div className="fe" data-testid={props.testId}>
+    <div className={`fe ${props.variant === "card" ? "fe-card" : ""}`} data-testid={props.testId}>
       <div className="fe-head">
         <span className="fe-name">{props.name}</span>
         <span className="fe-tools">
@@ -102,6 +122,11 @@ function FieldEditor(props: { name: string; value: string; onChange(v: string): 
               <button type="button" className="tool" onMouseDown={(e) => e.preventDefault()} onClick={() => exec("underline")} aria-label={t("editor.underline")} title={`${t("editor.underline")} (Ctrl+U)`}>
                 <u>U</u>
               </button>
+              {props.nextCloze && (
+                <button type="button" className="tool tool-wide" onMouseDown={(e) => e.preventDefault()} onClick={cloze} aria-label={t("make.cloze")} title={`${t("make.cloze")} (Ctrl+Shift+C)`}>
+                  [...]
+                </button>
+              )}
             </>
           )}
           <button
@@ -128,7 +153,14 @@ function FieldEditor(props: { name: string; value: string; onChange(v: string): 
           aria-multiline="true"
           aria-label={props.name}
           dir={props.rtl ? "rtl" : undefined}
+          data-placeholder={props.placeholder}
           onInput={emit}
+          onKeyDown={(e) => {
+            if (props.nextCloze && (e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "c") {
+              e.preventDefault();
+              cloze();
+            }
+          }}
           onPaste={(e) => {
             e.preventDefault();
             document.execCommand("insertText", false, e.clipboardData.getData("text/plain"));
@@ -497,142 +529,6 @@ export function EditNoteDialog(props: { noteId: Id; onClose(): void; onSaved(): 
   return (
     <Dialog open title={t("review.edit")} onClose={close} width="lg">
       <NoteEditor noteId={props.noteId} onSaved={props.onSaved} onDirty={setDirty} />
-    </Dialog>
-  );
-}
-
-// ------------------------------------------------------------------------------------------ add
-
-export function AddNoteDialog(props: { open: boolean; deckId: Id | null; onClose(): void; onAdded(id: Id): void }) {
-  const app = useApp();
-  const { db, noteTypes, changed, toast } = app;
-  const t = useT();
-  const [ntId, setNtId] = useState<Id | null>(null);
-  const [deckId, setDeckId] = useState<Id | null>(props.deckId);
-  const [decks, setDecks] = useState<DeckNode[]>([]);
-  const [fields, setFields] = useState<string[]>([]);
-  const [tags, setTags] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [formKey, setFormKey] = useState(0);
-
-  useEffect(() => {
-    if (!props.open) return;
-    void db.deckTree().then((tree) => {
-      const flat = flattenDecks(tree).filter((d) => d.kind === "normal");
-      setDecks(flat);
-      setDeckId((cur) => cur ?? props.deckId ?? flat.find((d) => d.id !== 1)?.id ?? flat[0]?.id ?? null);
-    });
-  }, [props.open, props.deckId, db]);
-  useEffect(() => {
-    if (ntId === null && noteTypes.length) setNtId(noteTypes[0]!.id);
-  }, [noteTypes, ntId]);
-  const nt = noteTypes.find((n) => n.id === ntId);
-  useEffect(() => {
-    setFields(nt ? nt.fields.map(() => "") : []);
-  }, [nt]);
-
-  const add = async () => {
-    if (!nt || deckId === null) return;
-    if (!fields[0]?.replace(/<[^>]*>|&nbsp;|\s/g, "")) {
-      setError(t("editor.emptyFirst"));
-      return;
-    }
-    try {
-      const r = await db.addKnowledgePoint({ noteTypeId: nt.id, deckId, fields, tags: tags.split(/\s+/).filter(Boolean) });
-      await changed();
-      toast(t("editor.added"));
-      setFields(nt.fields.map(() => ""));
-      setFormKey((k) => k + 1);
-      setError(null);
-      props.onAdded(r.id);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    }
-  };
-
-  return (
-    <Dialog
-      open={props.open}
-      title={t("editor.addTitle")}
-      onClose={props.onClose}
-      width="lg"
-      footer={
-        nt && (
-          <>
-            <button type="button" className="btn btn-ghost" onClick={props.onClose}>
-              {t("common.close")}
-            </button>
-            <button type="button" className="btn btn-primary" onClick={() => void add()} data-testid="add-note-submit">
-              {t("browse.add")}
-            </button>
-          </>
-        )
-      }
-    >
-      {noteTypes.length === 0 ? (
-        <div className="center-note">
-          <p>{t("editor.noNoteTypes")}</p>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={async () => {
-              await db.createStockNoteType("basic");
-              await changed(true);
-            }}
-          >
-            {t("editor.createBasic")}
-          </button>
-        </div>
-      ) : (
-        <div
-          className="editor"
-          onKeyDown={(e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-              e.preventDefault();
-              void add();
-            }
-          }}
-        >
-          <div className="add-row">
-            <label className="field">
-              <span className="field-label">{t("browse.noteType")}</span>
-              <select className="select" value={ntId ?? ""} onChange={(e) => setNtId(Number(e.target.value))}>
-                {noteTypes.map((n) => (
-                  <option key={n.id} value={n.id}>
-                    {n.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="field">
-              <span className="field-label">{t("browse.deck")}</span>
-              <select className="select" value={deckId ?? ""} onChange={(e) => setDeckId(Number(e.target.value))}>
-                {decks.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name.replace(/::/g, " / ")}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          {nt?.fields.map((f, i) => (
-            <FieldEditor
-              key={`${formKey}-${nt.id}-${i}`}
-              name={f.name}
-              value={fields[i] ?? ""}
-              rtl={f.rtl}
-              autoFocus={i === 0}
-              testId={`add-field-${i}`}
-              onChange={(v) => setFields((fs) => fs.map((x, j) => (j === i ? v : x)))}
-            />
-          ))}
-          <label className="field">
-            <span className="field-label">{t("editor.tags")}</span>
-            <input className="input" value={tags} onChange={(e) => setTags(e.target.value)} placeholder={t("editor.tagsHint")} />
-          </label>
-          {error && <p className="error-text">{error}</p>}
-        </div>
-      )}
     </Dialog>
   );
 }
