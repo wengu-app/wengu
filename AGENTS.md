@@ -4,7 +4,7 @@
 
 `apps/landing` 是 https://wengu.dev 的静态 landing page，部署在 Cloudflare Pages 项目 `wengu` 上。
 
-- `public/`：静态文件（`index.html`、`styles.css`、`waitlist.js`），只有这个目录会被上传。
+- `public/`：静态文件（`index.html`、`styles.css`、`viz.js` 交互可视化、`waitlist.js`），只有这个目录会被上传。
 - `functions/api/waitlist.js`：`POST /api/waitlist`，接收 `{"email": "..."}`，写入 KV。
 - `wrangler.toml`：项目配置，KV 绑定名 `WAITLIST`（命名空间 `wengu-waitlist`，id `a80385bd096e4a00b153c701a5be3dde`）。
 - `.env`：`CLOUDFLARE_API_TOKEN` 和 `CLOUDFLARE_ACCOUNT_ID`，已被 git 忽略，不要提交，也不要放进 `public/`。
@@ -34,6 +34,52 @@ wrangler kv key list --namespace-id a80385bd096e4a00b153c701a5be3dde --remote
 域名：wengu.dev 是 zone 根记录 `CNAME @ → wengu.pages.dev`（已代理），已作为自定义域名挂在 Pages 项目上。
 
 Token 需要的权限：账户级 Pages Write、Workers KV Storage Write；区域级（wengu.dev）DNS Write。
+
+## 杂志风原型部署（Cloudflare Pages）
+
+`apps/prototype/magazine` 是 M2 界面重设计的杂志风可交互原型，部署在 Cloudflare Pages 项目 `wengu-magazine` 上，地址 https://magazine.wengu.dev。数据全是写死的，还没有移植进 `apps/web`。
+
+- `public/index.html`：整个原型（单文件，内联 CSS 和 JS），加了 `noindex`。
+- `public/fonts/oppo-sans-subset.woff2`：OPPO Sans 4.0 的子集，只含页面用到的字。
+- `scripts/subset-font.cjs`：页面加了新文字后重新生成子集，否则新字会回退到系统字体。
+- `wrangler.toml`：项目名 `wengu-magazine`，没有函数和 KV。
+
+凭据和 landing 共用 `apps/landing/.env`。以下命令都在 `apps/prototype/magazine` 下执行：
+
+```sh
+set -a; . ../../landing/.env; set +a
+wrangler pages deploy --branch main
+```
+
+重新生成字体子集（完整字体约 22MB，不要提交；`subset-font` 装在临时目录，不进 lockfile）：
+
+```sh
+npm i --prefix /tmp/subset-font subset-font@2
+NODE_PATH=/tmp/subset-font/node_modules node scripts/subset-font.cjs <OPPO Sans 4.0 的 .ttf 路径>
+```
+
+域名：`CNAME magazine → wengu-magazine.pages.dev`（已代理），已作为自定义域名挂在项目上。
+
+本地预览：`python3 -m http.server -d public`（字体用相对路径加载，直接双击打开 HTML 也能看）。
+
+## 游戏风原型部署（Cloudflare Pages）
+
+`apps/prototype/game` 是游戏风界面（参考多邻国的视觉、内容按 Anki 桌面应用）的可交互原型，`apps/web` 的界面按它改过，部署在 Cloudflare Pages 项目 `wengu-game` 上，地址 https://game.wengu.dev。复习、添加、编辑、暂停都会真的改变状态，数据存在访问者浏览器的 localStorage 里（键 `wengu-game-v1`），首次打开时用模拟的复习历史生成演示数据。
+
+- `public/index.html`：页面和样式；`public/app.js`：全部逻辑和演示卡片内容；加了 `noindex`。
+- `public/scheduler.js`：由 `packages/core/src/engine/scheduler.ts` 打包而来（全局变量 `WenguScheduler`），排期和应用一致。改了排期代码后在仓库根目录运行 `apps/prototype/game/scripts/build-scheduler.sh` 重新生成。`src/anki-shim.ts` 和 `src/empty.ts` 用来避免把 `.apkg` 读写和 sql.js 打进包。
+- `public/fonts/oppo-sans-subset.woff2`：OPPO Sans 子集，取 `index.html` 和 `app.js` 用到的字；加了新文字后运行 `scripts/subset-font.cjs`（用法同上一节）。
+- 右上角"跳到明天"把演示时间往后拨一天；设置里可以调目标记住率、每天新卡数和重置数据。
+
+凭据和 landing 共用。wrangler 4.163 默认会把 Pages 命令转给 Workers 并失败，要加 `--force` 走 Pages：
+
+```sh
+cd apps/prototype/game
+set -a; . ../../landing/.env; set +a
+wrangler pages deploy --branch main --commit-dirty=true --force
+```
+
+域名：`CNAME game → wengu-game.pages.dev`（已代理），已作为自定义域名挂在项目上。本地预览要用 `python3 -m http.server -d public`（直接打开文件时字体会被浏览器拦截）。
 
 ## 给后续 agent 的工作须知
 
@@ -79,3 +125,4 @@ corepack pnpm --filter @wengu/web test
 - dmg 窗口里隐藏文件（`.background.tiff`、`.VolumeIcon.icns`）在开启"显示隐藏文件"时可见，待定是否移出可视区。
 - 二十张卡的可视化对照实验尚未做。
 - 协议写的是"计划采用 AGPL-3.0"，仓库里还没有 LICENSE 文件。
+- `apps/prototype` 两个原型里的 OPPO Sans 子集取自第三方来源，随开源仓库分发前要换成 OPPO 官方下载的字体并确认授权。

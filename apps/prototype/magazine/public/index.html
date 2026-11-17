@@ -1,0 +1,1101 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>温故</title>
+<style>
+@font-face{font-family:"OPPO Sans";font-style:normal;font-weight:100 700;font-display:swap;src:url(fonts/oppo-sans-subset.woff2) format("woff2")}
+:root{
+  --paper:#f4f2ec; --raise:#ebe8df; --ink:#191814; --ink-2:#4a4740; --ink-3:#8b877c; --ink-4:#c3bfb3;
+  --rule:#e0dccf; --hover:rgba(25,24,20,.025); --sel:rgba(25,24,20,.045);
+  --accent:#c4421d; --on-accent:#fff; --amber:#b7791f;
+  --geo:#3a6bd6; --mcat:#d24877; --jp:#13958e; --la:#7857cf;
+  --ease:cubic-bezier(.22,.8,.18,1);
+  --sans:"OPPO Sans","PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Noto Sans SC","Microsoft YaHei",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#141311; --raise:#1f1d1a; --ink:#ece9e1; --ink-2:#bcb8ad; --ink-3:#85817a; --ink-4:#4b4842;
+    --rule:#2a2824; --hover:rgba(236,233,225,.03); --sel:rgba(236,233,225,.05);
+    --accent:#e2603a; --on-accent:#fff; --amber:#d9a046;
+    --geo:#6d97f0; --mcat:#ec6e98; --jp:#34bcb4; --la:#9c83eb;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#141311; --raise:#1f1d1a; --ink:#ece9e1; --ink-2:#bcb8ad; --ink-3:#85817a; --ink-4:#4b4842;
+  --rule:#2a2824; --hover:rgba(236,233,225,.03); --sel:rgba(236,233,225,.05);
+  --accent:#e2603a; --on-accent:#fff; --amber:#d9a046;
+  --geo:#6d97f0; --mcat:#ec6e98; --jp:#34bcb4; --la:#9c83eb;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-feature-settings:"tnum" 1}
+html.locked{overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+.n{font-variant-numeric:tabular-nums}
+
+/* ---------- type primitives ---------- */
+.kicker{display:flex;align-items:center;gap:8px;height:16px;font-size:12px;line-height:16px;font-weight:600;letter-spacing:.14em;color:var(--ink);white-space:nowrap}
+.kicker .m{color:var(--ink-3);letter-spacing:.04em;font-weight:500}
+.kicker .sep{width:3px;height:3px;border-radius:50%;background:var(--ink-4)}
+.meta{font-size:13px;line-height:20px;color:var(--ink-3)}
+.meta b{color:var(--ink);font-weight:600}
+.lead{font-size:15px;line-height:24px;color:var(--ink-2);margin:0}
+.lead b{color:var(--ink);font-weight:600}
+.sw{display:block;width:8px;height:8px;border-radius:2px;flex:none}
+
+/* ---------- top bar ---------- */
+.top{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;border-bottom:1px solid var(--rule)}
+.top-r{display:flex;align-items:center;gap:4px;margin-right:-8px}
+.brand{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;letter-spacing:.06em}
+.seal{width:26px;height:26px;border-radius:6px;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-size:15px;font-weight:700;letter-spacing:0}
+.search{display:flex;align-items:center;gap:8px;height:36px;padding:0 8px 0 10px;border-radius:10px;color:var(--ink-3);font-size:14px;transition:background .15s,color .15s}
+.search:hover,.icon-btn:hover{background:var(--raise);color:var(--ink)}
+kbd{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:6px;font:600 11px/1 var(--sans);color:var(--ink-3);background:var(--paper);box-shadow:inset 0 0 0 1px var(--rule)}
+.search kbd{margin-left:4px}
+.icon-btn{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:var(--ink-2);transition:background .15s,color .15s}
+.icon-btn svg{transition:transform .5s var(--ease)}
+.icon-btn:hover svg{transform:rotate(60deg)}
+
+/* ---------- board ---------- */
+.board{display:grid;grid-template-columns:repeat(12,minmax(0,1fr))}
+.blk{position:relative;display:flex;flex-direction:column;padding:28px 32px 24px;border-bottom:1px solid var(--rule);cursor:pointer;outline:none;transition:background .2s;min-width:0}
+.blk+.blk{border-left:1px solid var(--rule)}
+.blk:hover{background:var(--hover)}
+.blk:focus-visible{box-shadow:inset 0 0 0 2px var(--ink)}
+.bh{display:flex;align-items:center;justify-content:space-between;gap:16px;height:28px;margin:-6px 0 0}
+.go{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:var(--ink-3);box-shadow:inset 0 0 0 1px var(--rule);transition:background .2s,color .2s,box-shadow .2s;flex:none}
+.blk:hover .go{background:var(--ink);color:var(--paper);box-shadow:none}
+.go svg{transition:transform .3s var(--ease)}
+.blk:hover .go svg{transform:translate(1px,-1px)}
+.foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;padding-top:16px;border-top:1px solid var(--rule);height:20px;box-sizing:content-box}
+.act{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--accent);white-space:nowrap}
+.act svg{transition:transform .2s var(--ease)}
+.act:hover svg{transform:translateX(2px)}
+
+/* ---------- hero ---------- */
+.hero{grid-column:span 12;display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);padding:0;height:500px}
+.hero:hover{background:none}
+.hero .side{display:flex;flex-direction:column;padding:28px 32px 32px;border-right:1px solid var(--rule)}
+.hero .side:hover,.hero .map:hover{background:var(--hover)}
+.count{display:flex;align-items:baseline;gap:14px;margin-top:40px}
+.count .big{font-size:136px;line-height:104px;font-weight:700;letter-spacing:-.065em;margin-left:-6px}
+.count .unit{font-size:20px;font-weight:600;color:var(--ink-2);letter-spacing:.02em}
+.mix{display:flex;gap:2px;height:6px;margin-top:28px;border-radius:3px;overflow:hidden}
+.mix i{display:block;height:100%;transition:flex-grow .4s var(--ease)}
+.mix-l{display:grid;grid-template-columns:repeat(4,auto);justify-content:space-between;margin-top:14px}
+.mix-l div{display:flex;flex-direction:column;gap:2px}
+.mix-l .k{display:flex;align-items:center;gap:6px;font-size:12px;line-height:16px;color:var(--ink-3)}
+.mix-l .k i{width:6px;height:6px;border-radius:1.5px}
+.mix-l .v{font-size:20px;line-height:28px;font-weight:650;letter-spacing:-.01em}
+.mix-l .v small{font-size:13px;font-weight:500;color:var(--ink-3);margin-left:2px}
+.hero .lead{margin-top:28px}
+.btns{display:flex;gap:10px;margin-top:auto}
+.btn{height:48px;padding:0 22px;border-radius:24px;display:inline-flex;align-items:center;justify-content:center;gap:12px;font-size:15px;font-weight:650;white-space:nowrap;transition:transform .12s,background .15s,box-shadow .15s}
+.btn:active{transform:scale(.98)}
+.btn.pri{background:var(--accent);color:var(--on-accent)}
+.btn.pri.k{padding-right:14px}
+.btn.pri:hover{background:color-mix(in srgb,var(--accent) 88%,#000)}
+.btn.pri kbd{background:rgba(255,255,255,.18);box-shadow:none;color:inherit;height:24px}
+.btn.sec{box-shadow:inset 0 0 0 1.5px var(--ink-4)}
+.btn.sec:hover{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.btn.sm{height:36px;padding:0 16px;border-radius:18px;font-size:14px}
+.hero .map{display:flex;flex-direction:column;padding:28px 32px 20px;min-width:0}
+.legend{display:flex;align-items:center;gap:18px;margin-left:auto;font-size:12px;color:var(--ink-3);white-space:nowrap}
+.legend span,.legend button{display:flex;align-items:center;gap:6px;transition:opacity .2s}
+.legend i{width:12px;height:2px;border-radius:1px}
+.legend button.off{opacity:.35}
+.plot{position:relative;flex:1;min-height:0;margin-top:20px}
+.plot canvas{position:absolute;inset:0;width:100%;height:100%}
+.tip{position:absolute;z-index:5;pointer-events:none;min-width:168px;padding:10px 12px;border-radius:10px;background:var(--ink);color:var(--paper);font-size:12px;line-height:18px;opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s;white-space:nowrap}
+.tip.on{opacity:1;transform:none}
+.tip b{display:block;font-size:14px;line-height:20px;font-weight:650;margin-bottom:2px}
+.tip .d{opacity:.65}
+.tip .tr{display:flex;align-items:center;gap:8px}
+.tip .tr .sw{width:6px;height:6px}
+.tip .tr em{font-style:normal;margin-left:auto;padding-left:16px;font-variant-numeric:tabular-nums}
+
+/* ---------- row 2 ---------- */
+.mod{grid-column:span 4;height:340px}
+.colhead{display:flex;justify-content:space-between;margin-top:22px;padding-bottom:8px;font-size:12px;line-height:16px;color:var(--ink-3);border-bottom:1px solid var(--rule)}
+.deck{display:grid;grid-template-columns:8px minmax(0,1fr) 64px 32px;align-items:center;column-gap:12px;height:40px;border-bottom:1px solid var(--rule)}
+.decks .deck:last-child{border-bottom:0}
+.deck .nm{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.deck .nm small{font-size:13px;font-weight:400;color:var(--ink-3);margin-left:8px}
+.bar{display:block;height:4px;border-radius:2px;background:var(--rule);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:2px}
+.deck .due{text-align:right;font-size:15px;font-weight:650}
+.ret{display:flex;align-items:flex-end;justify-content:space-between;margin-top:20px}
+.ret .big{font-size:52px;line-height:44px;font-weight:700;letter-spacing:-.05em}
+.ret .big small{font-size:24px;letter-spacing:-.02em;margin-left:1px}
+.ret .meta{text-align:right;line-height:18px}
+.spark{display:block;width:100%;height:36px;margin-top:14px}
+.spark svg{display:block;width:100%;overflow:visible}
+.fc-h{display:flex;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px solid var(--rule);font-size:12px;line-height:16px;color:var(--ink-3)}
+.fc-h b{color:var(--ink);font-weight:600}
+.fc{display:grid;grid-template-columns:repeat(7,1fr);margin-top:12px}
+.fc div{display:flex;flex-direction:column;gap:4px}
+.fc div+div{padding-left:10px;border-left:1px solid var(--rule)}
+.fc span{font-size:11px;line-height:14px;color:var(--ink-3)}
+.fc em{font-style:normal;font-size:17px;line-height:22px;font-weight:500;color:var(--ink-2);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.fc .hi span{color:var(--accent);font-weight:600}
+.fc .hi em{color:var(--ink);font-weight:700}
+
+/* dot heatmap (shared) */
+.hm-wrap{margin-top:20px}
+.hm-m{position:relative;height:14px;font-size:11px;line-height:14px;color:var(--ink-3)}
+.hm-m span{position:absolute;top:0;white-space:nowrap}
+.hm{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:2px;margin-top:6px}
+.hm i{display:grid;place-items:center;aspect-ratio:1;position:relative;border-radius:50%}
+.hm i::before{content:"";width:calc(var(--k,0) * 100%);height:calc(var(--k,0) * 100%);min-width:3px;min-height:3px;border-radius:50%;background:var(--ink);transition:transform .15s}
+.hm i.z::before{background:var(--ink-4);opacity:.7}
+.hm i.fut::before{width:3px;height:3px;background:none;box-shadow:inset 0 0 0 1px var(--ink-4);opacity:.6}
+.hm i.today::before{width:55%;height:55%;background:none;box-shadow:inset 0 0 0 1.5px var(--accent);opacity:1}
+.hm.pick i:not(.fut){cursor:pointer}
+.hm.pick i:not(.fut):hover::before{transform:scale(1.18)}
+.hm i.sel{box-shadow:0 0 0 1.5px var(--ink)}
+.hm-l{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
+.scale{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--ink-3)}
+.scale i{display:block;border-radius:50%;background:var(--ink)}
+.scale i:first-child{margin-left:4px}.scale i:last-child{margin-right:4px}
+
+/* ---------- sheet ---------- */
+.sheet{position:fixed;z-index:50;display:none;background:var(--paper);overflow:hidden;box-shadow:0 0 0 1px var(--rule),0 40px 80px -30px rgba(0,0,0,.25)}
+.sheet.anim{transition:top .46s var(--ease),left .46s var(--ease),width .46s var(--ease),height .46s var(--ease)}
+.sheet.ready{box-shadow:none}
+.sheet-h{display:flex;align-items:center;justify-content:space-between;height:64px;padding:0 32px;border-bottom:1px solid var(--rule)}
+.sheet-t{display:flex;align-items:baseline;gap:14px;min-width:0;white-space:nowrap}
+.sheet-t b{font-size:18px;font-weight:700;letter-spacing:.08em}
+.sheet-t span{font-size:13px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis}
+.back{display:inline-flex;align-items:center;gap:10px;height:36px;padding:0 6px 0 14px;margin-right:-6px;border-radius:18px;font-size:14px;font-weight:600;color:var(--ink-2);transition:background .15s,color .15s;flex:none}
+.back:hover{background:var(--raise);color:var(--ink)}
+.sheet-s{height:calc(100% - 64px);overflow-y:auto;overscroll-behavior:contain}
+.sheet-b{opacity:0;transform:translateY(8px);transition:opacity .28s,transform .45s var(--ease)}
+.sheet.ready .sheet-b{opacity:1;transform:none}
+.lift{visibility:hidden}
+
+ /* ---------- view transitions ---------- */
+::view-transition-group(*){animation-duration:.48s;animation-timing-function:cubic-bezier(.22,.8,.18,1)}
+::view-transition-old(root),::view-transition-new(root){animation:none}
+::view-transition-old(vt-frame){animation:vt-out .16s ease-out both}
+::view-transition-new(vt-frame){animation:none}
+::view-transition-new(vt-body){animation:vt-in .36s .18s cubic-bezier(.22,.8,.18,1) both}
+::view-transition-new(vt-back),::view-transition-new(vt-sub){animation:vt-fade .26s .22s both}
+html.vt-close::view-transition-group(*){animation-duration:.38s}
+html.vt-close::view-transition-old(vt-body),html.vt-close::view-transition-old(vt-back),html.vt-close::view-transition-old(vt-sub){animation:vt-out .12s both}
+html.vt-close::view-transition-old(vt-frame){animation:vt-out .14s .24s both}
+html.vt-close::view-transition-new(vt-frame){animation:vt-fade .2s .16s both}
+@keyframes vt-out{to{opacity:0}}
+@keyframes vt-fade{from{opacity:0}}
+@keyframes vt-in{from{opacity:0;transform:translateY(12px)}}
+
+/* ---------- page grid ---------- */
+.pg{display:grid;grid-template-columns:repeat(12,minmax(0,1fr))}
+.c{position:relative;display:flex;flex-direction:column;padding:28px 32px;border-bottom:1px solid var(--rule);min-width:0}
+.c.br{border-right:1px solid var(--rule)}
+.s3{grid-column:span 3}.s4{grid-column:span 4}.s6{grid-column:span 6}.s8{grid-column:span 8}.s12{grid-column:span 12}
+.r2{grid-row:span 2}
+.subh{display:flex;justify-content:space-between;align-items:baseline;margin-top:36px;padding-bottom:10px;border-bottom:1px solid var(--rule);font-size:12px;line-height:16px;color:var(--ink-3);letter-spacing:.04em}
+.subh b{color:var(--ink);font-weight:600}
+.subh button{font-size:12px;color:var(--ink-3)}
+.subh button:hover{color:var(--ink)}
+.note{margin-top:16px;font-size:13px;line-height:20px;color:var(--ink-3)}
+.note b{color:var(--ink);font-weight:600}
+
+/* segmented control */
+.seg{display:inline-flex;padding:2px;border-radius:9px;background:var(--raise);flex:none}
+.seg button{height:26px;padding:0 11px;border-radius:7px;font-size:12px;font-weight:600;color:var(--ink-3);transition:background .15s,color .15s,box-shadow .15s}
+.seg button:hover{color:var(--ink)}
+.seg button.on{background:var(--paper);color:var(--ink);box-shadow:0 0 0 1px var(--rule),0 1px 2px rgba(0,0,0,.05)}
+
+/* checkbox rows */
+.ck{display:grid;grid-template-columns:16px 8px minmax(0,1fr) auto;align-items:center;column-gap:12px;width:100%;height:44px;border-bottom:1px solid var(--rule);text-align:left}
+.ck:last-child{border-bottom:0}
+.ck .box{width:16px;height:16px;border-radius:4px;box-shadow:inset 0 0 0 1.5px var(--ink-4);display:grid;place-items:center;color:var(--paper);transition:background .15s,box-shadow .15s}
+.ck .box svg{opacity:0;transition:opacity .15s}
+.ck.on .box{background:var(--ink);box-shadow:none}
+.ck.on .box svg{opacity:1}
+.ck .nm{font-size:15px;font-weight:600;transition:color .15s}
+.ck .v{font-size:15px;font-weight:600;text-align:right;transition:color .15s}
+.ck:not(.on) .nm,.ck:not(.on) .v{color:var(--ink-4)}
+.ck:not(.on) .sw{opacity:.35}
+.ck:hover .box{box-shadow:inset 0 0 0 1.5px var(--ink-3)}
+.ck.on:hover .box{box-shadow:none}
+
+/* radio rows */
+.rd{display:grid;grid-template-columns:16px minmax(0,1fr);column-gap:12px;width:100%;padding:12px 0;border-bottom:1px solid var(--rule);text-align:left}
+.rd:last-child{border-bottom:0}
+.rd .o{width:16px;height:16px;margin-top:2px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--ink-4);transition:box-shadow .2s var(--ease)}
+.rd.on .o{box-shadow:inset 0 0 0 5px var(--ink)}
+.rd b{display:block;font-size:15px;line-height:20px;font-weight:600}
+.rd span{display:block;font-size:13px;line-height:20px;color:var(--ink-3)}
+.rd:not(.on) b{color:var(--ink-2)}
+
+/* plain list rows */
+.li{display:grid;grid-template-columns:8px minmax(0,1fr) auto;align-items:center;column-gap:12px;height:44px;border-bottom:1px solid var(--rule)}
+.li:last-child{border-bottom:0}
+.li .f{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .r{font-size:13px;color:var(--ink-3);text-align:right}
+.li .r b{font-size:15px;font-weight:650;color:var(--ink)}
+.li .r b.hot{color:var(--accent)}
+.empty{padding:16px 0;font-size:14px;color:var(--ink-3)}
+
+/* key-value rows */
+.kv{display:flex;align-items:center;justify-content:space-between;gap:16px;height:44px;border-bottom:1px solid var(--rule)}
+.kv:last-child{border-bottom:0}
+.kv .k{font-size:14px;color:var(--ink-2)}
+.kv .v{font-size:15px;font-weight:600;text-align:right}
+.kv .v small{font-size:13px;font-weight:500;color:var(--ink-3);margin-left:3px}
+
+/* table */
+.tb{margin:0 -12px}
+.tr{display:grid;grid-template-columns:var(--cols);align-items:center;column-gap:16px;height:52px;padding:0 12px;border-bottom:1px solid var(--rule);font-size:15px;transition:background .15s}
+.tr.th{height:36px;font-size:12px;color:var(--ink-3);letter-spacing:.04em}
+.tr.row{cursor:pointer}
+.tr.row:hover{background:var(--hover)}
+.tr.sel{background:var(--sel);box-shadow:inset 2px 0 0 var(--ink)}
+.tr .r{text-align:right}
+.tr .nm{display:flex;align-items:center;gap:12px;min-width:0;font-weight:600}
+.tr .nm span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr .nm .chev{width:16px;height:16px;display:grid;place-items:center;color:var(--ink-3);margin-left:-4px;transition:transform .2s var(--ease)}
+.tr.open .chev{transform:rotate(90deg)}
+.tr.sub{height:44px;font-size:14px;color:var(--ink-2)}
+.tr.sub .nm{font-weight:500;padding-left:36px}
+.tr.dim{color:var(--ink-3)}
+.tr.dim .sw{opacity:.35}
+.tag{display:inline-block;margin-left:8px;padding:2px 6px;border-radius:5px;font-size:11px;line-height:14px;font-weight:600;color:var(--ink-3);box-shadow:inset 0 0 0 1px var(--rule)}
+.mat{display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden}
+.mat i{display:block;height:100%}
+.tb-l{display:flex;gap:18px;margin-top:14px;font-size:12px;color:var(--ink-3)}
+.tb-l span{display:flex;align-items:center;gap:6px}
+.tb-l i{width:10px;height:6px;border-radius:2px;display:block}
+
+/* numbers */
+.num-xl{display:flex;align-items:baseline;gap:12px;margin-top:22px}
+.num-xl .v{font-size:72px;line-height:60px;font-weight:700;letter-spacing:-.055em;margin-left:-3px}
+.num-xl .u{font-size:16px;font-weight:600;color:var(--ink-2)}
+.kpi .v{margin-top:20px;font-size:44px;line-height:40px;font-weight:700;letter-spacing:-.045em}
+.kpi .v small{font-size:20px;letter-spacing:-.01em;margin-left:2px;font-weight:650}
+.kpi .meta{margin-top:10px}
+.up{color:var(--jp)!important}
+.down{color:var(--accent)!important}
+
+/* charts */
+.chart{position:relative;margin-top:20px}
+.chart svg{display:block;width:100%;overflow:visible}
+.chart svg text{font-family:var(--sans);font-size:11px;fill:var(--ink-3);font-variant-numeric:tabular-nums}
+.hbar{display:grid;grid-template-columns:56px minmax(0,1fr) 52px;align-items:center;column-gap:14px;height:40px;border-bottom:1px solid var(--rule);font-size:14px}
+.hbar:last-child{border-bottom:0}
+.hbar .k{display:flex;align-items:center;gap:8px;color:var(--ink-2)}
+.hbar .k i{width:6px;height:6px;border-radius:50%}
+.hbar .t{height:6px;border-radius:3px;background:var(--rule);overflow:hidden}
+.hbar .t i{display:block;height:100%;border-radius:3px}
+.hbar .p{text-align:right;font-weight:600}
+.dp{display:grid;grid-template-columns:minmax(0,104px) minmax(0,1fr) 40px;align-items:center;column-gap:16px;height:48px;border-bottom:1px solid var(--rule)}
+.dp:last-of-type{border-bottom:0}
+.dp .k{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;min-width:0}
+.dp .k span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dp .t{position:relative;height:16px}
+.dp .t::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--rule)}
+.dp .t .tg{position:absolute;top:0;bottom:0;width:0;border-left:1px dashed var(--accent)}
+.dp .t .d{position:absolute;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;box-shadow:0 0 0 2px var(--paper)}
+.dp .p{text-align:right;font-size:15px;font-weight:650}
+.dp-ax{position:relative;height:16px;margin:8px 0 0;font-size:11px;color:var(--ink-3)}
+.dp-ax span{position:absolute;transform:translateX(-50%)}
+.hm-year{margin-top:24px}
+.hm-year .in{display:grid;grid-template-columns:20px minmax(0,1fr);column-gap:8px}
+.sess{display:grid;grid-template-columns:72px 1fr 1fr 1fr;align-items:center;height:44px;border-bottom:1px solid var(--rule);font-size:14px}
+.sess:last-child{border-bottom:0}
+.sess.th{height:32px;font-size:12px;color:var(--ink-3)}
+.sess span:not(:first-child){text-align:right}
+
+.toast{position:fixed;left:50%;bottom:28px;z-index:90;transform:translate(-50%,16px);padding:11px 16px;border-radius:10px;background:var(--ink);color:var(--paper);font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s,transform .3s var(--ease)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+.board>*{animation:rise .7s var(--ease) both}
+.board>:nth-child(2){animation-delay:.06s}.board>:nth-child(3){animation-delay:.12s}.board>:nth-child(4){animation-delay:.18s}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}}
+@media (prefers-reduced-motion:reduce){.board>*{animation:none}}
+
+@media (max-width:1180px){
+  .hero{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}
+  .hero .legend{display:none}
+  .s3{grid-column:span 6}
+  .s3:nth-child(2n){border-right:0}
+}
+@media (max-width:960px){
+  .hero{grid-template-columns:1fr;height:auto}
+  .hero .side{border-right:0;border-bottom:1px solid var(--rule);min-height:460px}
+  .hero .map{height:440px}
+  .hero .legend{display:flex}
+  .mod{grid-column:span 12;height:auto;min-height:340px}
+  .blk+.blk{border-left:0}
+  .s4,.s6,.s8,.s12{grid-column:span 12}
+  .c.br{border-right:0}
+  .r2{grid-row:auto}
+}
+@media (max-width:640px){
+  .top,.sheet-h{padding:0 16px}
+  .search span,.search kbd{display:none}
+  .search{width:36px;padding:0;justify-content:center}
+  .blk{padding:24px 16px 20px}
+  .hero{padding:0}
+  .hero .side{padding:24px 16px;min-height:0}
+  .hero .map{padding:24px 16px 16px;height:400px}
+  .legend{display:none!important}
+  .count{margin-top:36px}
+  .count .big{font-size:104px;line-height:80px}
+  .btns .btn{flex:1;padding:0 16px}
+  .btns{margin-top:32px}
+  .mod{min-height:0}
+  .foot{margin-top:20px}
+  .c{padding:24px 16px}
+  .s3{grid-column:span 12;border-right:0!important}
+  .sheet-t span{display:none}
+  .hide-s{display:none!important}
+  .tb .tr{grid-template-columns:minmax(0,1fr) 44px 56px}
+  .tb .hs,.tb + .tb-l{display:none}
+  .hm-year{overflow-x:auto;margin-right:-16px;padding-bottom:6px}
+  .hm-year .in{min-width:860px;padding-right:16px}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="seal">温</span>温故</div>
+  <div class="top-r">
+    <button class="search" data-toast="搜索稍后设计" aria-label="搜索"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="5"/><path d="m11 11 3.5 3.5" stroke-linecap="round"/></svg><span>搜索</span><kbd>⌘K</kbd></button>
+    <button class="icon-btn" data-toast="设置稍后设计" aria-label="设置"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>
+  </div>
+</header>
+
+<main class="board">
+  <section class="blk hero" data-mod="review" tabindex="0">
+    <div class="side">
+      <div class="kicker"><span class="kt">复习</span><i class="sep"></i><span class="m">11 月 17 日 周二</span></div>
+      <div class="count"><span class="big n">128</span><span class="unit">张待温习</span></div>
+      <div class="mix"><i style="flex:96;background:var(--ink)"></i><i style="flex:12;background:var(--accent)"></i><i style="flex:20;background:var(--jp)"></i></div>
+      <div class="mix-l">
+        <div><span class="k"><i style="background:var(--ink)"></i>到期</span><span class="v n">96</span></div>
+        <div><span class="k"><i style="background:var(--accent)"></i>重学</span><span class="v n">12</span></div>
+        <div><span class="k"><i style="background:var(--jp)"></i>新卡</span><span class="v n">20</span></div>
+        <div><span class="k">预计用时</span><span class="v n">19<small>分钟</small></span></div>
+      </div>
+      <p class="lead">其中 <b>31 张</b>明天会跌破 80%，先复习它们最划算。</p>
+      <div class="btns">
+        <button class="btn pri k" data-toast="进入复习">开始复习<kbd>空格</kbd></button>
+        <button class="btn sec" data-toast="只复习快忘的 31 张">先复习快忘的</button>
+      </div>
+    </div>
+    <div class="map">
+      <div class="bh" style="margin:0">
+        <div class="kicker" style="color:var(--ink-3)">记忆地形<i class="sep"></i><span class="m">1 842 个知识点</span></div>
+        <div class="legend" style="margin-right:20px"><span><i style="background:var(--geo)"></i>世界地理</span><span><i style="background:var(--mcat)"></i>MCAT</span><span><i style="background:var(--jp)"></i>日语核心 2k</span><span><i style="background:var(--la)"></i>线性代数</span></div>
+        <span class="go"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l5-5M4.5 3.5h4v4"/></svg></span>
+      </div>
+      <div class="plot" id="homePlot"></div>
+    </div>
+  </section>
+
+  <section class="blk mod" data-mod="decks" tabindex="0">
+    <div class="bh"><div class="kicker">卡组</div><span class="go"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l5-5M4.5 3.5h4v4"/></svg></span></div>
+    <div class="colhead"><span>4 个在学 · 1 842 张</span><span>今天到期</span></div>
+    <div class="decks" id="homeDecks"></div>
+    <div class="foot"><span class="meta">中国历史已暂停</span><button class="act" data-toast="选择 .apkg 文件">导入 Anki 卡组<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6h7M6.5 3l3 3-3 3"/></svg></button></div>
+  </section>
+
+  <section class="blk mod" data-mod="stats" tabindex="0">
+    <div class="bh"><div class="kicker">统计</div><span class="go"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l5-5M4.5 3.5h4v4"/></svg></span></div>
+    <div class="ret"><span class="big n">92.4<small>%</small></span><span class="meta">30 天保持率<br>比目标 90% 高 <b>2.4</b> 点</span></div>
+    <div class="spark" id="spark"></div>
+    <div class="fc-h"><span>未来 7 天</span><span>共 <b class="n">857</b> 张</span></div>
+    <div class="fc" id="fc"></div>
+    <div class="foot"><span class="meta">成熟 <b class="n">1 064</b> · 年轻 <b class="n">612</b> · 未学 <b class="n">166</b></span><span class="meta">平均 <b class="n">9.2</b> 秒/张</span></div>
+  </section>
+
+  <section class="blk mod" data-mod="history" tabindex="0">
+    <div class="bh"><div class="kicker">记录</div><span class="go"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l5-5M4.5 3.5h4v4"/></svg></span></div>
+    <div class="hm-wrap"><div class="hm-m" id="homeHmM"></div><div class="hm" id="homeHm"></div></div>
+    <div class="hm-l"><span class="meta" id="homeHm30"></span><span class="scale">少<i style="width:3px;height:3px;background:var(--ink-4)"></i><i style="width:5px;height:5px"></i><i style="width:8px;height:8px"></i><i style="width:10.5px;height:10.5px"></i><i style="width:13px;height:13px"></i>多</span></div>
+    <div class="foot"><span class="meta">今年 <b class="n">31 260</b> 次 · <b class="n">80</b> 小时</span><span class="meta">日均 <b class="n">15</b> 分钟</span></div>
+  </section>
+</main>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true">
+  <div class="sheet-h"><div class="sheet-t" id="sheetT"></div><button class="back" id="back">返回<kbd>Esc</kbd></button></div>
+  <div class="sheet-s" id="sheetS"><div class="sheet-b" id="sheetB"></div></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const mk = seed => () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const still = window.__still || matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fmt = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  const WD = ['日', '一', '二', '三', '四', '五', '六'];
+  const ARROW = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6h7M6.5 3l3 3-3 3"/></svg>';
+  const CHECK = '<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.2 4.1 7.3 8 3"/></svg>';
+  const CHEV = '<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 2 6.5 5l-3 3"/></svg>';
+
+  let tt; const toast = m => { const t = $('#toast'); t.textContent = '原型：' + m; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 1600); };
+  document.addEventListener('click', e => { const b = e.target.closest('[data-toast]'); if (b) { e.stopPropagation(); toast(b.dataset.toast); } }, true);
+
+  /* ================= data ================= */
+  const TODAY = new Date(2026, 10, 17);
+  const decks = [
+    { id: 'geo', key: '--geo', name: '世界地理', n: 620, due: 27, relearn: 2, fresh: 5, newLeft: 20, young: 110, mature: 490, ret: 96, stab: '4.6 个月', last: '昨天', mins: 3, soon: 6, mu: Math.log(140),
+      cfg: { newLimit: 5, revLimit: 200, target: '90%', steps: '1 分 · 10 分', maxIvl: '3 年' } },
+    { id: 'mcat', key: '--mcat', name: 'MCAT', n: 540, due: 36, relearn: 6, fresh: 10, newLeft: 80, young: 230, mature: 230, ret: 88, stab: '22 天', last: '昨天', mins: 10, soon: 15, mu: Math.log(22),
+      subs: [{ name: '生物化学', n: 210, today: 24, fresh: 5, newLeft: 30, ret: 86, stab: '18 天', last: '昨天', young: 100, mature: 80 }, { name: '生理学', n: 330, today: 28, fresh: 5, newLeft: 50, ret: 89, stab: '25 天', last: '昨天', young: 130, mature: 150 }],
+      cfg: { newLimit: 10, revLimit: 300, target: '90%', steps: '1 分 · 10 分 · 1 天', maxIvl: '1 年' } },
+    { id: 'jp', key: '--jp', name: '日语核心 2k', n: 480, due: 22, relearn: 3, fresh: 5, newLeft: 46, young: 170, mature: 264, ret: 93, stab: '1.8 个月', last: '昨天', mins: 4, soon: 7, mu: Math.log(55),
+      cfg: { newLimit: 5, revLimit: 200, target: '90%', steps: '1 分 · 10 分', maxIvl: '3 年' } },
+    { id: 'la', key: '--la', name: '线性代数', n: 202, due: 11, relearn: 1, fresh: 0, newLeft: 20, young: 102, mature: 80, ret: 91, stab: '14 天', last: '3 天前', mins: 2, soon: 3, mu: Math.log(14),
+      cfg: { newLimit: 0, revLimit: 100, target: '90%', steps: '1 分 · 10 分', maxIvl: '3 年' } },
+  ];
+  decks.forEach(d => d.today = d.due + d.relearn + d.fresh);
+  const deckById = Object.fromEntries(decks.map(d => [d.id, d]));
+  const paused = { name: '中国历史', n: 310, last: '2 个月前' };
+
+  const fronts = {
+    geo: ['蒙古 · 首都', '吉尔吉斯斯坦 · 国旗', '布基纳法索 · 首都', '苏里南 · 位置', '不丹 · 国旗', '厄立特里亚 · 首都'],
+    mcat: ['β 受体阻滞剂的禁忌证', 'Henderson–Hasselbalch 方程', '肾素–血管紧张素系统', '竞争性抑制改变哪个参数'],
+    jp: ['〜ばかりか', '〜わけにはいかない', '懐かしい', '締め切り', '相変わらず'],
+    la: ['秩–零化度定理', '特征值之积等于行列式', '正交矩阵的逆', 'Gram–Schmidt 过程'],
+  };
+  const pts = (() => {
+    const r = mk(20261117), g = () => { let u = 0, v = 0; while (!u) u = r(); while (!v) v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+    const o = [];
+    for (const d of decks) for (let i = 0; i < d.n; i++) {
+      const due = i < d.due + d.relearn;
+      o.push({ d, due, S: Math.min(1300, Math.max(.7, Math.exp(d.mu + g()))), R: due ? .9 - .125 * Math.pow(r(), 1.6) : .9 + .1 * Math.pow(r(), .85), f: fronts[d.id][Math.floor(r() * fronts[d.id].length)], delay: r() });
+    }
+    return o;
+  })();
+  const notes = [
+    { d: deckById.mcat, S: 9, R: .826, due: true, f: 'β 受体阻滞剂的禁忌证' },
+    { d: deckById.geo, S: 760, R: .972, due: false, f: '蒙古 · 首都' },
+    { d: deckById.jp, S: 44, R: .884, due: true, f: '〜ばかりか' },
+  ];
+  const fmtS = S => S < 1.5 ? '1 天' : S < 30 ? Math.round(S) + ' 天' : S < 365 ? Math.round(S / 30) + ' 个月' : (S / 365).toFixed(1) + ' 年';
+
+  const soonList = [
+    ['β 受体阻滞剂的禁忌证', 'mcat', 79], ['〜わけにはいかない', 'jp', 80], ['竞争性抑制改变哪个参数', 'mcat', 81], ['特征值之积等于行列式', 'la', 82],
+    ['布基纳法索 · 首都', 'geo', 83], ['肾素–血管紧张素系统', 'mcat', 84], ['締め切り', 'jp', 85], ['厄立特里亚 · 首都', 'geo', 86],
+  ];
+  const newList = [
+    ['动作电位的复极化', 'mcat'], ['苏里南 · 位置', 'geo'], ['相変わらず', 'jp'], ['糖酵解的限速酶', 'mcat'], ['几内亚比绍 · 首都', 'geo'], ['〜に限って', 'jp'], ['肾小球滤过率的调节', 'mcat'],
+  ];
+
+  // retention: 365 daily values ending yesterday, last 30 averaging 92.4
+  const retSeries = (() => {
+    const r = mk(77), raw = []; let x = 90.4;
+    for (let i = 0; i < 365; i++) { x += (r() - .5) * 3.2 + (90.4 + i / 364 * 2.2 - x) * .12; raw.push(x); }
+    const sm = raw.map((_, i) => { const a = raw.slice(Math.max(0, i - 6), i + 1); return a.reduce((p, c) => p + c, 0) / a.length; });
+    const m = sm.slice(-30).reduce((p, c) => p + c, 0) / 30, k = 92.4 - m;
+    return sm.map((v, i) => ({ d: new Date(2026, 10, 16 - (364 - i)), v: v + k * Math.min(1, i / 300) }));
+  })();
+
+  // review history per year
+  const yearCache = {};
+  function yearData(y) {
+    if (yearCache[y]) return yearCache[y];
+    const r = mk(y * 31), days = [];
+    const end = new Date(y, 11, 31);
+    for (let d = new Date(y, 0, 1); d <= end; d.setDate(d.getDate() + 1)) {
+      const dt = new Date(d), diff = Math.round((dt - TODAY) / 864e5);
+      if (diff > 0) { days.push({ dt, fut: true, c: 0 }); continue; }
+      if (diff === 0) { days.push({ dt, today: true, c: 0 }); continue; }
+      const mo = dt.getMonth(), wk = (dt.getDay() + 6) % 7;
+      let base = y === 2026 ? (mo >= 5 ? 125 : 62) : (mo >= 8 ? 55 : 30);
+      if (wk >= 5) base *= .78;
+      let c = base * (.45 + r() * 1.1);
+      if (r() < .075) c = 0;
+      days.push({ dt, c });
+    }
+    if (y === 2026) {
+      const lo = new Date(2026, 9, 18), zeros = ['9-19', '9-25', '10-3'];
+      days.forEach(o => { if (o.fut || o.today || o.dt < lo) return; const key = o.dt.getMonth() + '-' + o.dt.getDate(); if (zeros.includes(key)) o.c = 0; else if (!o.c) o.c = 90; });
+    }
+    const target = y === 2026 ? 31260 : 14820, sum = days.reduce((p, o) => p + o.c, 0);
+    days.forEach(o => o.c = Math.round(o.c * target / sum));
+    const diff = target - days.reduce((p, o) => p + o.c, 0); days.reduce((a, b) => b.c > a.c ? b : a).c += diff;
+    const nz = days.filter(o => o.c > 0).map(o => o.c).sort((a, b) => a - b), q = p => nz[Math.floor(p * (nz.length - 1))];
+    const t = [q(.25), q(.5), q(.75)];
+    days.forEach(o => o.k = !o.c ? 0 : o.c < t[0] ? .24 : o.c < t[1] ? .36 : o.c < t[2] ? .48 : .6);
+    return yearCache[y] = days;
+  }
+  function dayDetail(o) {
+    const r = mk(o.dt.getTime() / 864e5 | 0), c = o.c;
+    const share = o.dt >= new Date(2026, 5, 1) ? [.2, .45, .25, .1] : [.45, 0, .4, .15];
+    let parts = share.map(s => s * (.8 + r() * .4)); const ps = parts.reduce((a, b) => a + b, 0);
+    parts = parts.map(p => Math.round(p / ps * c)); parts[parts.indexOf(Math.max(...parts))] += c - parts.reduce((a, b) => a + b, 0);
+    const nS = c < 70 ? 1 : c < 150 ? 2 : 3, starts = [[7, 40], [12, 50], [22, 5]].slice(3 - nS);
+    let left = c; const sess = starts.map(([h, m], i) => {
+      const n = i === nS - 1 ? left : Math.round(c / nS * (.8 + r() * .4)); left -= n;
+      const mm = m + Math.floor(r() * 15);
+      return { t: `${String(h).padStart(2, '0')}:${String(mm).padStart(2, '0')}`, n, min: Math.max(1, Math.round(n * 9.2 / 60)), again: Math.round(n * (.05 + r() * .05)) };
+    });
+    return { parts, sess, min: Math.round(c * 9.2 / 60), again: sess.reduce((a, s) => a + s.again, 0) };
+  }
+
+  /* ================= memory map ================= */
+  function makeMap(box, opt = {}) {
+    box.innerHTML = '<canvas></canvas><div class="tip"></div>';
+    const cv = $('canvas', box), tip = $('.tip', box), ctx = cv.getContext('2d');
+    let W, H, P, t0 = opt.instant ? -1e9 : performance.now(), hover = null, raf, active = opt.active || new Set(decks.map(d => d.id));
+    const RMIN = .765;
+    const xs = S => P.l + (Math.log(S) - Math.log(.5)) / (Math.log(1500) - Math.log(.5)) * (P.r - P.l);
+    const ys = R => P.t + (1 - R) / (1 - RMIN) * (P.b - P.t);
+    const size = () => { const r = box.getBoundingClientRect(), dpr = devicePixelRatio || 1; W = r.width; H = r.height; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); P = { l: 0, r: W - 52, t: 10, b: H - 30 }; };
+    function draw(now) {
+      const p = still ? 1 : Math.min(1, (now - t0) / 1500);
+      const C = { ink: css('--ink'), i3: css('--ink-3'), rule: css('--rule'), acc: css('--accent'), paper: css('--paper'), f: css('--sans') };
+      ctx.clearRect(0, 0, W, H); ctx.textBaseline = 'middle';
+      const xt = W < 520 ? [[1, '1 天'], [30, '1 个月'], [365, '1 年']] : [[1, '1 天'], [7, '1 周'], [30, '1 个月'], [180, '半年'], [1000, '3 年']];
+      ctx.strokeStyle = C.rule; ctx.lineWidth = 1; ctx.setLineDash([2, 4]);
+      for (const [S] of xt) { const x = Math.round(xs(S)) + .5; ctx.beginPath(); ctx.moveTo(x, P.t); ctx.lineTo(x, P.b); ctx.stroke(); }
+      ctx.setLineDash([]);
+      for (const R of [1, .8]) { const y = Math.round(ys(R)) + .5; ctx.beginPath(); ctx.moveTo(P.l, y); ctx.lineTo(P.r, y); ctx.stroke(); }
+      ctx.font = `500 11px ${C.f}`; ctx.fillStyle = C.i3; ctx.textAlign = 'right';
+      ctx.fillText('100%', W, ys(1)); ctx.fillText('80%', W, ys(.8));
+      ctx.textAlign = 'center'; for (const [S, l] of xt) ctx.fillText(l, xs(S), P.b + 18);
+      const ty = Math.round(ys(.9)) + .5, g = ctx.createLinearGradient(0, ty, 0, P.b);
+      g.addColorStop(0, C.acc + '1c'); g.addColorStop(1, C.acc + '00');
+      ctx.fillStyle = g; ctx.fillRect(P.l, ty, P.r - P.l, P.b - ty);
+      ctx.strokeStyle = C.acc; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(P.l, ty); ctx.lineTo(P.r, ty); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = C.acc; ctx.font = `650 11px ${C.f}`; ctx.textAlign = 'right'; ctx.fillText('目标 90%', W, ty);
+      for (const on of [false, true]) for (const q of pts) {
+        if (active.has(q.d.id) !== on) continue;
+        const k = Math.min(1, Math.max(0, p * 1.6 - q.delay * .6)), e = 1 - Math.pow(1 - k, 3), R = 1 - (1 - q.R) * e;
+        ctx.globalAlpha = !on ? .06 : q.due ? .95 : .34 * Math.min(1, k * 2);
+        ctx.fillStyle = css(q.d.key); ctx.beginPath(); ctx.arc(xs(q.S), ys(R), q.due && on ? 2.3 : 1.6, 0, 6.2832); ctx.fill();
+      }
+      ctx.globalAlpha = Math.min(1, p * 1.5); ctx.textAlign = 'left'; ctx.fillStyle = C.acc; ctx.font = `700 12px ${C.f}`;
+      const dueN = decks.filter(d => active.has(d.id)).reduce((a, d) => a + d.today, 0);
+      ctx.fillText('该温习了', P.l + 12, ty + 18); ctx.fillText(String(dueN), P.l + 12 + ctx.measureText('该温习了').width + 8, ty + 18);
+      ctx.globalAlpha = 1;
+      if (p > .7) {
+        ctx.globalAlpha = Math.min(1, (p - .7) / .3);
+        for (const n of notes) {
+          if (!active.has(n.d.id)) continue;
+          const x = xs(n.S), y = ys(n.R);
+          ctx.fillStyle = C.paper; ctx.beginPath(); ctx.arc(x, y, 5, 0, 6.2832); ctx.fill();
+          ctx.strokeStyle = C.ink; ctx.lineWidth = 1.75; ctx.stroke();
+          ctx.font = `650 13px ${C.f}`;
+          const tw = ctx.measureText(n.f).width, right = x + 14 + tw < P.r, tx = right ? x + 11 : x - 11;
+          ctx.textAlign = right ? 'left' : 'right'; ctx.lineJoin = 'round'; ctx.lineWidth = 5; ctx.strokeStyle = C.paper; ctx.strokeText(n.f, tx, y + .5);
+          ctx.fillStyle = C.ink; ctx.fillText(n.f, tx, y + .5);
+        }
+        ctx.globalAlpha = 1;
+      }
+      if (hover) { ctx.strokeStyle = css(hover.d.key); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(xs(hover.S), ys(hover.R), 6.5, 0, 6.2832); ctx.stroke(); }
+      if (p < 1) raf = requestAnimationFrame(draw);
+    }
+    const redraw = () => draw(performance.now() + 1e7);
+    box.addEventListener('pointermove', e => {
+      const r = box.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+      let best = null, bd = 150;
+      for (const q of notes.concat(pts)) { if (!active.has(q.d.id)) continue; const dx = xs(q.S) - mx, dy = ys(q.R) - my, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = q; } }
+      if (best !== hover) { hover = best; redraw(); }
+      if (!best) return tip.classList.remove('on');
+      tip.innerHTML = `<b>${best.f}</b><div class="d">${best.d.name} · 稳定性 ${fmtS(best.S)}</div><div>现在记得的概率 ${Math.round(best.R * 100)}%${best.due ? ' · 今天复习' : ''}</div>`;
+      tip.style.left = Math.min(W - 200, Math.max(0, xs(best.S) + 12)) + 'px'; tip.style.top = Math.max(0, ys(best.R) - 76) + 'px';
+      tip.classList.add('on');
+    });
+    box.addEventListener('pointerleave', () => { hover = null; tip.classList.remove('on'); redraw(); });
+    const ro = new ResizeObserver(() => { size(); redraw(); }); ro.observe(box);
+    size(); raf = requestAnimationFrame(draw);
+    return { redraw, setActive(s) { active = s; redraw(); }, destroy() { cancelAnimationFrame(raf); ro.disconnect(); } };
+  }
+
+  /* ================= helpers ================= */
+  // responsive svg: render(width) -> markup; height fixed by caller
+  function svgChart(host, h, render) {
+    host.innerHTML = `<svg height="${h}"></svg>`;
+    const svg = $('svg', host);
+    const go = () => { const w = host.clientWidth; if (!w) return; svg.setAttribute('viewBox', `0 0 ${w} ${h}`); svg.innerHTML = render(w); };
+    const ro = new ResizeObserver(go); ro.observe(host); go();
+    return { destroy: () => ro.disconnect(), refresh: go };
+  }
+  const tipAt = (tip, host, x, y, html) => { tip.innerHTML = html; tip.classList.add('on'); const w = tip.offsetWidth; tip.style.left = Math.min(host.clientWidth - w, Math.max(0, x - w / 2)) + 'px'; tip.style.top = (y - tip.offsetHeight - 10) + 'px'; };
+  function heatmap(hm, mm, days, opt = {}) {
+    const first = days[0].dt, lead = (first.getDay() + 6) % 7, weeks = Math.ceil((lead + days.length) / 7);
+    let h = '<i class="fut" style="visibility:hidden"></i>'.repeat(lead), lastM = -1, ml = '';
+    days.forEach((o, i) => {
+      const cls = o.fut ? 'fut' : o.today ? 'today z' : o.c ? '' : 'z';
+      h += `<i class="${cls}" data-i="${i}" data-d="${o.dt.getFullYear()}-${o.dt.getMonth() + 1}-${o.dt.getDate()}"${o.k ? ` style="--k:${o.k}"` : ''}></i>`;
+      const w = Math.floor((lead + i) / 7), m = o.dt.getMonth();
+      if (m !== lastM && (o.dt.getDate() <= 7 || lastM === -1) && (lastM !== -1 || o.dt.getDate() <= 14)) { ml += `<span style="left:calc(${w} * (100% + 2px) / ${weeks})">${m + 1} 月</span>`; }
+      lastM = m;
+    });
+    hm.style.gridTemplateColumns = `repeat(${weeks},1fr)`; hm.innerHTML = h; mm.innerHTML = ml;
+  }
+
+  /* ================= home ================= */
+  const homeMap = makeMap($('#homePlot'));
+  $('#homeDecks').innerHTML = decks.map(d => `<div class="deck"><i class="sw" data-vt="ds-${d.id}" style="background:var(${d.key})"></i><span class="nm"><span data-vt="dn-${d.id}">${d.name}</span><small class="n">${d.n}</small></span><span class="bar"><i style="width:${(d.today / 52 * 100).toFixed(0)}%;background:var(${d.key})"></i></span><span class="due n" data-vt="dc-${d.id}">${d.today}</span></div>`).join('');
+  svgChart($('#spark'), 36, w => {
+    const v = retSeries.slice(-30).map(o => o.v), H = 36, y = a => H - 2 - (a - 88.5) / 6.5 * (H - 4), X = i => 1 + i / 29 * (w - 6);
+    return `<line x1="0" x2="${w}" y1="${y(90) + .5}" y2="${y(90) + .5}" stroke="var(--accent)" stroke-dasharray="3 3"/>` +
+      `<polyline points="${v.map((a, i) => X(i).toFixed(1) + ',' + y(a).toFixed(1)).join(' ')}" fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>` +
+      `<circle cx="${X(29)}" cy="${y(v[29])}" r="3" fill="var(--ink)" stroke="var(--paper)" stroke-width="1.5"/>`;
+  });
+  const FC7 = [112, 98, 140, 164, 121, 105, 117];
+  $('#fc').innerHTML = FC7.map((v, i) => { const d = new Date(TODAY); d.setDate(d.getDate() + 1 + i); return `<div class="${v === 164 ? 'hi' : ''}"><span>周${WD[d.getDay()]}</span><em>${v}</em></div>`; }).join('');
+  (() => {
+    const y = yearData(2026), last = y.findIndex(o => o.today), dow = (TODAY.getDay() + 6) % 7;
+    const days = y.slice(last - dow - 19 * 7, last + 7 - dow);
+    heatmap($('#homeHm'), $('#homeHmM'), days);
+    const n30 = y.slice(last - 30, last).filter(o => o.c > 0).length;
+    $('#homeHm30').innerHTML = `过去 30 天，有 <b class="n">${n30}</b> 天复习`;
+  })();
+
+  /* ================= pages ================= */
+  const pages = {};
+
+  // ---------- 复习 ----------
+  pages.review = {
+    title: '复习', sub: '11 月 17 日 周二',
+    html: () => `
+      <div class="pg">
+        <div class="c s4 r2 br">
+          <div class="bh"><div class="kicker">今天</div></div>
+          <div class="count" style="margin-top:28px"><span class="big n" data-k="total">128</span><span class="unit">张待温习</span></div>
+          <div class="mix" data-k="mix"></div>
+          <div class="mix-l" data-k="mixl"></div>
+          <div class="subh"><span>复习范围</span><button data-k="all">全选</button></div>
+          <div data-k="scope">${decks.map(d => `<button class="ck on" data-id="${d.id}"><span class="box">${CHECK}</span><i class="sw" style="background:var(${d.key})"></i><span class="nm">${d.name}</span><span class="v n">${d.today}</span></button>`).join('')}</div>
+          <div class="subh"><span>顺序</span></div>
+          <div data-k="order">
+            <button class="rd on"><i class="o"></i><div><b>到期优先</b><span>按到期日先后，同一天里先复习记得最差的</span></div></button>
+            <button class="rd"><i class="o"></i><div><b>快忘优先</b><span>只看现在记得的概率，从低到高</span></div></button>
+            <button class="rd"><i class="o"></i><div><b>按卡组</b><span>一个卡组复习完，再换下一个</span></div></button>
+          </div>
+          <div class="btns" style="margin-top:auto;padding-top:40px">
+            <button class="btn pri k" data-toast="进入复习">开始复习<kbd>空格</kbd></button>
+            <button class="btn sec" data-k="soonBtn" data-toast="只复习快忘的">先复习快忘的</button>
+          </div>
+        </div>
+        <div class="c s8" style="height:500px;padding-bottom:20px">
+          <div class="bh" style="margin:0">
+            <div class="kicker">记忆地形<i class="sep"></i><span class="m">悬停查看卡片，点图例筛选</span></div>
+            <div class="legend" data-k="legend">${decks.map(d => `<button data-id="${d.id}"><i style="background:var(${d.key})"></i>${d.name}</button>`).join('')}</div>
+          </div>
+          <div class="plot" data-k="plot"></div>
+        </div>
+        <div class="c s4 br">
+          <div class="bh"><div class="kicker">快忘的</div><span class="meta" data-k="soonN"></span></div>
+          <div class="colhead"><span>按现在记得的概率排序</span><span>记得</span></div>
+          <div data-k="soon"></div>
+          <div class="foot" style="margin-top:auto"><span class="meta">明天之前不复习，平均会再降 <b class="n">4</b> 点</span><button class="act" data-k="soonAct" data-toast="只复习快忘的">先复习这些${ARROW}</button></div>
+        </div>
+        <div class="c s4">
+          <div class="bh"><div class="kicker">今天的新卡</div><span class="meta" data-k="newN"></span></div>
+          <div class="colhead"><span>按添加顺序</span><span>卡组</span></div>
+          <div data-k="new"></div>
+          <div class="foot" style="margin-top:auto"><span class="meta">还有 <b class="n">166</b> 张没学</span><button class="act" data-toast="调整每天新卡上限">调整上限${ARROW}</button></div>
+        </div>
+      </div>`,
+    init(root) {
+      const k = s => $(`[data-k="${s}"]`, root), active = new Set(decks.map(d => d.id));
+      const map = makeMap(k('plot'), { active, instant: true });
+      const sync = () => {
+        const on = decks.filter(d => active.has(d.id)), sum = f => on.reduce((a, d) => a + f(d), 0);
+        const due = sum(d => d.due), rl = sum(d => d.relearn), nw = sum(d => d.fresh), tot = due + rl + nw, soon = sum(d => d.soon);
+        k('total').textContent = tot;
+        k('mix').innerHTML = tot ? `<i style="flex:${due};background:var(--ink)"></i><i style="flex:${rl};background:var(--accent)"></i><i style="flex:${nw};background:var(--jp)"></i>` : '<i style="flex:1;background:var(--rule)"></i>';
+        k('mixl').innerHTML = `<div><span class="k"><i style="background:var(--ink)"></i>到期</span><span class="v n">${due}</span></div><div><span class="k"><i style="background:var(--accent)"></i>重学</span><span class="v n">${rl}</span></div><div><span class="k"><i style="background:var(--jp)"></i>新卡</span><span class="v n">${nw}</span></div><div><span class="k">预计用时</span><span class="v n">${sum(d => d.mins)}<small>分钟</small></span></div>`;
+        $$('.ck', k('scope')).forEach(b => b.classList.toggle('on', active.has(b.dataset.id)));
+        $$('button', k('legend')).forEach(b => b.classList.toggle('off', !active.has(b.dataset.id)));
+        k('all').textContent = active.size === decks.length ? '全不选' : '全选';
+        const sl = soonList.filter(s => active.has(s[1])).slice(0, 6);
+        k('soon').innerHTML = sl.length ? sl.map(([f, id, r]) => `<div class="li"><i class="sw" style="background:var(${deckById[id].key})"></i><span class="f">${f}</span><span class="r"><b class="n${r < 82 ? ' hot' : ''}">${r}%</b></span></div>`).join('') : '<div class="empty">没有选中的卡组。</div>';
+        k('soonN').innerHTML = `<b class="n">${soon}</b> 张明天跌破 80%`;
+        const nl = newList.filter(s => active.has(s[1]) && deckById[s[1]].fresh > 0).slice(0, 6);
+        k('new').innerHTML = nl.length ? nl.map(([f, id]) => `<div class="li"><i class="sw" style="background:var(${deckById[id].key})"></i><span class="f">${f}</span><span class="r">${deckById[id].name}</span></div>`).join('') : '<div class="empty">选中的卡组今天没有新卡。</div>';
+        k('newN').innerHTML = `<b class="n">${nw}</b> 张`;
+        const sb = k('soonBtn'); sb.dataset.toast = k('soonAct').dataset.toast = `只复习快忘的 ${soon} 张`; sb.disabled = !tot;
+        map.setActive(new Set(active));
+      };
+      const toggle = id => { active.has(id) ? active.delete(id) : active.add(id); sync(); };
+      k('scope').onclick = e => { const b = e.target.closest('.ck'); if (b) toggle(b.dataset.id); };
+      k('legend').onclick = e => { const b = e.target.closest('button'); if (b) toggle(b.dataset.id); };
+      k('all').onclick = () => { if (active.size === decks.length) active.clear(); else decks.forEach(d => active.add(d.id)); sync(); };
+      k('order').onclick = e => { const b = e.target.closest('.rd'); if (b) $$('.rd', k('order')).forEach(x => x.classList.toggle('on', x === b)); };
+      sync();
+      return () => map.destroy();
+    },
+  };
+
+  // ---------- 卡组 ----------
+  pages.decks = {
+    title: '卡组', sub: '4 个在学 · 1 个已暂停',
+    html: () => `
+      <div class="pg">
+        <div class="c s8 br">
+          <div class="bh">
+            <div class="kicker">全部卡组<i class="sep"></i><span class="m">2 152 张</span></div>
+            <div style="display:flex;gap:8px"><button class="btn sec sm" data-toast="新建卡组">新建卡组</button><button class="btn pri sm" data-toast="选择 .apkg 文件">导入 Anki 卡组</button></div>
+          </div>
+          <div class="tb" style="margin-top:20px;--cols:minmax(0,1fr) 56px 48px 64px 56px 112px 64px" data-k="tb"></div>
+          <div class="tb-l"><span><i style="background:var(--ink)"></i>成熟</span><span><i style="background:var(--ink);opacity:.4"></i>年轻</span><span><i style="background:var(--rule)"></i>未学</span><span style="margin-left:auto">成熟：间隔超过 21 天</span></div>
+        </div>
+        <div class="c s4" data-k="detail"></div>
+      </div>`,
+    init(root) {
+      const k = s => $(`[data-k="${s}"]`, root);
+      let sel = 'mcat'; const open = new Set(['mcat']);
+      const matBar = o => { const t = o.n; return `<span class="mat hs"><i style="flex:${o.mature};background:var(--ink)"></i><i style="flex:${o.young};background:var(--ink);opacity:.4"></i><i style="flex:${t - o.mature - o.young};background:var(--rule)"></i></span>`; };
+      const renderTb = () => {
+        let h = `<div class="tr th"><span>卡组</span><span class="r">今天</span><span class="r hs">新卡</span><span class="r hs">张数</span><span class="r">保持率</span><span class="hs">掌握</span><span class="r hs">上次</span></div>`;
+        for (const d of decks) {
+          h += `<div class="tr row${d.id === sel ? ' sel' : ''}${open.has(d.id) ? ' open' : ''}" data-id="${d.id}"><span class="nm">${d.subs ? `<i class="chev" data-chev>${CHEV}</i>` : '<i style="width:12px"></i>'}<i class="sw" data-vt="ds-${d.id}" style="background:var(${d.key})"></i><span data-vt="dn-${d.id}">${d.name}</span></span><span class="r n" style="font-weight:650" data-vt="dc-${d.id}">${d.today}</span><span class="r n hs">${d.fresh}</span><span class="r n hs">${fmt(d.n)}</span><span class="r n${d.ret < 90 ? ' down' : ''}">${d.ret}%</span>${matBar(d)}<span class="r meta hs">${d.last}</span></div>`;
+          if (d.subs && open.has(d.id)) for (const s of d.subs) h += `<div class="tr sub"><span class="nm"><i style="width:12px"></i><span>${s.name}</span></span><span class="r n">${s.today}</span><span class="r n hs">${s.fresh}</span><span class="r n hs">${s.n}</span><span class="r n${s.ret < 90 ? ' down' : ''}">${s.ret}%</span>${matBar(s)}<span class="r meta hs">${s.last}</span></div>`;
+        }
+        h += `<div class="tr row dim" style="border-bottom:0" data-id="paused"><span class="nm"><i style="width:12px"></i><i class="sw" style="background:var(--ink-4)"></i><span>${paused.name}</span><span class="tag">已暂停</span></span><span class="r">—</span><span class="r hs">—</span><span class="r n hs">${paused.n}</span><span class="r">—</span><span class="hs"></span><span class="r meta hs">${paused.last}</span></div>`;
+        k('tb').innerHTML = h;
+      };
+      const renderDetail = () => {
+        const el = k('detail');
+        if (sel === 'paused') {
+          el.innerHTML = `<div class="bh"><div class="kicker"><i class="sw" style="background:var(--ink-4)"></i>${paused.name}</div></div>
+            <div class="num-xl"><span class="v n" style="color:var(--ink-3)">${paused.n}</span><span class="u">张 · 已暂停</span></div>
+            <p class="note">暂停后不会出现在每天的复习里，记录和进度都保留。${paused.last}暂停。</p>
+            <div class="btns" style="margin-top:28px"><button class="btn pri" data-toast="恢复中国历史">恢复复习</button><button class="btn sec" data-toast="导出中国历史">导出</button></div>`;
+          return;
+        }
+        const d = deckById[sel], c = d.cfg, gap = d.ret - 90;
+        const weak = d.subs ? d.subs.reduce((a, b) => a.ret < b.ret ? a : b) : null;
+        el.innerHTML = `
+          <div class="bh"><div class="kicker"><i class="sw" style="background:var(${d.key})"></i>${d.name}</div><span class="meta">上次复习 ${d.last}</span></div>
+          <div class="num-xl"><span class="v n">${d.today}</span><span class="u">张今天到期</span></div>
+          <div class="mix" style="margin-top:24px"><i style="flex:${d.due};background:var(--ink)"></i><i style="flex:${d.relearn};background:var(--accent)"></i><i style="flex:${d.fresh || .0001};background:var(--jp)"></i></div>
+          <div class="mix-l"><div><span class="k"><i style="background:var(--ink)"></i>到期</span><span class="v n">${d.due}</span></div><div><span class="k"><i style="background:var(--accent)"></i>重学</span><span class="v n">${d.relearn}</span></div><div><span class="k"><i style="background:var(--jp)"></i>新卡</span><span class="v n">${d.fresh}</span></div><div><span class="k">预计</span><span class="v n">${d.mins}<small>分钟</small></span></div></div>
+          <div class="subh"><span>掌握</span><span>保持率 <b class="n${gap < 0 ? ' down' : ''}">${d.ret}%</b></span></div>
+          <div class="mix-l" style="grid-template-columns:repeat(3,auto)"><div><span class="k">成熟</span><span class="v n">${d.mature}</span></div><div><span class="k">年轻</span><span class="v n">${d.young}</span></div><div><span class="k">未学</span><span class="v n">${d.newLeft}</span></div></div>
+          <p class="note">${gap < 0 ? `比目标低 <b>${-gap}</b> 点${weak ? `，${weak.name}最低（${weak.ret}%）` : ''}。可以先把这个卡组的新卡上限调低几天。` : `比目标高 <b>${gap}</b> 点。`}</p>
+          <div class="subh"><span>设置</span><button data-toast="编辑卡组设置">编辑</button></div>
+          <div class="kv"><span class="k">每天新卡上限</span><span class="v n">${c.newLimit}</span></div>
+          <div class="kv"><span class="k">每天复习上限</span><span class="v n">${c.revLimit}</span></div>
+          <div class="kv"><span class="k">目标保持率</span><span class="v n">${c.target}</span></div>
+          <div class="kv"><span class="k">学习步长</span><span class="v n">${c.steps}</span></div>
+          <div class="kv"><span class="k">最长间隔</span><span class="v n">${c.maxIvl}</span></div>
+          <div class="btns" style="margin-top:28px"><button class="btn pri" data-toast="复习${d.name}">复习这个卡组</button><button class="btn sec" data-toast="导出${d.name}">导出</button></div>`;
+      };
+      k('tb').onclick = e => {
+        const row = e.target.closest('.tr.row'); if (!row) return;
+        const id = row.dataset.id;
+        if (e.target.closest('[data-chev]')) { open.has(id) ? open.delete(id) : open.add(id); renderTb(); return; }
+        sel = id; renderTb(); renderDetail();
+      };
+      renderTb(); renderDetail();
+    },
+  };
+
+  // ---------- 统计 ----------
+  pages.stats = {
+    title: '统计', sub: '截至 11 月 16 日',
+    html: () => `
+      <div class="pg">
+        <div class="c s4 br kpi"><div class="kicker">30 天保持率</div><div class="v n">92.4<small>%</small></div><div class="meta">目标 90%，高 <b class="up">2.4</b> 点 · 重来率 <b>7.6%</b></div></div>
+        <div class="c s4 br kpi"><div class="kicker">今年复习</div><div class="v n">31 260<small>次</small></div><div class="meta">复习过 <b data-k="days"></b> 天 · 用时 <b>80</b> 小时 · 平均 <b>9.2</b> 秒/张</div></div>
+        <div class="c s4 kpi"><div class="kicker">成熟卡片</div><div class="v n">1 064<small>张</small></div><div class="meta">这个月新增 <b class="up">38</b> 张 · 占 <b>58%</b></div></div>
+
+        <div class="c s8 br">
+          <div class="bh"><div class="kicker">保持率<i class="sep"></i><span class="m">7 天平均</span></div><div class="seg" data-k="range"><button data-r="30">30 天</button><button data-r="90" class="on">90 天</button><button data-r="365">1 年</button></div></div>
+          <div class="chart" data-k="ret"><div class="tip"></div></div>
+        </div>
+        <div class="c s4">
+          <div class="bh"><div class="kicker">按卡组</div><span class="meta">30 天</span></div>
+          <div style="margin-top:12px" data-k="dp"></div>
+          <div class="dp-ax" data-k="dpax"></div>
+          <p class="note">只有 <b>MCAT</b> 低于目标，主要是生物化学（86%）。</p>
+        </div>
+
+        <div class="c s8 br">
+          <div class="bh"><div class="kicker">未来 30 天</div><span class="meta" data-k="fcSum"></span></div>
+          <div class="chart" data-k="fc"><div class="tip"></div></div>
+          <div class="tb-l">${decks.map(d => `<span><i style="background:var(${d.key})"></i>${d.name}</span>`).join('')}</div>
+        </div>
+        <div class="c s4">
+          <div class="bh"><div class="kicker">答题</div><span class="meta">今年 31 260 次</span></div>
+          <div style="margin-top:12px">
+            ${[['重来', 7.6, '--accent'], ['困难', 9.1, '--amber'], ['良好', 74.8, '--ink'], ['简单', 8.5, '--jp']].map(([k, v, c]) => `<div class="hbar"><span class="k"><i style="background:var(${c})"></i>${k}</span><span class="t"><i style="width:${v}%;background:var(${c})"></i></span><span class="p n">${v}%</span></div>`).join('')}
+          </div>
+          <p class="note">重来 7.6%，和 92.4% 的保持率基本对得上，说明排期在按目标工作。</p>
+        </div>
+
+        <div class="c s4 br">
+          <div class="bh"><div class="kicker">卡片状态</div><span class="meta">1 842 张</span></div>
+          <div class="mix" style="margin-top:24px;height:10px;border-radius:5px"><i style="flex:1064;background:var(--ink)"></i><i style="flex:612;background:var(--ink);opacity:.4"></i><i style="flex:166;background:var(--rule)"></i></div>
+          <div class="mix-l" style="grid-template-columns:repeat(3,auto)"><div><span class="k"><i style="background:var(--ink)"></i>成熟</span><span class="v n">1 064</span></div><div><span class="k"><i style="background:var(--ink);opacity:.4"></i>年轻</span><span class="v n">612</span></div><div><span class="k"><i style="background:var(--rule)"></i>未学</span><span class="v n">166</span></div></div>
+          <p class="note">按每天 20 张新卡，剩下的 166 张约 <b>9 天</b>学完。</p>
+        </div>
+        <div class="c s8">
+          <div class="bh"><div class="kicker">记得多久</div><span class="meta">稳定性分布 · 中位数 <b>46 天</b></span></div>
+          <div class="chart" data-k="stab"></div>
+        </div>
+      </div>`,
+    init(root) {
+      const k = s => $(`[data-k="${s}"]`, root), offs = [];
+      k('days').textContent = yearData(2026).filter(o => o.c > 0).length;
+      // retention line
+      let range = 90;
+      const retHost = k('ret'), retTip = $('.tip', retHost);
+      const H = 220, PB = 26, PR = 40;
+      let geo = null;
+      const retC = svgChart(retHost, H, w => {
+        const s = retSeries.slice(-range), lo = 86, hi = 97, iw = w - PR;
+        const X = i => i / (s.length - 1) * iw, Y = v => 6 + (hi - v) / (hi - lo) * (H - PB - 6);
+        geo = { s, X, Y, iw };
+        let g = '';
+        for (const t of [88, 90, 92, 94, 96]) g += `<line x1="0" x2="${iw}" y1="${Y(t) + .5}" y2="${Y(t) + .5}" stroke="${t === 90 ? 'var(--accent)" stroke-dasharray="4 3' : 'var(--rule)'}"/><text x="${w}" y="${Y(t) + 4}" text-anchor="end"${t === 90 ? ' style="fill:var(--accent);font-weight:600"' : ''}>${t}%</text>`;
+        let lastM = -1;
+        s.forEach((o, i) => {
+          const m = o.d.getMonth(), show = range === 30 ? o.d.getDay() === 1 : (m !== lastM && o.d.getDate() <= (range === 90 ? 7 : 31) && i > 0);
+          if (show) { const lab = range === 30 ? `${m + 1}/${o.d.getDate()}` : `${m + 1} 月`; g += `<line x1="${X(i) + .5}" x2="${X(i) + .5}" y1="${H - PB}" y2="${H - PB + 4}" stroke="var(--ink-4)"/><text x="${X(i)}" y="${H - 6}" text-anchor="middle">${lab}</text>`; }
+          lastM = m;
+        });
+        g += `<line x1="0" x2="${iw}" y1="${H - PB + .5}" y2="${H - PB + .5}" stroke="var(--ink-4)"/>`;
+        const d = s.map((o, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(o.v).toFixed(1)}`).join('');
+        const lv = s[s.length - 1].v;
+        g += `<path d="${d}" fill="none" stroke="var(--ink)" stroke-width="1.75" stroke-linejoin="round"/>`;
+        g += `<circle cx="${X(s.length - 1)}" cy="${Y(lv)}" r="3.5" fill="var(--ink)" stroke="var(--paper)" stroke-width="2"/>`;
+        g += `<g data-hover style="display:none"><line y1="0" y2="${H - PB}" stroke="var(--ink-4)"/><circle r="4" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.75"/></g>`;
+        return g;
+      });
+      offs.push(retC.destroy);
+      retHost.addEventListener('pointermove', e => {
+        if (!geo) return; const r = retHost.getBoundingClientRect(), x = e.clientX - r.left;
+        if (x > geo.iw) return;
+        const i = Math.max(0, Math.min(geo.s.length - 1, Math.round(x / geo.iw * (geo.s.length - 1)))), o = geo.s[i];
+        const hv = $('[data-hover]', retHost); hv.style.display = ''; $('line', hv).setAttribute('x1', geo.X(i)); $('line', hv).setAttribute('x2', geo.X(i)); $('circle', hv).setAttribute('cx', geo.X(i)); $('circle', hv).setAttribute('cy', geo.Y(o.v));
+        tipAt(retTip, retHost, geo.X(i), geo.Y(o.v), `<b>${o.v.toFixed(1)}%</b><div class="d">${o.d.getMonth() + 1} 月 ${o.d.getDate()} 日 周${WD[o.d.getDay()]}</div>`);
+      });
+      retHost.addEventListener('pointerleave', () => { const hv = $('[data-hover]', retHost); if (hv) hv.style.display = 'none'; retTip.classList.remove('on'); });
+      k('range').onclick = e => { const b = e.target.closest('button'); if (!b) return; range = +b.dataset.r; $$('button', k('range')).forEach(x => x.classList.toggle('on', x === b)); retC.refresh(); };
+
+      // per-deck dot plot
+      const lo = 84, hi = 100, pos = v => (v - lo) / (hi - lo) * 100;
+      k('dp').innerHTML = [...decks].sort((a, b) => b.ret - a.ret).map(d => `<div class="dp"><span class="k"><i class="sw" style="background:var(${d.key})"></i><span>${d.name}</span></span><span class="t"><i class="tg" style="left:${pos(90)}%"></i><i class="d" style="left:${pos(d.ret)}%;background:var(${d.key})"></i></span><span class="p n${d.ret < 90 ? ' down' : ''}">${d.ret}%</span></div>`).join('');
+      k('dpax').style.cssText += ';margin-left:calc(min(104px,100%) + 16px);margin-right:56px';
+      k('dpax').innerHTML = [84, 90, 95, 100].map(v => `<span style="left:${pos(v)}%;${v === 90 ? 'color:var(--accent);font-weight:600' : ''}">${v}</span>`).join('');
+
+      // forecast 30 days stacked
+      const r = mk(301), fc = [];
+      for (let i = 0; i < 30; i++) {
+        const tot = i < 7 ? FC7[i] : Math.round(100 + r() * 50 - (i > 20 ? 10 : 0));
+        let sh = i === 3 ? [.18, .56, .17, .09] : [.25 + r() * .06, .36 + r() * .08, .26, .1];
+        const s = sh.reduce((a, b) => a + b, 0), parts = sh.map(x => Math.round(x / s * tot)); parts[1] += tot - parts.reduce((a, b) => a + b, 0);
+        const d = new Date(TODAY); d.setDate(d.getDate() + 1 + i); fc.push({ d, tot, parts });
+      }
+      const fsum = fc.reduce((a, o) => a + o.tot, 0);
+      k('fcSum').innerHTML = `共 <b class="n">${fmt(fsum)}</b> 张 · 日均 <b class="n">${Math.round(fsum / 30)}</b>`;
+      const fcHost = k('fc'), fcTip = $('.tip', fcHost), FH = 200, FB = 26;
+      let fg = null;
+      const fcC = svgChart(fcHost, FH, w => {
+        const iw = w - PR, bw = iw / 30, Y = v => FH - FB - v / 180 * (FH - FB - 6);
+        fg = { bw, Y, iw };
+        let g = '';
+        for (const t of [50, 100, 150]) g += `<line x1="0" x2="${iw}" y1="${Y(t) + .5}" y2="${Y(t) + .5}" stroke="var(--rule)"/><text x="${w}" y="${Y(t) + 4}" text-anchor="end">${t}</text>`;
+        fc.forEach((o, i) => {
+          let y = FH - FB; const x = i * bw + 1.5, ww = Math.max(2, bw - 3);
+          g += `<g data-i="${i}">`;
+          o.parts.forEach((v, j) => { const h = v / 180 * (FH - FB - 6); y -= h; g += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${ww.toFixed(1)}" height="${Math.max(0, h - 1).toFixed(1)}" fill="var(${decks[j].key})"/>`; });
+          g += `</g>`;
+          if (i === 0 || o.d.getDay() === 1) g += `<text x="${x + ww / 2}" y="${FH - 6}" text-anchor="middle">${i === 0 ? '明天' : `${o.d.getMonth() + 1}/${o.d.getDate()}`}</text>`;
+        });
+        g += `<line x1="0" x2="${iw}" y1="${FH - FB + .5}" y2="${FH - FB + .5}" stroke="var(--ink-4)"/>`;
+        return g;
+      });
+      offs.push(fcC.destroy);
+      fcHost.addEventListener('pointermove', e => {
+        if (!fg) return; const rr = fcHost.getBoundingClientRect(), i = Math.floor((e.clientX - rr.left) / fg.bw);
+        if (i < 0 || i > 29) return;
+        $$('g[data-i]', fcHost).forEach(g => g.style.opacity = +g.dataset.i === i ? 1 : .35);
+        const o = fc[i];
+        tipAt(fcTip, fcHost, i * fg.bw + fg.bw / 2, fg.Y(o.tot), `<b>${o.tot} 张</b><div class="d" style="margin-bottom:6px">${o.d.getMonth() + 1} 月 ${o.d.getDate()} 日 周${WD[o.d.getDay()]}</div>` + decks.map((d, j) => `<div class="tr"><i class="sw" style="background:var(${d.key})"></i>${d.name}<em>${o.parts[j]}</em></div>`).join(''));
+      });
+      fcHost.addEventListener('pointerleave', () => { $$('g[data-i]', fcHost).forEach(g => g.style.opacity = 1); fcTip.classList.remove('on'); });
+
+      // stability histogram
+      const bins = [['< 1 天', 48], ['1–7 天', 172], ['1–4 周', 296], ['1–3 个月', 402], ['3–6 个月', 318], ['半年–1 年', 260], ['> 1 年', 180]];
+      const stC = svgChart(k('stab'), 180, w => {
+        const SH = 180, SB = 26, bw = w / bins.length, max = 402, Y = v => SH - SB - v / max * (SH - SB - 22);
+        let g = '';
+        bins.forEach(([l, v], i) => {
+          const x = i * bw + bw * .3, ww = bw * .4, med = i === 3;
+          g += `<rect x="${x.toFixed(1)}" y="${Y(v).toFixed(1)}" width="${ww.toFixed(1)}" height="${(SH - SB - Y(v)).toFixed(1)}" rx="2" fill="var(--ink)" opacity="${med ? 1 : .16}"/>`;
+          g += `<text x="${x + ww / 2}" y="${Y(v) - 7}" text-anchor="middle" style="fill:var(--ink${med ? '' : '-2'});font-weight:${med ? 650 : 500}">${v}</text>`;
+          g += `<text x="${x + ww / 2}" y="${SH - 6}" text-anchor="middle"${med ? ' style="fill:var(--ink);font-weight:600"' : ''}>${l}</text>`;
+        });
+        g += `<line x1="0" x2="${w}" y1="${SH - SB + .5}" y2="${SH - SB + .5}" stroke="var(--ink-4)"/>`;
+        return g;
+      });
+      offs.push(stC.destroy);
+      return () => offs.forEach(f => f());
+    },
+  };
+
+  // ---------- 记录 ----------
+  pages.history = {
+    title: '记录', sub: '每个点是一天，越大复习越多',
+    html: () => `
+      <div class="pg">
+        <div class="c s12">
+          <div class="bh"><div class="kicker" data-k="yearT"></div><div class="seg" data-k="year"><button data-y="2025">2025</button><button data-y="2026" class="on">2026</button></div></div>
+          <div class="hm-year" data-k="yr"><div class="in">
+            <div style="display:grid;grid-template-rows:20px repeat(7,1fr);row-gap:2px;font-size:11px;color:var(--ink-3)"><span></span><span style="display:flex;align-items:center">一</span><span></span><span style="display:flex;align-items:center">三</span><span></span><span style="display:flex;align-items:center">五</span><span></span><span style="display:flex;align-items:center">日</span></div>
+            <div><div class="hm-m" data-k="hmM"></div><div class="hm pick" data-k="hm"></div></div>
+          </div></div>
+          <div class="hm-l" style="margin-left:28px"><span class="meta">点一天查看详情</span><span class="scale">少<i style="width:3px;height:3px;background:var(--ink-4)"></i><i style="width:6px;height:6px"></i><i style="width:9px;height:9px"></i><i style="width:12px;height:12px"></i><i style="width:15px;height:15px"></i>多</span></div>
+        </div>
+        <div class="c s4 br" data-k="sum"></div>
+        <div class="c s8" data-k="day"></div>
+      </div>`,
+    init(root) {
+      const k = s => $(`[data-k="${s}"]`, root);
+      let year = 2026, selI = null;
+      const renderYear = () => {
+        const days = yearData(year), past = days.filter(o => !o.fut && !o.today), done = past.filter(o => o.c > 0);
+        const total = done.reduce((a, o) => a + o.c, 0), best = done.reduce((a, o) => o.c > a.c ? o : a);
+        k('yearT').innerHTML = `${year} 年<i class="sep"></i><span class="m">${fmt(total)} 次</span>`;
+        heatmap(k('hm'), k('hmM'), days);
+        k('yr').scrollLeft = year === 2026 ? k('yr').scrollWidth : 0;
+        k('sum').innerHTML = `
+          <div class="bh"><div class="kicker">${year} 年</div></div>
+          <div class="num-xl"><span class="v n">${done.length}</span><span class="u">/ ${past.length} 天复习过</span></div>
+          <div class="subh"><span>汇总</span></div>
+          <div class="kv"><span class="k">复习次数</span><span class="v n">${fmt(total)}</span></div>
+          <div class="kv"><span class="k">用时</span><span class="v n">${Math.round(total * 9.2 / 3600)}<small>小时</small></span></div>
+          <div class="kv"><span class="k">复习过的日子平均</span><span class="v n">${Math.round(total / done.length)}<small>次</small></span></div>
+          <div class="kv"><span class="k">最多的一天</span><span class="v n">${best.dt.getMonth() + 1} 月 ${best.dt.getDate()} 日<small>${best.c} 次</small></span></div>
+          <div class="kv"><span class="k">最常复习的时段</span><span class="v n">晚上 10 点</span></div>`;
+        if (selI === null || days[selI].fut || days[selI].today) selI = days.findIndex(o => o.today) - 1;
+        if (selI < 0) selI = days.length - 1;
+        renderDay();
+      };
+      const renderDay = () => {
+        const days = yearData(year), o = days[selI];
+        $$('.hm i.sel', root).forEach(x => x.classList.remove('sel'));
+        const cell = $(`.hm i[data-i="${selI}"]`, root); if (cell) cell.classList.add('sel');
+        const label = `${o.dt.getMonth() + 1} 月 ${o.dt.getDate()} 日 周${WD[o.dt.getDay()]}`;
+        if (!o.c) { k('day').innerHTML = `<div class="bh"><div class="kicker">${label}</div></div><div class="num-xl"><span class="v n" style="color:var(--ink-4)">0</span><span class="u">次</span></div><p class="note">这天没有复习。</p>`; return; }
+        const dd = dayDetail(o), present = decks.map((d, j) => [d, dd.parts[j]]).filter(x => x[1] > 0);
+        k('day').innerHTML = `
+          <div class="bh"><div class="kicker">${label}</div><span class="meta">用时 <b class="n">${dd.min}</b> 分钟 · 重来 <b class="n">${(dd.again / o.c * 100).toFixed(1)}%</b></span></div>
+          <div class="num-xl"><span class="v n">${o.c}</span><span class="u">次复习</span></div>
+          <div class="mix" style="margin-top:24px">${present.map(([d, v]) => `<i style="flex:${v};background:var(${d.key})"></i>`).join('')}</div>
+          <div class="mix-l" style="grid-template-columns:repeat(${present.length},auto)">${present.map(([d, v]) => `<div><span class="k"><i style="background:var(${d.key})"></i>${d.name}</span><span class="v n">${v}</span></div>`).join('')}</div>
+          <div class="subh"><span>${dd.sess.length} 次学习</span></div>
+          <div class="sess th"><span>开始</span><span>张数</span><span>用时</span><span>重来</span></div>
+          ${dd.sess.map(s => `<div class="sess"><span class="n" style="font-weight:600">${s.t}</span><span class="n">${s.n}</span><span class="n">${s.min} 分钟</span><span class="n">${s.again}</span></div>`).join('')}`;
+      };
+      k('hm').onclick = e => { const c = e.target.closest('i[data-i]'); if (!c || c.classList.contains('fut') || c.classList.contains('today')) return; selI = +c.dataset.i; renderDay(); };
+      k('year').onclick = e => { const b = e.target.closest('button'); if (!b) return; year = +b.dataset.y; selI = null; $$('button', k('year')).forEach(x => x.classList.toggle('on', x === b)); renderYear(); };
+      renderYear();
+    },
+  };
+
+  /* ================= expand / collapse ================= */
+  // Components that exist on both the home block and the page keep their identity and move into place;
+  // everything else fades out (home) or fades in (page).
+  const sheet = $('#sheet'); let cur = null, cleanup = null, busy = false;
+  const VT = !!document.startViewTransition && !still;
+  const shared = {
+    review: {
+      home: b => ({ 'vt-title': $('.kt', b), 'vt-num': $('.count', b), 'vt-mix': $('.mix', b), 'vt-mixl': $('.mix-l', b), 'vt-btns': $('.btns', b), 'vt-map': $('#homePlot') }),
+      page: r => ({ 'vt-num': $('.count', r), 'vt-mix': $('[data-k="mix"]', r), 'vt-mixl': $('[data-k="mixl"]', r), 'vt-btns': $('.btns', r), 'vt-map': $('[data-k="plot"]', r) }),
+    },
+    decks: {
+      home: b => Object.assign({ 'vt-title': $('.kicker', b) }, vtAttrs(b)),
+      page: r => vtAttrs(r),
+    },
+    stats: {
+      home: b => ({ 'vt-title': $('.kicker', b), 'vt-num': $('.ret .big', b) }),
+      page: r => ({ 'vt-num': $('.kpi .v', r) }),
+    },
+    history: {
+      home: b => Object.assign({ 'vt-title': $('.kicker', b) }, dots(b)),
+      page: r => dots(r),
+    },
+  };
+  function vtAttrs(root) { const o = {}; $$('[data-vt]', root).forEach(el => o['vt-' + el.dataset.vt] = el); return o; }
+  function dots(root) { const o = {}; $$('.hm i[data-d]', root).forEach(el => { if (!el.classList.contains('fut')) o['vt-d-' + el.dataset.d] = el; }); return o; }
+  let named = [];
+  const name = (map) => { for (const [n, el] of Object.entries(map)) if (el) { el.style.viewTransitionName = n; named.push(el); } };
+  const unname = () => { named.forEach(el => el.style.viewTransitionName = ''); named = []; };
+  // pick only names that exist on both sides, so nothing flies in from nowhere
+  const both = (a, b) => { const A = {}, B = {}; for (const n in a) if (b[n] && a[n]) { A[n] = a[n]; B[n] = b[n]; } return [A, B]; };
+  let dotStyle = null;
+  function staggerDots(map) {
+    if (dotStyle) dotStyle.remove();
+    const keys = Object.keys(map).filter(n => n.startsWith('vt-d-')); if (!keys.length) return;
+    const xs = keys.map(n => map[n].getBoundingClientRect().left), lo = Math.min(...xs), hi = Math.max(...xs) || 1;
+    dotStyle = document.createElement('style');
+    dotStyle.textContent = keys.map((n, i) => `::view-transition-group(${n}){animation-delay:${Math.round((xs[i] - lo) / (hi - lo || 1) * 90)}ms}`).join('');
+    document.head.appendChild(dotStyle);
+  }
+
+  function mount(mod) {
+    const pg = pages[mod];
+    $('#sheetT').innerHTML = `<b>${pg.title}</b><span>${pg.sub}</span>`;
+    $('#sheetB').innerHTML = pg.html(); $('#sheetS').scrollTop = 0;
+    Object.assign(sheet.style, { top: '0', left: '0', width: '100%', height: '100%', display: 'block' });
+    sheet.classList.remove('anim'); sheet.classList.add('ready');
+    document.documentElement.classList.add('locked');
+    cleanup = pg.init($('#sheetB')) || null;
+  }
+  function unmount() {
+    sheet.style.display = 'none'; sheet.classList.remove('ready');
+    document.documentElement.classList.remove('locked');
+    if (cleanup) cleanup(); cleanup = null; $('#sheetB').innerHTML = '';
+  }
+  const pageFrame = () => ({ 'vt-frame': sheet, 'vt-title': $('#sheetT b'), 'vt-sub': $('#sheetT span'), 'vt-back': $('#back'), 'vt-body': $('#sheetB') });
+
+  function open(mod, instant) {
+    const blk = $(`.blk[data-mod="${mod}"]`); if (cur || busy || !blk) return; cur = blk;
+    if (!VT || instant) { mount(mod); blk.classList.add('lift'); return; }
+    busy = true;
+    const H = shared[mod].home(blk);
+    name(Object.assign({ 'vt-frame': blk }, H)); staggerDots(H);
+    const t = document.startViewTransition(() => {
+      unname(); mount(mod); blk.classList.add('lift');
+      const P = Object.assign({ 'vt-title': $('#sheetT b') }, shared[mod].page($('#sheetB'))), keep = {};
+      for (const n in H) if (P[n]) keep[n] = P[n];
+      name(Object.assign(pageFrame(), keep));
+    });
+    t.finished.finally(() => { unname(); busy = false; });
+  }
+  function close() {
+    if (!cur || busy) return; const blk = cur, mod = blk.dataset.mod;
+    if (!VT) { unmount(); blk.classList.remove('lift'); cur = null; return; }
+    busy = true;
+    const [H, P] = both(shared[mod].home(blk), Object.assign({ 'vt-title': $('#sheetT b') }, shared[mod].page($('#sheetB'))));
+    name(Object.assign(pageFrame(), P)); staggerDots(P);
+    document.documentElement.classList.add('vt-close');
+    const t = document.startViewTransition(() => {
+      unname(); unmount(); blk.classList.remove('lift');
+      name(Object.assign({ 'vt-frame': blk }, H));
+    });
+    t.finished.finally(() => { unname(); document.documentElement.classList.remove('vt-close'); cur = null; busy = false; });
+  }
+  const go = mod => { if (cur || busy) return; history.pushState({ mod }, '', '#' + mod); open(mod); };
+  const back = () => { if (history.state && history.state.mod) history.back(); else { history.replaceState(null, '', location.pathname); close(); } };
+  addEventListener('popstate', () => { const m = location.hash.slice(1); if (pages[m]) open(m); else close(); });
+  $$('.blk').forEach(b => {
+    b.addEventListener('click', e => { if (!e.target.closest('button')) go(b.dataset.mod); });
+    b.addEventListener('keydown', e => { if (e.target === b && e.key === 'Enter') go(b.dataset.mod); });
+  });
+  $('#back').onclick = back;
+  addEventListener('keydown', e => { if (e.key === 'Escape' && cur) back(); });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => homeMap.redraw());
+  const m0 = window.__open || location.hash.slice(1); if (pages[m0]) open(m0, true);
+})();
+</script>
+</body>
+</html>

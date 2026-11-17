@@ -12,6 +12,7 @@ import { undoLabelText, useLang, useT, type MessageKey } from "../lib/i18n.ts";
 import { AudioPlayer } from "../lib/media.ts";
 import { updateSettings, useSettings, type NoteTypeMode } from "../lib/settings.ts";
 import { compareAnswer } from "../lib/typeans.ts";
+import { deckColor } from "../lib/theme.ts";
 import { Dialog } from "../ui/Dialog.tsx";
 import { Icon } from "../ui/Icon.tsx";
 import { Menu } from "../ui/Menu.tsx";
@@ -372,17 +373,24 @@ export function Review({ deckId, onExit }: { deckId: number | null; onExit(): vo
   const n = (v: number) => formatNumber(v, lang);
 
   return (
-    <div className={`review ${whyOpen ? "review-why" : ""}`} data-testid="review" data-phase={view.kind === "card" ? view.side : view.kind}>
-      <div className="session-progress" aria-hidden="true">
-        <div style={{ transform: `scaleX(${progress})` }} />
-      </div>
+    <div
+      className={`review ${whyOpen ? "review-why" : ""}`}
+      data-testid="review"
+      data-phase={view.kind === "card" ? view.side : view.kind}
+      style={card ? ({ "--pc": deckColor(card.deckName)[0], "--pd": deckColor(card.deckName)[1] } as React.CSSProperties) : undefined}
+    >
       <header className="review-bar">
-        <button type="button" className="icon-btn" onClick={onExit} aria-label={t("review.exit")} title={`${t("review.exit")} (Esc)`}>
-          <Icon name="arrowLeft" />
+        <button type="button" className="review-exit" onClick={onExit} aria-label={t("review.exit")} title={`${t("review.exit")} (Esc)`}>
+          <Icon name="chevronLeft" />
+          <kbd>Esc</kbd>
         </button>
         <span className="review-deck" title={card?.deckName}>
+          {card && <i className="review-deck-dot" aria-hidden="true" />}
           {card?.deckName.split("::").pop() ?? ""}
         </span>
+        <div className="session-progress" aria-hidden="true">
+          <div style={{ transform: `scaleX(${progress})` }} />
+        </div>
         {counts && (
           <span className="review-counts" aria-label={t("review.remaining", { new: counts.new, learning: counts.learning, review: counts.review })} data-testid="review-counts">
             {(["new", "learning", "review"] as const).map((q) => (
@@ -392,7 +400,6 @@ export function Review({ deckId, onExit }: { deckId: number | null; onExit(): vo
             ))}
           </span>
         )}
-        <span className="spacer" />
         {view.kind === "card" && (
           <>
             <Menu
@@ -448,7 +455,9 @@ export function Review({ deckId, onExit }: { deckId: number | null; onExit(): vo
 
       <div className="review-body">
         <div className="review-stage">
-          <CardFrame onController={onController} className={view.kind === "card" ? "" : "is-hidden"} />
+          <div className={`paper ${view.kind === "card" ? "" : "is-hidden"}`} data-stack={Math.min(3, Math.max(0, remaining - 1))}>
+            <CardFrame onController={onController} className={view.kind === "card" ? "" : "is-hidden"} />
+          </div>
           {view.kind === "card" && view.prepared.decision.mode === "original" && view.prepared.decision.reason.kind !== "default" && (
             <p className="mode-note" data-testid="mode-note">
               {t("review.mode.reason", { reason: reasonText(view.prepared.decision.reason, t) })}
@@ -512,19 +521,44 @@ function Done({ view, onExit }: { view: Extract<View, { kind: "done" }>; onExit(
   const lang = useLang();
   return (
     <div className="done" data-testid="done">
-      <span className="done-mark" aria-hidden="true">
-        温
-      </span>
+      <Trophy />
       <h1 className="done-title">{t("review.doneTitle")}</h1>
       <p className="done-body">{t("review.doneBody")}</p>
       {view.stats && view.stats.today.reviews > 0 && (
-        <p className="muted">{t("review.doneToday", { n: formatNumber(view.stats.today.reviews, lang), time: formatDuration(view.stats.today.timeMs, t) })}</p>
+        <div className="done-tiles">
+          <div className="done-tile done-tile-good">
+            <span>{t("home.reviewed")}</span>
+            <b>{formatNumber(view.stats.today.reviews, lang)}</b>
+          </div>
+          <div className="done-tile done-tile-easy">
+            <span>{t("home.time")}</span>
+            <b>{formatDuration(view.stats.today.timeMs, t)}</b>
+          </div>
+          <div className="done-tile done-tile-accent">
+            <span>{t("review.doneRemembered")}</span>
+            <b>{formatNumber(Math.round(((view.stats.today.byRating[1] + view.stats.today.byRating[2] + view.stats.today.byRating[3]) / Math.max(1, view.stats.today.byRating.reduce((a, b) => a + b, 0))) * 100), lang)}%</b>
+          </div>
+        </div>
       )}
       {view.nextLearningDueAt !== null && <p className="muted small">{t("review.doneLearning", { time: formatTime(view.nextLearningDueAt, lang) })}</p>}
-      <button type="button" className="btn btn-ghost" onClick={onExit} autoFocus>
+      <button type="button" className="btn btn-primary btn-lg" onClick={onExit} autoFocus>
         {t("review.backToDecks")}
       </button>
     </div>
+  );
+}
+
+function Trophy() {
+  return (
+    <svg className="trophy" width="120" height="120" viewBox="0 0 140 140" aria-hidden="true">
+      <circle cx="70" cy="70" r="66" fill="#f7b500" opacity=".14" />
+      <path d="M44 30h52v22c0 15-11.6 27-26 27S44 67 44 52z" fill="#f7b500" />
+      <path d="M44 30h52v8H44z" fill="#d38f00" opacity=".35" />
+      <path d="M44 38H32v6c0 9 6 15 14 16M96 38h12v6c0 9-6 15-14 16" fill="none" stroke="#d38f00" strokeWidth="7" strokeLinecap="round" />
+      <path d="M62 78h16v14H62z" fill="#d38f00" />
+      <rect x="48" y="92" width="44" height="14" rx="5" fill="#f7b500" />
+      <path d="m70 40 4.3 8.7 9.6 1.4-7 6.8 1.7 9.5-8.6-4.5-8.6 4.5 1.7-9.5-7-6.8 9.6-1.4z" fill="#fff" />
+    </svg>
   );
 }
 

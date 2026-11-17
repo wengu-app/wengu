@@ -4,6 +4,7 @@ import type { DeckNode, Id, RetentionSample, Stats as StatsData } from "@wengu/c
 import { useApp } from "../lib/app.tsx";
 import { formatDuration, formatNumber, formatPercent } from "../lib/format.ts";
 import { useLang, useT, type MessageKey } from "../lib/i18n.ts";
+import { Cuboids, type CuboidCol } from "../ui/Charts.tsx";
 import { flattenDecks } from "./Editor.tsx";
 
 const DAYS = 30;
@@ -11,44 +12,16 @@ const DAYS = 30;
 function Upcoming({ data, overdue }: { data: number[]; overdue: number }) {
   const t = useT();
   const lang = useLang();
-  const [hover, setHover] = useState<number | null>(null);
-  const max = Math.max(1, ...data);
-  const W = 600;
-  const H = 160;
-  const padB = 20;
-  const gap = 2;
-  const bw = W / data.length - gap;
-  const ticks = [0, 7, 14, 21, 28].filter((d) => d < data.length);
+  const md = new Intl.DateTimeFormat(lang === "zh" ? "zh-CN" : "en", { month: "numeric", day: "numeric" });
+  const cols: CuboidCol[] = data.map((v, i) => ({
+    label: i === 0 ? t("stats.todayLabel") : i % 7 === 0 ? `+${i}` : "",
+    sub: i === 0 || i % 7 === 0 ? md.format(new Date(Date.now() + i * 86_400_000)) : undefined,
+    faded: i > 0,
+    segs: [{ n: v, color: "var(--c-review)" }],
+  }));
   return (
     <figure className="chart">
-      <div className="chart-plot" onMouseLeave={() => setHover(null)}>
-        <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t("stats.upcoming")} preserveAspectRatio="none">
-          <line x1={0} x2={W} y1={H - padB} y2={H - padB} className="chart-base" />
-          {data.map((v, i) => {
-            const h = (v / max) * (H - padB - 8);
-            const x = i * (bw + gap);
-            return (
-              <g key={i} onMouseEnter={() => setHover(i)}>
-                <rect x={x} y={0} width={bw + gap} height={H - padB} fill="transparent" />
-                {v > 0 && <rect x={x} y={H - padB - h} width={bw} height={h} rx={Math.min(3, bw / 2)} className={`chart-bar ${hover === i ? "is-hover" : ""}`} />}
-              </g>
-            );
-          })}
-        </svg>
-        <div className="chart-ticks" aria-hidden="true">
-          {ticks.map((d) => (
-            <span key={d} style={{ left: `${((d + 0.5) / data.length) * 100}%` }}>
-              {d === 0 ? t("stats.todayLabel") : `+${d}`}
-            </span>
-          ))}
-        </div>
-        {hover !== null && (
-          <div className="chart-tip" style={{ left: `${((hover + 0.5) / data.length) * 100}%` }} role="status">
-            <strong>{hover === 0 ? t("stats.todayLabel") : t("stats.dayN", { n: hover })}</strong>
-            <span>{t("stats.perDay", { n: formatNumber(data[hover] ?? 0, lang) })}</span>
-          </div>
-        )}
-      </div>
+      <Cuboids cols={cols} ariaLabel={t("stats.upcoming")} />
       <figcaption className="muted small">
         {t("stats.upcomingHelp")} {overdue > 0 ? t("stats.overdue", { n: formatNumber(overdue, lang) }) : ""}
       </figcaption>

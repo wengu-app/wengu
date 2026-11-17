@@ -55,13 +55,6 @@ export function App({ db }: { db: WenguClient }) {
   );
 }
 
-const NAV: { route: Route; icon: IconName; label: MessageKey }[] = [
-  { route: { name: "decks" }, icon: "decks", label: "nav.decks" },
-  { route: { name: "browse", deckId: null, noteId: null }, icon: "browse", label: "nav.browse" },
-  { route: { name: "stats" }, icon: "stats", label: "nav.stats" },
-  { route: { name: "settings" }, icon: "settings", label: "nav.settings" },
-];
-
 function Shell() {
   const route = useRoute();
   const { info, openImport, openExport } = useApp();
@@ -69,44 +62,70 @@ function Shell() {
   const empty = info.counts.knowledgePoints === 0 && info.counts.decks <= 1;
   const focus = route.name === "review";
 
+  // "/" opens Browse with the search box focused, like the search field in the top bar.
+  useEffect(() => {
+    if (focus) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
+      const tgt = e.target as HTMLElement | null;
+      if (tgt && (tgt.tagName === "INPUT" || tgt.tagName === "TEXTAREA" || tgt.tagName === "SELECT" || tgt.isContentEditable)) return;
+      if (document.querySelector("dialog[open]")) return;
+      e.preventDefault();
+      if (route.name !== "browse") navigate({ name: "browse", deckId: null, noteId: null });
+      setTimeout(() => document.querySelector<HTMLInputElement>('[data-testid="browse-search"]')?.focus(), 0);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [focus, route.name]);
+
   return (
     <div className={`shell ${focus ? "shell-focus" : ""}`}>
       {!focus && (
-        <nav className="rail" aria-label={t("nav.main")}>
-          <a className="brand" href={routeHash({ name: "decks" })}>
-            <span className="seal" aria-hidden="true">
-              温
-            </span>
-            <span className="brand-name">
-              温故 <span className="brand-latin">Wengu</span>
-            </span>
-          </a>
-          <ul className="rail-links">
-            {NAV.map((n) => (
-              <li key={n.label}>
-                <a className="rail-link" href={routeHash(n.route)} aria-current={route.name === n.route.name ? "page" : undefined}>
-                  <Icon name={n.icon} />
-                  <span>{t(n.label)}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-          <div className="rail-actions">
-            <button type="button" className="rail-link" onClick={() => openImport()}>
-              <Icon name="import" />
-              <span>{t("nav.import")}</span>
-            </button>
-            <button type="button" className="rail-link" onClick={() => openExport()} disabled={empty}>
-              <Icon name="export" />
-              <span>{t("nav.export")}</span>
-            </button>
-          </div>
-        </nav>
+        <header className="topbar">
+          <nav className="topbar-in" aria-label={t("nav.main")}>
+            <a className="brand" href={routeHash({ name: "decks" })} aria-current={route.name === "decks" ? "page" : undefined} aria-label={t("nav.decks")}>
+              <span className="seal" aria-hidden="true">
+                温
+              </span>
+              <span className="brand-name">{t("app.name")}</span>
+            </a>
+            {route.name !== "browse" ? (
+              <a className="topsearch" href={routeHash({ name: "browse", deckId: null, noteId: null })} aria-label={t("nav.browse")}>
+                <Icon name="browse" />
+                <span>{t("nav.search")}</span>
+                <kbd>/</kbd>
+              </a>
+            ) : (
+              <span className="topsearch-space" />
+            )}
+            <div className="topbar-actions">
+              <TopLink route={{ name: "stats" }} icon="stats" label="nav.stats" current={route.name === "stats"} />
+              <button type="button" className="btn btn-ghost btn-small" onClick={() => openImport()} aria-label={t("nav.import")} title={t("nav.import")}>
+                <Icon name="import" />
+                <span className="btn-text">{t("nav.import")}</span>
+              </button>
+              <button type="button" className="btn btn-ghost btn-small" onClick={() => openExport()} disabled={empty} aria-label={t("nav.export")} title={t("nav.export")}>
+                <Icon name="export" />
+                <span className="btn-text">{t("nav.export")}</span>
+              </button>
+              <TopLink route={{ name: "settings" }} icon="settings" label="nav.settings" current={route.name === "settings"} />
+            </div>
+          </nav>
+        </header>
       )}
       <main className="main" id="main">
         <Screen route={route} empty={empty} />
       </main>
     </div>
+  );
+}
+
+function TopLink({ route, icon, label, current }: { route: Route; icon: IconName; label: MessageKey; current: boolean }) {
+  const t = useT();
+  return (
+    <a className="icon-btn top-link" href={routeHash(route)} aria-current={current ? "page" : undefined} title={t(label)} aria-label={t(label)}>
+      <Icon name={icon} size={20} />
+    </a>
   );
 }
 
