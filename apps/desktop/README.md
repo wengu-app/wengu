@@ -4,8 +4,8 @@ Wengu (温故) as a desktop app: the finished web app (`apps/web`) in an Electro
 and menu, file associations for `.apkg`/`.colpkg`, and a much tighter sandbox for the untrusted code that Anki deck
 templates contain. Everything the app does is still the web app; the shell has no features of its own.
 
-Status: Linux (AppImage, deb) is built and run-tested. macOS (universal dmg + zip) and Windows (NSIS) are configured
-but have **never been built or run**; the CI workflow that would build them has not been run either.
+Status: Linux (AppImage, deb) is built and run-tested. macOS (separate Apple silicon and Intel dmg + zip) and Windows (NSIS)
+build in the CI workflow but are unsigned and have **never been run on a real machine**.
 
 ## Commands
 
@@ -19,7 +19,7 @@ Run from `apps/desktop` (or with `corepack pnpm --filter @wengu/desktop run <scr
 | `corepack pnpm build` | Builds the web app and bundles the shell (`out/main.cjs`, `out/preload.cjs`). |
 | `corepack pnpm pack` | Build, then an unpacked app in `dist/<platform>-unpacked/` (quick to try). |
 | `corepack pnpm dist:linux` | Build, then `dist/Wengu-<version>-x86_64.AppImage` and `dist/wengu_<version>_amd64.deb`. |
-| `corepack pnpm dist:mac` | Build, then a universal `dmg` and `zip` (on macOS only; untested). |
+| `corepack pnpm dist:mac` | Build, then a `dmg` and `zip` each for Apple silicon (arm64) and Intel (x64) (on macOS only). |
 | `corepack pnpm dist:win` | Build, then an NSIS installer (on Windows, or Linux with wine; untested). |
 | `corepack pnpm test` | End-to-end tests against the dev shell. |
 | `WENGU_APP_EXECUTABLE=… corepack pnpm test:packaged` | The same tests against a packaged binary (AppImage, or `opt/Wengu/wengu` from the deb). |

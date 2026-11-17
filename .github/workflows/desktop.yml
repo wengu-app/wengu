@@ -29,7 +29,7 @@ jobs:
               apps/desktop/dist/*.AppImage
               apps/desktop/dist/*.deb
               apps/desktop/dist/latest*.yml
-          - name: macos-universal
+          - name: macos-arm64-x64
             os: macos-15
             script: dist:mac
             files: |

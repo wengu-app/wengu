@@ -1,6 +1,6 @@
 # electron-builder configuration for Wengu (温故).
-# Linux (AppImage, deb) is built and run-tested; macOS (dmg + zip, universal) and Windows (NSIS) are configured but
-# untested — see README.md.
+# Linux (AppImage, deb) is built and run-tested; macOS (dmg + zip, separate arm64 and x64 builds) and Windows (NSIS)
+# build in CI but have not been run on real machines — see README.md.
 appId: dev.wengu.app
 # ASCII product name for paths (install dir, bundle, executables); 温故 is the display name below.
 productName: Wengu
@@ -55,8 +55,7 @@ fileAssociations:
 # No updater code ships yet. This only makes the build emit the update metadata (latest*.yml, blockmaps) that
 # electron-updater would read, so auto-update can be added later without changing targets. Nothing is uploaded
 # unless a build is run with --publish (the scripts and CI pass --publish never).
-# The URL must not contain ${arch}: it is written into app-update.yml inside the app, and the macOS universal
-# build requires that file to be identical in its x64 and arm64 halves. Per-arch metadata is told apart by file name.
+# The URL has no ${arch}: per-arch metadata and artifacts are told apart by file name.
 publish:
   - provider: generic
     url: https://wengu.dev/download/${os}
@@ -92,11 +91,12 @@ mac:
   category: public.app-category.education
   icon: resources/icon.icns
   target:
+    # Apple silicon and Intel are shipped as separate downloads, not a universal build.
     - target: dmg
-      arch: [universal]
+      arch: [arm64, x64]
     # zip: what electron-updater (Squirrel.Mac) needs for updates
     - target: zip
-      arch: [universal]
+      arch: [arm64, x64]
   hardenedRuntime: true
   # electron-builder's default entitlements (JIT etc. for V8 under the hardened runtime)
   gatekeeperAssess: false
