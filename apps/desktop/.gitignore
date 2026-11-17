@@ -1,0 +1,4 @@
+# bundled main/preload (scripts/build.mjs) and packaged apps (electron-builder)
+out/
+dist/
+test-results/

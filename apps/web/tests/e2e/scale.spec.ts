@@ -56,7 +56,7 @@ test("50k notes: import, virtual list, search, answer latency", async ({ page })
   await page.getByTestId("browse-search").fill("mitochondria entropy");
   await expect(page.getByTestId("browse-count")).not.toHaveAttribute("data-total", "50000");
   console.log(`search "mitochondria entropy": ${Date.now() - s0} ms to results incl. 150 ms debounce; ${await page.getByTestId("browse-count").innerText()}`);
-  // (text + state together is slow in core at this size, ~55 s per page: reported, not exercised here)
+  // Core regression tests and benchmarks cover combinations of text, state, deck and tag filters.
   await page.getByTestId("browse-search").fill("");
   await expect(page.getByTestId("browse-count")).toHaveAttribute("data-total", "50000");
   const s1 = Date.now();

@@ -1,0 +1,125 @@
+# electron-builder configuration for Wengu (温故).
+# Linux (AppImage, deb) is built and run-tested; macOS (dmg + zip, universal) and Windows (NSIS) are configured but
+# untested — see README.md.
+appId: dev.wengu.app
+# ASCII product name for paths (install dir, bundle, executables); 温故 is the display name below.
+productName: Wengu
+copyright: Copyright © 2026 Wengu contributors
+artifactName: Wengu-${version}-${os}-${arch}.${ext}
+
+directories:
+  output: dist
+  # not "build/": that name is git-ignored repo-wide
+  buildResources: resources
+
+# The app is two bundled files plus the web build; there are no runtime node_modules.
+files:
+  - package.json
+  - out/main.cjs
+  - out/preload.cjs
+  - resources/icons/512x512.png
+  - from: ../web/dist
+    to: web
+    filter: ["**/*"]
+asar: true
+# the packaged package.json is named plainly (artifact, updater-cache and installer-payload names derive from it)
+extraMetadata:
+  name: wengu
+npmRebuild: false
+
+# https://www.electronjs.org/docs/latest/tutorial/fuses
+electronFuses:
+  runAsNode: false
+  enableCookieEncryption: true
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  enableEmbeddedAsarIntegrityValidation: true
+  onlyLoadAppFromAsar: true
+  loadBrowserProcessSpecificV8Snapshot: false
+  grantFileProtocolExtraPrivileges: false
+
+fileAssociations:
+  - ext: apkg
+    name: Anki Deck Package
+    description: Anki deck package
+    mimeType: application/x-apkg
+    role: Viewer
+    rank: Alternate
+  - ext: colpkg
+    name: Anki Collection Package
+    description: Anki collection package
+    mimeType: application/x-colpkg
+    role: Viewer
+    rank: Alternate
+
+# No updater code ships yet. This only makes the build emit the update metadata (latest*.yml, blockmaps) that
+# electron-updater would read, so auto-update can be added later without changing targets. Nothing is uploaded
+# unless a build is run with --publish (the scripts and CI pass --publish never).
+publish:
+  - provider: generic
+    url: https://wengu.dev/download/${os}/${arch}
+
+linux:
+  executableName: wengu
+  # the window's app_id/WM_CLASS matches wengu.desktop (package.json desktopName)
+  syncDesktopName: true
+  target: [AppImage, deb]
+  icon: resources/icons
+  category: Education
+  synopsis: Spaced-repetition reviewer, compatible with Anki decks
+  description: Wengu (温故) is a local-first learning app. It imports and exports Anki decks (.apkg) with their review history and keeps everything on this device.
+  maintainer: Wengu <hello@wengu.dev>
+  vendor: Wengu
+  desktop:
+    entry:
+      Name: 温故
+      GenericName: Flashcards
+      Comment: Spaced repetition, compatible with Anki decks
+      Keywords: flashcards;anki;spaced repetition;srs;wengu;
+
+appImage:
+  artifactName: Wengu-${version}-${arch}.AppImage
+
+deb:
+  packageName: wengu
+  artifactName: wengu_${version}_${arch}.${ext}
+  priority: optional
+
+mac:
+  executableName: Wengu
+  category: public.app-category.education
+  icon: resources/icon.icns
+  target:
+    - target: dmg
+      arch: [universal]
+    # zip: what electron-updater (Squirrel.Mac) needs for updates
+    - target: zip
+      arch: [universal]
+  hardenedRuntime: true
+  # electron-builder's default entitlements (JIT etc. for V8 under the hardened runtime)
+  gatekeeperAssess: false
+  # Signing/notarization need an Apple Developer ID (CSC_LINK, APPLE_ID…); without them the build is ad-hoc signed.
+  notarize: false
+  extendInfo:
+    # menu bar / Dock / About name; the bundle on disk stays Wengu.app
+    CFBundleName: 温故
+    CFBundleDisplayName: 温故
+    NSHumanReadableCopyright: Copyright © 2026 Wengu contributors
+
+dmg:
+  artifactName: Wengu-${version}-mac-${arch}.${ext}
+
+win:
+  executableName: Wengu
+  icon: resources/icon.ico
+  target:
+    - target: nsis
+      arch: [x64]
+
+nsis:
+  artifactName: Wengu-Setup-${version}-${arch}.${ext}
+  oneClick: true
+  perMachine: false
+  shortcutName: 温故
+  uninstallDisplayName: 温故 Wengu
+  deleteAppDataOnUninstall: false

@@ -5,3 +5,5 @@ packages:
 # Dependencies allowed to run install scripts (pnpm blocks them by default).
 allowBuilds:
   esbuild: true
+  # apps/desktop (via electron-builder): its script only matters for Squirrel.Windows, which we don't use.
+  electron-winstaller: false

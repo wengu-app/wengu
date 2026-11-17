@@ -71,7 +71,26 @@
 - `packages/core`：数据模型和排期，不依赖界面。
 - `packages/anki`：`.apkg` 的导入和导出。
 - `packages/runtime`：沙箱宿主和组件接口。
+- `packages/generator`：AI 生成组件、自检和修复原型，尚未集成进日常复习界面。
 - `apps/web`：应用本身。
+- `apps/desktop`：Electron 桌面端、打包配置和桌面集成测试。
+
+## 当前开发状态
+
+M0 的导入导出、排期、沙箱和生成原型已实现；三副真实热门卡组验证仍待补齐。
+M1 的导入、复习、浏览编辑、统计、导出和本地持久化已实现，连续两周自用验收尚未完成。
+大卡组复习的 100 毫秒延迟目标尚未稳定通过，仍需优化。
+Linux AppImage 和 deb 已构建，AppImage 已运行验证；macOS、Windows 和三平台构建工作流尚未验证。
+桌面端暂不支持自动更新。桌面数据位置、运行限制和完整命令见 [apps/desktop/README.md](apps/desktop/README.md)。
+
+在仓库根目录运行：
+
+```sh
+corepack pnpm install --frozen-lockfile
+corepack pnpm typecheck
+corepack pnpm --filter @wengu/web dev
+corepack pnpm --filter @wengu/desktop dist:linux
+```
 
 ## 协议
 

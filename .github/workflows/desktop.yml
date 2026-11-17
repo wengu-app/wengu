@@ -1,0 +1,71 @@
+# Builds the desktop app (apps/desktop) for Linux, macOS and Windows and uploads the installers as workflow artifacts.
+# Manual only: Actions → "Desktop builds" → Run workflow. Nothing is published or signed.
+# Unverified until it has been run once.
+name: Desktop builds
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x64
+            os: ubuntu-24.04
+            script: dist:linux
+            files: |
+              apps/desktop/dist/*.AppImage
+              apps/desktop/dist/*.deb
+              apps/desktop/dist/latest*.yml
+          - name: macos-universal
+            os: macos-15
+            script: dist:mac
+            files: |
+              apps/desktop/dist/*.dmg
+              apps/desktop/dist/*.zip
+              apps/desktop/dist/*.blockmap
+              apps/desktop/dist/latest*.yml
+          - name: windows-x64
+            os: windows-2025
+            script: dist:win
+            files: |
+              apps/desktop/dist/*.exe
+              apps/desktop/dist/*.blockmap
+              apps/desktop/dist/latest*.yml
+    env:
+      # No signing identities are configured: don't let electron-builder look for one in the keychain.
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Enable corepack (pnpm version from package.json)
+        run: corepack enable
+
+      - name: Install
+        run: corepack pnpm install --frozen-lockfile --filter "@wengu/desktop..."
+
+      - name: Build and package
+        run: corepack pnpm --filter @wengu/desktop run ${{ matrix.script }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wengu-${{ matrix.name }}
+          path: ${{ matrix.files }}
+          if-no-files-found: error
+          retention-days: 14

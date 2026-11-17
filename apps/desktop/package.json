@@ -1,0 +1,41 @@
+{
+  "name": "@wengu/desktop",
+  "productName": "Wengu",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Wengu (温故) desktop app: the web app in an Electron shell",
+  "homepage": "https://wengu.dev",
+  "desktopName": "wengu.desktop",
+  "license": "AGPL-3.0-or-later",
+  "author": {
+    "name": "Wengu",
+    "email": "hello@wengu.dev"
+  },
+  "type": "module",
+  "main": "out/main.cjs",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:vite": "node scripts/dev.mjs --vite",
+    "build:web": "corepack pnpm --filter @wengu/web build",
+    "build": "corepack pnpm run build:web && node scripts/build.mjs",
+    "dist": "corepack pnpm run build && node scripts/package.mjs",
+    "dist:linux": "corepack pnpm run build && node scripts/package.mjs --linux --x64",
+    "dist:mac": "corepack pnpm run build && node scripts/package.mjs --mac",
+    "dist:win": "corepack pnpm run build && node scripts/package.mjs --win --x64",
+    "test": "node scripts/build.mjs && playwright test",
+    "test:packaged": "playwright test",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "icons": "node scripts/icons.mjs",
+    "pack": "corepack pnpm run build && node scripts/package.mjs --dir"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "^24.19.2",
+    "@wengu/anki": "workspace:*",
+    "@wengu/web": "workspace:*",
+    "electron": "45.3.2",
+    "electron-builder": "26.18.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  }
+}

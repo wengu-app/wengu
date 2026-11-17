@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Id, WenguClient } from "@wengu/core";
 
 import { AppProvider, navigate, routeHash, useApp, useRoute, type Route, type Toast } from "./lib/app.tsx";
+import { useDesktopCommands } from "./lib/desktop.ts";
 import { useT, type MessageKey } from "./lib/i18n.ts";
 import { Browse } from "./screens/Browse.tsx";
 import { Decks } from "./screens/Decks.tsx";
@@ -24,6 +25,7 @@ export function App({ db }: { db: WenguClient }) {
     else fileInput.current?.click();
   }, []);
   const onExport = useCallback((deckId?: Id) => setExportState({ open: true, deckId: deckId ?? null }), []);
+  useDesktopCommands(onImport, onExport);
 
   return (
     <AppProvider db={db} onImport={onImport} onExport={onExport} toasts={setToasts}>
