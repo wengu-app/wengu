@@ -1,6 +1,6 @@
 import { MessageChannel } from "node:worker_threads";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { AnkiPackage } from "@wengu/anki";
 
@@ -8,15 +8,48 @@ import { connectWengu } from "../src/index.js";
 import type { ImportProgress } from "../src/index.js";
 import type { Port } from "../src/rpc/protocol.js";
 import { serve } from "../src/rpc/server.js";
+import { SCHEMA_VERSION } from "../src/db/schema.js";
 import { FIXTURE_NOW_SECS, engineAt, fixtureBytes, readFixture } from "./helpers.js";
 
 describe("client ↔ worker protocol (over a MessageChannel)", () => {
+  it("cancels queued searches and removes abort listeners after success or failure", async () => {
+    const { port1, port2 } = new MessageChannel();
+    const { engine } = await engineAt(FIXTURE_NOW_SECS);
+    const search = vi.spyOn(engine, "search");
+    serve(port2 as unknown as Port, { open: async () => engine });
+    const client = await connectWengu(port1 as unknown as Port);
+    try {
+      const done = new AbortController();
+      const removeDone = vi.spyOn(done.signal, "removeEventListener");
+      await client.search({}, { signal: done.signal });
+      expect(removeDone).toHaveBeenCalledWith("abort", expect.any(Function));
+      done.abort(); // A completed query must not send a late cancellation to the worker.
+
+      const cancelled = new AbortController();
+      const removeCancelled = vi.spyOn(cancelled.signal, "removeEventListener");
+      const result = client.search({ text: "cancelled" }, { signal: cancelled.signal });
+      const rejection = expect(result).rejects.toMatchObject({ name: "AbortError" });
+      cancelled.abort();
+      await rejection;
+      expect(removeCancelled).toHaveBeenCalledWith("abort", expect.any(Function));
+      expect(search).toHaveBeenCalledTimes(1); // The cancelled query never reached SQLite.
+      await expect(client.search({}, { signal: cancelled.signal })).rejects.toMatchObject({ name: "AbortError" });
+      expect((await client.search({})).total).toBe(0); // Subsequent requests still work.
+    } finally {
+      await client.close();
+      port1.close();
+      port2.close();
+      engine.db.close();
+      search.mockRestore();
+    }
+  });
+
   it("opens, calls, reports import progress, transfers results and propagates errors", async () => {
     const { port1, port2 } = new MessageChannel();
     const { engine } = await engineAt(FIXTURE_NOW_SECS);
     serve(port2 as unknown as Port, { open: async () => engine });
     const client = await connectWengu(port1 as unknown as Port);
-    expect(client.opened.schemaVersion).toBe(1);
+    expect(client.opened.schemaVersion).toBe(SCHEMA_VERSION);
 
     const progress: ImportProgress[] = [];
     const r = await client.importAnki(fixtureBytes("full-latest.apkg"), { onProgress: (p) => progress.push(p) });

@@ -117,4 +117,16 @@ export async function closeEngine(engine: Engine): Promise<void> {
   releaseLock = null;
 }
 
-serve(self as unknown as Port, { open: openEngine, close: closeEngine });
+let current: Engine | null = null;
+/** The open engine (for diagnostics in the benchmark harness). */
+export function currentEngine(): Engine | null {
+  return current;
+}
+
+serve(self as unknown as Port, {
+  open: async (o) => (current = await openEngine(o)),
+  close: async (e) => {
+    current = null;
+    await closeEngine(e);
+  },
+});

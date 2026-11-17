@@ -115,6 +115,9 @@ try {
     const r = await run(page, `mode=bench&notes=${notes}&backlogDays=${backlogDays}`, 1_800_000);
     console.log(`\nChromium (headless) ${r.ua}, ${r.cores} threads, OPFS SAH pool, through the worker client:\n`);
     console.log(r.table);
+    console.log(`\nanswer() inside the worker (medians, ms): ${JSON.stringify(r.answerBreakdown)}`);
+    console.log(`one-row write transaction (median ms): ${JSON.stringify(r.commits)}`);
+    console.log(`write transaction modifying n distinct pages (median ms): ${JSON.stringify(r.pages)}`);
     console.log(`\nreopen 50k collection from OPFS (worker start + SQLite init + open): ${r.reopenMs.toFixed(0)} ms; first study() after reopen: ${r.firstStudyAfterReopenMs.toFixed(0)} ms; origin storage used: ${r.storageUsageMB.toFixed(1)} MB`);
     if (process.env.BENCH_OUT) writeFileSync(process.env.BENCH_OUT, JSON.stringify(r, null, 1));
   }

@@ -69,6 +69,15 @@ export async function connectWengu(port: Port, options: OpenOptions = {}): Promi
         const { onProgress, ...rest } = opts;
         return request({ t: "call", method, args: [args[0], rest], progress: !!onProgress }, onProgress);
       }
+      if (method === "search") {
+        const { signal, ...opts } = (args[1] ?? {}) as { signal?: AbortSignal; timeoutMs?: number };
+        if (signal?.aborted) return Promise.reject(new WenguError("AbortError", "search aborted"));
+        const id = nextId;
+        const p = request({ t: "call", method, args: [args[0], opts], cancellable: true });
+        const abort = () => port.postMessage({ t: "cancel", id: nextId++, target: id } as Request);
+        signal?.addEventListener("abort", abort, { once: true });
+        return p.finally(() => signal?.removeEventListener("abort", abort));
+      }
       return request({ t: "call", method: method as ApiMethod, args });
     };
   }

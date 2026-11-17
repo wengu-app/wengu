@@ -37,8 +37,31 @@ export function serve(port: Port, options: ServeOptions): void {
   let queue: Promise<void> = Promise.resolve();
   const send = (r: Response, transfer: Transferable[] = []) => port.postMessage(r, transfer);
 
+  const cancelled = new Set<number>();
+  const cancellable = new Set<number>();
+  /** Lets queued "cancel" messages arrive before the next request runs (a long query blocks message delivery). */
+  const yieldToMessages = () =>
+    new Promise<void>((resolve) => {
+      const ch = new MessageChannel();
+      ch.port1.onmessage = () => {
+        ch.port1.close();
+        ch.port2.close();
+        resolve();
+      };
+      ch.port2.postMessage(null);
+    });
+
   const handle = async (req: Request): Promise<void> => {
+    if (req.t === "cancel") return;
     try {
+      if (req.t === "call" && req.cancellable) {
+        await yieldToMessages();
+        if (cancelled.delete(req.id)) {
+          const e = new Error("search abandoned before it ran");
+          e.name = "AbortError";
+          throw e;
+        }
+      }
       if (req.t === "open") {
         if (!engine) engine = await options.open(req.options);
         send({ t: "result", id: req.id, value: engine.info() });
@@ -66,11 +89,19 @@ export function serve(port: Port, options: ServeOptions): void {
       send({ t: "result", id: req.id, value }, transferables(value));
     } catch (e) {
       send({ t: "error", id: req.id, error: serializeError(e) });
+    } finally {
+      cancellable.delete(req.id);
+      cancelled.delete(req.id);
     }
   };
 
   port.addEventListener("message", (ev: MessageEvent) => {
     const req = ev.data as Request;
+    if (req.t === "cancel") {
+      if (cancellable.has(req.target)) cancelled.add(req.target);
+      return;
+    }
+    if (req.t === "call" && req.cancellable) cancellable.add(req.id);
     queue = queue.then(() => handle(req));
   });
   port.start?.();

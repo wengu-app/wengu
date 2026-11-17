@@ -3,13 +3,12 @@
  * @wengu/anki's (`packageForExport`), the bytes are its writer's (`writeAnkiPackageChunks`).
  */
 import type { AnkiPackage, Card, Deck, DeckConfig, MediaFile, Note, PackageFormat, RevlogEntry, Tag, WriteOptions } from "@wengu/anki";
-import { packageForExport, referencedMedia, writeAnkiPackageChunks } from "@wengu/anki";
+import { packageForExport, parseCardData, referencedMedia, writeAnkiPackageChunks } from "@wengu/anki";
 
 import type { ExportOptions } from "../types.js";
 import type { Engine } from "./engine.js";
 import type { ItemRow, KpRow, RevlogRow } from "./rows.js";
 import { FIELD_SEP, ITEM_COLS } from "./rows.js";
-import { cardDataOf } from "./carddata.js";
 import { splitTags } from "./text.js";
 
 const LATEST_FORMAT: PackageFormat = {
@@ -69,7 +68,7 @@ export async function sourcePackage(e: Engine, opts: { deckId?: number; includeM
     originalDue: r.odue,
     originalDeckId: r.odid,
     flags: r.flags,
-    data: cardDataOf(r.data),
+    data: parseCardData(r.data, [], r.id),
     rawData: r.data,
   }));
 

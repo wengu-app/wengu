@@ -21,11 +21,21 @@ interface RawExports {
   sqlite3_column_bytes(stmt: number, i: number): number;
   sqlite3_changes(db: number): number;
   sqlite3_errmsg(db: number): number;
+  sqlite3_progress_handler(db: number, n: number, fn: number, arg: number): void;
 }
 
 const SQLITE_ROW = 100;
 const SQLITE_DONE = 101;
 const SQLITE_TRANSIENT = -1;
+const SQLITE_INTERRUPT = 9;
+
+/** Thrown when a statement is stopped by `withTimeLimit`. */
+export class QueryTimeoutError extends Error {
+  constructor(ms: number) {
+    super(`query stopped after its time limit of ${ms} ms`);
+    this.name = "QueryTimeout";
+  }
+}
 const MAX_SAFE = Number.MAX_SAFE_INTEGER;
 
 interface Stmt {
@@ -46,6 +56,8 @@ export class SqliteWasmDatabase implements SqlDatabase {
   private scratch = 0;
   private scratchSize = 0;
   private depth = 0;
+  private deadline = Infinity;
+  private progressFn = 0;
 
   constructor(
     readonly sqlite3: Sqlite3Static,
@@ -71,11 +83,34 @@ export class SqliteWasmDatabase implements SqlDatabase {
     if (rc !== 0) throw this.error(rc);
   }
 
+  /**
+   * Runs `fn`; any statement still running after `ms` is interrupted (SQLite progress handler, checked every
+   * 1000 VM instructions) and `fn` throws QueryTimeoutError. Only for read-only work.
+   */
+  withTimeLimit<T>(ms: number, fn: () => T): T {
+    if (!this.progressFn) {
+      this.progressFn = this.sqlite3.wasm.installFunction("ip", () => (performance.now() > this.deadline ? 1 : 0)) as unknown as number;
+    }
+    const dbPtr = this.db.pointer as unknown as number;
+    this.deadline = performance.now() + ms;
+    this.raw.sqlite3_progress_handler(dbPtr, 1000, this.progressFn, 0);
+    try {
+      return fn();
+    } catch (e) {
+      if (e instanceof Error && (e as Error & { rc?: number }).rc === SQLITE_INTERRUPT) throw new QueryTimeoutError(ms);
+      throw e;
+    } finally {
+      this.raw.sqlite3_progress_handler(dbPtr, 0, 0, 0);
+      this.deadline = Infinity;
+    }
+  }
+
   private error(rc: number): Error {
     const ptr = this.raw.sqlite3_errmsg(this.db.pointer as unknown as number);
     const msg = this.sqlite3.wasm.cstrToJs(ptr as never);
-    const e = new Error(`SQLite error ${rc}: ${msg}`);
+    const e = new Error(`SQLite error ${rc}: ${msg}`) as Error & { rc: number };
     e.name = "SQLiteError";
+    e.rc = rc;
     return e;
   }
 
@@ -250,6 +285,8 @@ export class SqliteWasmDatabase implements SqlDatabase {
   }
 
   close(): void {
+    if (this.progressFn) this.sqlite3.wasm.uninstallFunction(this.progressFn as never);
+    this.progressFn = 0;
     for (const s of this.cache.values()) s.oo1.finalize();
     this.cache.clear();
     if (this.scratch) this.sqlite3.wasm.dealloc(this.scratch);

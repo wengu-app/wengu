@@ -173,6 +173,32 @@ export interface DeckNode {
   children: DeckNode[];
 }
 
+/** Changes to a deck options preset; omitted fields stay as they are. */
+export interface PresetChanges {
+  name?: string;
+  /** New items per day, 0–9999. */
+  newPerDay?: number;
+  /** Reviews per day, 0–9999. */
+  reviewsPerDay?: number;
+  /** Learning steps in minutes (each > 0, at most 20 steps); [] graduates new items on the first answer. */
+  learnStepsMinutes?: number[];
+  /** Relearning steps after a lapse, minutes. */
+  relearnStepsMinutes?: number[];
+  /** FSRS desired retention, 0.70–0.99. */
+  desiredRetention?: number;
+  /** Maximum interval, days, 1–36500. */
+  maximumIntervalDays?: number;
+}
+
+export interface DeleteDeckResult {
+  /** The deck and its sub-decks. */
+  decks: number;
+  /** Review items that were in them (deleted). */
+  reviewItems: number;
+  /** Knowledge points deleted because they had no review item left. */
+  knowledgePoints: number;
+}
+
 export interface DeckPreset {
   id: Id;
   name: string;
@@ -251,8 +277,23 @@ export interface StudyState {
   card: ReviewCard | null;
   /** When nothing is due now but learning steps are pending today: when the next one is due (ms). */
   nextLearningDueAt: number | null;
-  /** Label of the operation `undo()` would revert, if any. */
+  /**
+   * The card to show after `card`, computed now so the UI can render it in advance: the next item in the queue
+   * once `card` has been answered (with `card` excluded and its deck's daily allowance reduced by one).
+   * It is a prediction; the authoritative next card is `answer()`'s returned `card`. It differs when:
+   *  - the answer puts `card` itself back first: a (re)learning step that is due within the learn-ahead window
+   *    (default 20 min) while nothing else is due, e.g. Again on the last item;
+   *  - time passes: a learning step of another item falls due before the answer arrives (it then comes first);
+   *  - the answer buries `upNext` (a sibling, when the preset buries siblings) or suspends a leech;
+   *  - the day rolls over, or other calls (edit, suspend, import, undo) change the queue in between.
+   * Compare `upNext.item.id` with the returned `card.item.id` and fall back to the returned card on a miss.
+   * Its `schedule` is computed at prediction time; take button labels from the returned card when they matter.
+   */
+  upNext: ReviewCard | null;
+  /** Label of the operation `undo()` would revert, if any (English, for display). */
   undoLabel: string | null;
+  /** Stable code of that operation (translate this, not the label). */
+  undoCode: UndoCode | null;
   /** Current scheduler day. */
   today: number;
 }
@@ -266,10 +307,34 @@ export interface AnswerInput {
   deckId?: Id | null;
 }
 
+export type UndoCode =
+  | "answer-again"
+  | "answer-hard"
+  | "answer-good"
+  | "answer-easy"
+  | "suspend"
+  | "unsuspend"
+  | "bury"
+  | "unbury"
+  | "flag"
+  | "move"
+  | "add"
+  | "edit"
+  | "delete"
+  | "delete-deck"
+  /** Not produced by this version; future operations. */
+  | "other";
+
 export interface UndoResult {
   label: string;
+  code: UndoCode;
   /** Review item(s) restored; for an undone answer, the item to show again. */
   itemIds: Id[];
+  /**
+   * Study state after the undo, for `options.deckId` (default: whole collection). After undoing an answer its
+   * `card` is the undone item (it stays first until it is answered again), as in Anki.
+   */
+  state: StudyState;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -309,6 +374,20 @@ export interface BrowseRow {
   suspended: boolean;
   createdAt: number;
   modifiedAt: number;
+}
+
+export interface SearchOptions {
+  /**
+   * Time budget for the query in the worker (default 3000 ms). A query still running after it is stopped and the
+   * call rejects with a WenguError named "QueryTimeout"; the worker is free again at once.
+   */
+  timeoutMs?: number;
+  /**
+   * Client only: abort a search that is no longer wanted (e.g. the user typed on). If it has not started yet the
+   * worker skips it; the call rejects with a WenguError named "AbortError". A search that is already running
+   * cannot be stopped from outside (the worker is busy in it); `timeoutMs` bounds that case.
+   */
+  signal?: AbortSignal;
 }
 
 export interface BrowsePage {
@@ -459,6 +538,19 @@ export interface WenguApi {
   createDeck(name: string): Id;
   renameDeck(id: Id, newName: string): void;
   listPresets(): DeckPreset[];
+  getPreset(id: Id): DeckPreset | null;
+  /**
+   * Deletes a deck with its sub-decks and every review item in them; knowledge points left without items are
+   * deleted too; review history is kept (Anki's behaviour). Items of a deleted filtered deck go back to their home
+   * deck instead. The Default deck (id 1) cannot be deleted. Undoable (code "delete-deck").
+   */
+  deleteDeck(id: Id): DeleteDeckResult;
+  /** Updates a preset (applies to every deck using it; see `DeckPreset.deckCount`). Not undoable. */
+  updatePreset(id: Id, changes: PresetChanges): DeckPreset;
+  /** Creates a preset, copying another one's settings (default: preset 1 / Anki's defaults). */
+  createPreset(name: string, copyFrom?: Id): Id;
+  /** Makes a deck use a preset. Not undoable. */
+  setDeckPreset(deckId: Id, presetId: Id): void;
   listNoteTypes(): NoteType[];
   /** Adds one of Anki's stock note types (e.g. for a fresh collection with none) and returns its id. */
   createStockNoteType(kind: "basic" | "basic-reversed" | "cloze"): Id;
@@ -472,8 +564,10 @@ export interface WenguApi {
   /** Explanation and per-rating outcomes for any item, without answering. */
   explain(itemId: Id): ScheduleExplanation;
   /** Reverts the last undoable operation (answer, suspend, bury, edit, delete). */
-  undo(): UndoResult | null;
+  undo(options?: { deckId?: Id | null }): UndoResult | null;
   undoLabel(): string | null;
+  /** The operation `undo()` would revert (label and stable code), or null. */
+  undoInfo(): { label: string; code: UndoCode } | null;
   setSuspended(itemIds: Id[], suspended: boolean): void;
   /** Buries until the next day rollover. */
   bury(itemIds: Id[]): void;
@@ -481,7 +575,7 @@ export interface WenguApi {
   setFlag(itemIds: Id[], flag: number): void;
 
   // browse & edit
-  search(query: BrowseQuery): BrowsePage;
+  search(query: BrowseQuery, options?: SearchOptions): BrowsePage;
   getKnowledgePoint(id: Id): KnowledgePointDetail | null;
   /** Renders one item (preview in the browser/editor). */
   renderItem(itemId: Id): AnkiTemplatePresentation;

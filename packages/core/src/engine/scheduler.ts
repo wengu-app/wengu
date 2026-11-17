@@ -5,6 +5,7 @@
 import {
   ankiFuzzFactor,
   cardDataJson,
+  parseCardData as parseAnkiCardData,
   fsrsDecay,
   fsrsElapsedDays,
   fsrsGraduatingEasyInterval,
@@ -15,7 +16,6 @@ import {
 import { FSRS6Algorithm, FSRS6_DEFAULT_WEIGHTS, FSRS6_MODEL_BOUNDS, migrateFSRS6Parameters } from "ts-fsrs/models/fsrs-6";
 
 import type { ItemState, MemoryState, Rating, RatingName, RatingOutcome } from "../types.js";
-import { cardDataOf } from "./carddata.js";
 
 export const RATING_NAMES: readonly RatingName[] = ["again", "hard", "good", "easy"];
 
@@ -208,7 +208,7 @@ const round = (x: number, digits: number) => {
 
 /** Card data after an answer: Anki's layout (pos, s, d, dr, decay, lrt, then everything else kept), via @wengu/anki. */
 function nextCardData(raw: string, memory: MemoryState, desiredRetention: number, decay: number, nowSecs: number): string {
-  const data = cardDataOf(raw);
+  const data = parseAnkiCardData(raw, [], 0);
   data.memoryState = { stability: round(memory.stability, 4), difficulty: round(memory.difficulty, 3) };
   data.desiredRetention = round(desiredRetention, 2);
   data.decay = round(decay, 3);

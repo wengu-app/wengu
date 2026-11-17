@@ -14,6 +14,8 @@ interface Payload {
   kps: [number, KpRow | null][];
   revlogInserted: number[];
   deckStats: DeckStatsRow[];
+  /** Whole deck rows (deck deletion); absent in steps recorded by older versions. */
+  decks?: Record<string, unknown>[];
 }
 
 export class UndoRecorder {
@@ -51,15 +53,24 @@ export class UndoRecorder {
     if (r) this.payload.deckStats.push(r);
   }
 
+  /** Records a whole deck row (before deleting it). */
+  deck(id: number): void {
+    const r = this.db.get<Record<string, unknown>>("SELECT * FROM decks WHERE id = ?", [id]);
+    if (r) (this.payload.decks ??= []).push(r);
+  }
+
   get empty(): boolean {
     const p = this.payload;
-    return !p.items.length && !p.kps.length && !p.revlogInserted.length && !p.deckStats.length;
+    return !p.items.length && !p.kps.length && !p.revlogInserted.length && !p.deckStats.length && !p.decks?.length;
   }
 
   commit(nowMs: number, limit: number): void {
     if (this.empty) return;
     this.db.run("INSERT INTO undo_steps (label, created_at, payload) VALUES (?, ?, ?)", [this.label, nowMs, JSON.stringify(this.payload)]);
-    this.db.run("DELETE FROM undo_steps WHERE id <= (SELECT max(id) FROM undo_steps) - ?", [limit]);
+    // Prune old steps only every 16th step: each write transaction pays per page it touches (~2 ms on OPFS),
+    // and the oldest steps live on another page than the newest.
+    const id = Number(this.db.value("SELECT last_insert_rowid()") ?? 0);
+    if (id % 16 === 0) this.db.run("DELETE FROM undo_steps WHERE id <= ?", [id - limit]);
   }
 }
 
@@ -67,12 +78,16 @@ export function clearUndo(db: SqlDatabase): void {
   db.run("DELETE FROM undo_steps");
 }
 
-export function applyUndo(e: Engine): UndoResult | null {
+export function applyUndo(e: Engine): Omit<UndoResult, "code" | "state"> | null {
   const db = e.db;
   const step = db.get<{ id: number; label: string; payload: string }>("SELECT id, label, payload FROM undo_steps ORDER BY id DESC LIMIT 1");
   if (!step) return null;
   const p = JSON.parse(step.payload) as Payload;
   for (const id of p.revlogInserted) db.run("DELETE FROM revlog WHERE id = ?", [id]);
+  for (const d of p.decks ?? []) {
+    const cols = Object.keys(d);
+    db.run(`INSERT OR REPLACE INTO decks (${cols.join(", ")}) VALUES (${cols.map(() => "?").join(", ")})`, cols.map((c) => d[c] as never));
+  }
   for (const s of p.deckStats) {
     db.run("UPDATE decks SET last_day_studied = ?, new_studied = ?, review_studied = ?, learning_studied = ?, ms_studied = ? WHERE id = ?", [
       s.last_day_studied,

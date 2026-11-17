@@ -181,6 +181,20 @@ CREATE TABLE undo_steps (
 `);
     },
   },
+  {
+    version: 2,
+    name: "covering indexes for browse filters",
+    up(db) {
+      // Browse filters on items ("state", "deck") collect knowledge-point ids; with kp_id in the index that is an
+      // index-only scan instead of one table lookup per item (state=review at 50k notes: 250 ms -> see bench).
+      db.exec(`
+DROP INDEX review_items_queue_due;
+CREATE INDEX review_items_queue_due ON review_items (queue, due, kp_id);
+DROP INDEX review_items_deck_queue_due;
+CREATE INDEX review_items_deck_queue_due ON review_items (deck_id, queue, due, kp_id);
+`);
+    },
+  },
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1]!.version;

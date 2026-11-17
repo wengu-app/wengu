@@ -7,6 +7,11 @@ export const API_METHODS = [
   "createDeck",
   "renameDeck",
   "listPresets",
+  "getPreset",
+  "deleteDeck",
+  "updatePreset",
+  "createPreset",
+  "setDeckPreset",
   "listNoteTypes",
   "createStockNoteType",
   "listTags",
@@ -15,6 +20,7 @@ export const API_METHODS = [
   "explain",
   "undo",
   "undoLabel",
+  "undoInfo",
   "setSuspended",
   "bury",
   "unbury",
@@ -55,8 +61,10 @@ export interface OpenOptions {
 
 export type Request =
   | { t: "open"; id: number; options: OpenOptions }
-  | { t: "call"; id: number; method: ApiMethod; args: unknown[]; progress?: boolean }
-  | { t: "close"; id: number };
+  | { t: "call"; id: number; method: ApiMethod; args: unknown[]; progress?: boolean; cancellable?: boolean }
+  | { t: "close"; id: number }
+  /** Abandon request `target` if it has not started yet. */
+  | { t: "cancel"; id: number; target: number };
 
 export interface SerializedError {
   name: string;

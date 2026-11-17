@@ -23,28 +23,31 @@ import { normaliseSearch, normaliseTags, searchText, splitTags } from "./text.js
 
 const totalCache = new WeakMap<Engine, { key: string; total: number }>();
 
-export function search(e: Engine, q: BrowseQuery): BrowsePage {
+/** The SQL a browse query runs: `SELECT … FROM knowledge_points k ${whereSql} ORDER BY ${order}` (exported for benchmarks / EXPLAIN). */
+export function searchSql(e: Engine, q: BrowseQuery): { whereSql: string; params: SqlValue[]; order: string } {
   const where: string[] = [];
   const params: SqlValue[] = [];
   const terms = normaliseSearch(q.text ?? "").split(" ").filter(Boolean);
-  for (const term of terms) {
-    if ([...term].length >= 3) {
-      // trigram index: substring match without reading the rows
-      where.push("k.id IN (SELECT rowid FROM knowledge_points_fts WHERE knowledge_points_fts MATCH ?)");
-      params.push(`"${term.replace(/"/g, '""')}"`);
-    } else {
-      // 1–2 characters (common for CJK): the trigram index cannot help; scan the stored text
-      where.push("instr(k.search_text, ?) > 0");
-      params.push(term);
-    }
+  // Words of 3+ characters: one trigram MATCH for all of them (the index intersects them itself).
+  const long = terms.filter((t) => [...t].length >= 3);
+  if (long.length) {
+    where.push("k.id IN (SELECT rowid FROM knowledge_points_fts WHERE knowledge_points_fts MATCH ?)");
+    params.push(long.map((t) => `"${t.replace(/"/g, '""')}"`).join(" AND "));
+  }
+  // 1–2 characters (common for CJK): the trigram index cannot help; check the stored text.
+  for (const term of terms.filter((t) => [...t].length < 3)) {
+    where.push("instr(k.search_text, ?) > 0");
+    params.push(term);
   }
   let deckList: number[] | null = null;
   if (q.deckId !== undefined) {
     deckList = q.includeSubdecks === false ? [q.deckId] : e.subtree(q.deckId);
   }
   for (const tag of q.tags ?? []) {
-    // the tag itself, or a child "tag::…" (range on the NOCASE index; ';' follows ':')
-    where.push("k.id IN (SELECT kp_id FROM knowledge_point_tags WHERE tag = ? OR (tag >= ? AND tag < ?))");
+    // the tag itself, or a child "tag::…" (range on the NOCASE index; ';' follows ':'). With a text condition,
+    // probe each candidate's tags instead of collecting every note with the tag.
+    if (terms.length) where.push("EXISTS (SELECT 1 FROM knowledge_point_tags INDEXED BY knowledge_point_tags_kp WHERE kp_id = k.id AND (tag = ? OR (tag >= ? AND tag < ?)))");
+    else where.push("k.id IN (SELECT kp_id FROM knowledge_point_tags WHERE tag = ? OR (tag >= ? AND tag < ?))");
     params.push(tag, `${tag}::`, `${tag}:;`);
   }
   if (q.noteTypeId !== undefined) {
@@ -82,9 +85,11 @@ export function search(e: Engine, q: BrowseQuery): BrowsePage {
   const deckCond = deckList ? `deck_id IN (${deckList.map((d) => Math.trunc(d)).join(",") || "NULL"})` : null;
   const itemConds = [deckCond, stateCond && `(${stateCond})`].filter(Boolean);
   if (itemConds.length) {
-    // With a text condition the candidate set is already small: probe each candidate's items (EXISTS).
+    // With a text condition the candidate set is already small: probe each candidate's own items (EXISTS).
+    // INDEXED BY is required: without statistics SQLite may pick the (queue, due) index for "queue = 0" and scan
+    // every new item for every candidate (measured: 139 s for one page at 50k notes).
     // Otherwise collect matching items through the (deck_id, queue, due) / (queue, due) indexes (IN).
-    if (terms.length) where.push(`EXISTS (SELECT 1 FROM review_items WHERE kp_id = k.id AND ${itemConds.join(" AND ")})`);
+    if (terms.length) where.push(`EXISTS (SELECT 1 FROM review_items INDEXED BY review_items_kp WHERE kp_id = k.id AND ${itemConds.join(" AND ")})`);
     else where.push(`k.id IN (SELECT kp_id FROM review_items WHERE ${itemConds.join(" AND ")})`);
   }
 
@@ -92,6 +97,11 @@ export function search(e: Engine, q: BrowseQuery): BrowsePage {
   const by = q.sort?.by ?? "created";
   const dir = (q.sort?.direction ?? (by === "sortField" ? "asc" : "desc")) === "asc" ? "ASC" : "DESC";
   const order = by === "modified" ? `k.mtime ${dir}, k.id ${dir}` : by === "sortField" ? `k.sort_field COLLATE NOCASE ${dir}, k.id ${dir}` : `k.id ${dir}`;
+  return { whereSql, params, order };
+}
+
+export function search(e: Engine, q: BrowseQuery): BrowsePage {
+  const { whereSql, params, order } = searchSql(e, q);
   const limit = Math.min(Math.max(1, Math.trunc(q.limit ?? 50)), 1000);
   const offset = Math.max(0, Math.trunc(q.offset ?? 0));
 

@@ -1,7 +1,7 @@
 /** Storage, study flow, limits, undo, browse/edit, stats. */
 import { describe, expect, it } from "vitest";
 
-import { MIGRATIONS, currentSchemaVersion, migrate } from "../src/db/schema.js";
+import { MIGRATIONS, SCHEMA_VERSION, currentSchemaVersion, migrate } from "../src/db/schema.js";
 import type { Engine } from "../src/engine/engine.js";
 import { SchedulerDays } from "../src/engine/time.js";
 import { ManualClock, openNodeEngine } from "../src/node.js";
@@ -42,27 +42,40 @@ describe("migrations", () => {
   it("creates the schema at the latest version and records it", async () => {
     const { engine } = await engineAt();
     expect(currentSchemaVersion(engine.db)).toBe(MIGRATIONS[MIGRATIONS.length - 1]!.version);
-    expect(engine.db.all("SELECT version, name FROM schema_migrations")).toEqual([{ version: 1, name: "initial schema" }]);
+    expect(engine.db.all("SELECT version, name FROM schema_migrations ORDER BY version")).toEqual(MIGRATIONS.map((m) => ({ version: m.version, name: m.name })));
   });
 
   it("applies only pending migrations, in order, each once", async () => {
     const { engine } = await engineAt();
     const extra = [
       ...MIGRATIONS,
-      { version: 2, name: "add a", up: (db: Engine["db"]) => db.exec("CREATE TABLE a (x)") },
-      { version: 3, name: "add b", up: (db: Engine["db"]) => db.exec("CREATE TABLE b (x)") },
+      { version: SCHEMA_VERSION + 1, name: "add a", up: (db: Engine["db"]) => db.exec("CREATE TABLE a (x)") },
+      { version: SCHEMA_VERSION + 2, name: "add b", up: (db: Engine["db"]) => db.exec("CREATE TABLE b (x)") },
     ];
-    expect(migrate(engine.db, extra)).toEqual([2, 3]);
+    expect(migrate(engine.db, extra)).toEqual([SCHEMA_VERSION + 1, SCHEMA_VERSION + 2]);
     expect(migrate(engine.db, extra)).toEqual([]);
-    expect(currentSchemaVersion(engine.db)).toBe(3);
+    expect(currentSchemaVersion(engine.db)).toBe(SCHEMA_VERSION + 2);
   });
 
   it("a failing migration rolls back completely", async () => {
     const { engine } = await engineAt();
-    const bad = [...MIGRATIONS, { version: 2, name: "bad", up: (db: Engine["db"]) => db.exec("CREATE TABLE c (x); SELECT * FROM nope") }];
+    const bad = [...MIGRATIONS, { version: SCHEMA_VERSION + 1, name: "bad", up: (db: Engine["db"]) => db.exec("CREATE TABLE c (x); SELECT * FROM nope") }];
     expect(() => migrate(engine.db, bad)).toThrow();
-    expect(currentSchemaVersion(engine.db)).toBe(1);
+    expect(currentSchemaVersion(engine.db)).toBe(SCHEMA_VERSION);
     expect(engine.db.value("SELECT count(*) FROM sqlite_master WHERE name = 'c'")).toBe(0);
+  });
+
+  it("upgrades a version-1 database (index changes of migration 2) and keeps its data", async () => {
+    const { engine } = await engineAt();
+    await engine.importAnki(fixtureBytes("full-latest.apkg"));
+    engine.db.exec(`DROP INDEX review_items_queue_due; CREATE INDEX review_items_queue_due ON review_items (queue, due);
+      DROP INDEX review_items_deck_queue_due; CREATE INDEX review_items_deck_queue_due ON review_items (deck_id, queue, due);
+      DELETE FROM schema_migrations WHERE version > 1;`);
+    const before = await engine.exportAnki();
+    const upgraded = await openNodeEngine({ bytes: engine.db.exportBytes(), media: engine.media });
+    expect(currentSchemaVersion(upgraded.db)).toBe(SCHEMA_VERSION);
+    expect(String(upgraded.db.value("SELECT sql FROM sqlite_master WHERE name = 'review_items_queue_due'"))).toContain("kp_id");
+    expect(await upgraded.exportAnki()).toEqual(before);
   });
 
   it("refuses a database written by a newer version", async () => {
@@ -115,12 +128,67 @@ describe("study flow", () => {
     expect(data["s"]).toBeCloseTo(expected.memory.stability, 3);
 
     const undone = engine.undo();
-    expect(undone).toEqual({ label: "Answer good", itemIds: [card.item.id] });
+    expect(undone).toMatchObject({ label: "Answer good", code: "answer-good", itemIds: [card.item.id] });
+    expect(undone!.state.card!.item.id).toBe(card.item.id); // the undone card is shown next
     expect(engine.getItemRow(card.item.id)).toEqual(itemBefore);
     expect(Number(engine.db.value("SELECT count(*) FROM revlog"))).toBe(revlogBefore);
     expect(engine.db.all("SELECT * FROM decks ORDER BY id")).toEqual(decksBefore);
     expect(engine.undoLabel()).toBeNull();
     expect(engine.undo()).toBeNull();
+  });
+
+  it("after undoing an answer, that item is next until it is answered again (deck study)", async () => {
+    const { engine, clock, deck } = await freshCollection(10);
+    let s = engine.study(deck);
+    const ids: number[] = [];
+    for (let i = 0; i < 3; i++) {
+      ids.push(s.card!.item.id);
+      s = engine.answer({ itemId: s.card!.item.id, rating: 4, takenMs: 1, deckId: deck });
+      clock.advance(1000);
+    }
+    expect(s.undoCode).toBe("answer-easy");
+    expect(s.undoLabel).toBe("Answer easy");
+    const u1 = engine.undo({ deckId: deck })!;
+    expect(u1.code).toBe("answer-easy");
+    expect(u1.state.card!.item.id).toBe(ids[2]);
+    expect(engine.study(deck).card!.item.id).toBe(ids[2]); // stable across calls
+    const u2 = engine.undo({ deckId: deck })!;
+    expect(u2.state.card!.item.id).toBe(ids[1]);
+    const after = engine.answer({ itemId: ids[1]!, rating: 4, takenMs: 1, deckId: deck });
+    expect(after.card!.item.id).not.toBe(ids[1]);
+    expect(engine.undoInfo()).toEqual({ label: "Answer easy", code: "answer-easy" });
+    engine.setSuspended([after.card!.item.id], true);
+    expect(engine.undoInfo()).toEqual({ label: "Suspend", code: "suspend" });
+    expect(engine.undo()!.code).toBe("suspend");
+  });
+
+  it("upNext predicts the card answer() returns, except in the documented cases", async () => {
+    const { engine } = await engineAt(FIXTURE_NOW_SECS + 3600);
+    await engine.importAnki(fixtureBytes("full-latest.apkg"));
+    const { engine: big, clock } = await freshCollection(60, { newPerDay: 25 });
+    void engine;
+    let s = big.study(null);
+    let hits = 0;
+    let misses = 0;
+    const missDetail: string[] = [];
+    for (let i = 0; i < 80 && s.card; i++) {
+      const predicted = s.upNext?.item.id ?? null;
+      const rating = ([3, 4, 3, 1] as const)[i % 4]!;
+      const current = s.card.item.id;
+      clock.advance(5000);
+      s = big.answer({ itemId: current, rating, takenMs: 1 });
+      const actual = s.card?.item.id ?? null;
+      if (predicted === actual) hits++;
+      else {
+        misses++;
+        // documented: the answered item came back first (learning step within the learn-ahead window), or a
+        // learning step of another item fell due in the meantime
+        const ok = actual === current || (s.card !== null && s.card.item.state !== "new" && s.card.item.due.kind === "time");
+        if (!ok) missDetail.push(`#${i} predicted ${predicted}, got ${actual}`);
+      }
+    }
+    expect(missDetail).toEqual([]);
+    expect(hits).toBeGreaterThan(misses);
   });
 
   it("persists answers and the undo stack across reopening", async () => {
@@ -258,6 +326,51 @@ describe("study flow", () => {
     expect(ex.outcomes.good.label).toMatch(/^\d+(\.\d)?(d|mo|y)$/);
     expect(ex.outcomes.again.state).toBe("relearning");
     expect(ex.outcomes.again.label).toBe("10m");
+  });
+});
+
+describe("deck management", () => {
+  it("deletes a deck with its sub-decks and items, keeps history, and undoes completely", async () => {
+    const { engine } = await engineAt(FIXTURE_NOW_SECS);
+    await engine.importAnki(fixtureBytes("full-latest.apkg"));
+    engine.study(null); // the first queue build of the day unburies (undo() returns a study state, which would)
+    const before = await engine.exportAnki();
+    const langs = engine.deckIdByName("Wengu Test::Languages")!;
+    const inTree = engine.subtree(langs);
+    const items = before.cards.filter((c) => inTree.includes(c.deckId));
+    const r = engine.deleteDeck(langs);
+    expect(r).toEqual({ decks: 3, reviewItems: items.length, knowledgePoints: new Set(items.map((c) => c.noteId)).size });
+    expect(engine.deckIdByName("Wengu Test::Languages::中文")).toBeUndefined();
+    expect(engine.info().counts.reviewLog).toBe(before.revlog.length);
+    expect(engine.undoInfo()?.code).toBe("delete-deck");
+    expect(engine.undo()!.code).toBe("delete-deck");
+    expect(await engine.exportAnki()).toEqual(before);
+    expect(() => engine.deleteDeck(1)).toThrow(/Default deck/);
+  });
+
+  it("reads, updates, creates and assigns presets; limits apply at once", async () => {
+    const { engine, deck } = await freshCollection(30);
+    const deckPreset = engine.deckTree()[0]!.presetId!;
+    const p = engine.getPreset(deckPreset)!;
+    expect(p).toMatchObject({ newPerDay: 20, reviewsPerDay: 200, learnStepsMinutes: [1, 10], desiredRetention: 0.9, deckCount: 1 });
+    expect(engine.study(deck).counts.new).toBe(20);
+    const u = engine.updatePreset(deckPreset, { newPerDay: 5, learnStepsMinutes: [2, 20, 60], desiredRetention: 0.85, maximumIntervalDays: 3650 });
+    expect(u).toMatchObject({ newPerDay: 5, learnStepsMinutes: [2, 20, 60], desiredRetention: 0.85, maximumIntervalDays: 3650 });
+    const s = engine.study(deck);
+    expect(s.counts.new).toBe(5);
+    expect(s.card!.schedule.outcomes.again.interval).toEqual({ unit: "seconds", value: 120 });
+    expect(s.card!.schedule.desiredRetention).toBe(0.85);
+    expect(() => engine.updatePreset(deckPreset, { desiredRetention: 1.2 })).toThrow(/retention/);
+    expect(() => engine.updatePreset(deckPreset, { newPerDay: -1 })).toThrow(/new items/);
+    expect(() => engine.updatePreset(deckPreset, { learnStepsMinutes: [0] })).toThrow(/steps/);
+    const other = engine.createPreset("Intensive", deckPreset);
+    engine.updatePreset(other, { newPerDay: 50 });
+    engine.setDeckPreset(deck, other);
+    expect(engine.study(deck).counts.new).toBe(30);
+    expect(engine.listPresets().map((x) => [x.name, x.deckCount])).toContainEqual(["Intensive", 1]);
+    // survives export/import
+    const pkg = await engine.exportAnki();
+    expect(pkg.deckConfigs.find((c) => c.id === other)).toMatchObject({ name: "Intensive", newPerDay: 50, learnSteps: [2, 20, 60] });
   });
 });
 

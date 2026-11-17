@@ -31,8 +31,12 @@ import type {
   Rating,
   ReviewCard,
   ScheduleExplanation,
+  SearchOptions,
+  PresetChanges,
+  DeleteDeckResult,
   Stats,
   StudyState,
+  UndoCode,
   UndoResult,
   UpdateKnowledgePointInput,
   UpdateResult,
@@ -459,7 +463,7 @@ export class Engine implements WenguApi {
   listPresets(): DeckPreset[] {
     const counts = new Map<number, number>();
     for (const d of this.decks.values()) if (d.configId !== null) counts.set(d.configId, (counts.get(d.configId) ?? 0) + 1);
-    return [...this.presets.values()].map((p) => {
+    return [...this.presets.values()].sort((a, b) => a.id - b.id).map((p) => {
       const version = p.fsrsParams6.length ? 6 : p.fsrsParams5.length ? 5 : p.fsrsParams4.length ? 4 : 6;
       const stored = version === 6 ? p.fsrsParams6 : version === 5 ? p.fsrsParams5 : p.fsrsParams4;
       return {
@@ -476,6 +480,107 @@ export class Engine implements WenguApi {
         deckCount: counts.get(p.id) ?? 0,
       };
     });
+  }
+
+  getPreset(id: Id): DeckPreset | null {
+    return this.listPresets().find((p) => p.id === id) ?? null;
+  }
+
+  updatePreset(id: Id, changes: PresetChanges): DeckPreset {
+    const p = this.presets.get(id);
+    if (!p) throw new Error(`no preset ${id}`);
+    const int = (v: number, lo: number, hi: number, what: string) => {
+      if (!Number.isInteger(v) || v < lo || v > hi) throw new Error(`${what} must be a whole number from ${lo} to ${hi}`);
+      return v;
+    };
+    const steps = (v: number[], what: string) => {
+      if (!Array.isArray(v) || v.length > 20 || v.some((x) => typeof x !== "number" || !Number.isFinite(x) || x <= 0 || x > 365 * 1440)) {
+        throw new Error(`${what} must be up to 20 positive durations in minutes`);
+      }
+      return [...v];
+    };
+    const next = { ...p, mtime: Math.floor(this.clock.now() / 1000), usn: -1 };
+    if (changes.name !== undefined) {
+      if (!changes.name.trim()) throw new Error("preset name is empty");
+      next.name = changes.name.trim();
+    }
+    if (changes.newPerDay !== undefined) next.newPerDay = int(changes.newPerDay, 0, 9999, "new items per day");
+    if (changes.reviewsPerDay !== undefined) next.reviewsPerDay = int(changes.reviewsPerDay, 0, 9999, "reviews per day");
+    if (changes.learnStepsMinutes !== undefined) next.learnSteps = steps(changes.learnStepsMinutes, "learning steps");
+    if (changes.relearnStepsMinutes !== undefined) next.relearnSteps = steps(changes.relearnStepsMinutes, "relearning steps");
+    if (changes.maximumIntervalDays !== undefined) next.maximumReviewInterval = int(changes.maximumIntervalDays, 1, 36500, "maximum interval");
+    if (changes.desiredRetention !== undefined) {
+      const r = changes.desiredRetention;
+      if (typeof r !== "number" || !(r >= 0.7 && r <= 0.99)) throw new Error("desired retention must be between 0.70 and 0.99");
+      next.desiredRetention = Math.round(r * 100) / 100;
+    }
+    this.db.transaction(() => {
+      this.savePreset(next);
+      this.touch();
+    });
+    return this.getPreset(id)!;
+  }
+
+  createPreset(name: string, copyFrom?: Id): Id {
+    if (!name.trim()) throw new Error("preset name is empty");
+    const base = (copyFrom !== undefined ? this.presets.get(copyFrom) : this.presets.get(1)) ?? defaultPreset();
+    if (copyFrom !== undefined && !this.presets.has(copyFrom)) throw new Error(`no preset ${copyFrom}`);
+    return this.db.transaction(() => {
+      const id = this.newId("deck_presets");
+      this.savePreset({ ...structuredClone(base), id, name: name.trim(), mtime: Math.floor(this.clock.now() / 1000), usn: -1 });
+      this.touch();
+      return id;
+    });
+  }
+
+  setDeckPreset(deckId: Id, presetId: Id): void {
+    const d = this.decks.get(deckId);
+    if (!d) throw new Error(`no deck ${deckId}`);
+    if (d.kind !== "normal") throw new Error("filtered decks have no preset");
+    if (!this.presets.has(presetId)) throw new Error(`no preset ${presetId}`);
+    this.db.transaction(() => {
+      this.saveDeck({ ...d, configId: presetId, mtime: Math.floor(this.clock.now() / 1000), usn: -1 });
+      this.touch();
+    });
+  }
+
+  deleteDeck(id: Id): DeleteDeckResult {
+    const deck = this.decks.get(id);
+    if (!deck) throw new Error(`no deck ${id}`);
+    if (id === 1) throw new Error("the Default deck cannot be deleted");
+    const ids = this.subtree(id);
+    const list = ids.map((d) => Math.trunc(d)).join(",");
+    const nowSecs = Math.floor(this.clock.now() / 1000);
+    const result = this.undoable("Delete deck", (undo) => {
+      // Items sitting in a deleted filtered deck go home first.
+      for (const r of this.db.all<ItemRow>(`SELECT ${ITEM_COLS} FROM review_items WHERE deck_id IN (${list}) AND odid != 0 AND odid NOT IN (${list})`)) {
+        undo.item(r.id);
+        this.db.run("UPDATE review_items SET deck_id = odid, due = odue, odid = 0, odue = 0, mtime = ?, usn = -1 WHERE id = ?", [nowSecs, r.id]);
+      }
+      // Items whose home is a deleted deck: deleted (wherever they are), with knowledge points left empty.
+      const doomed = this.db.all<{ id: number; kp_id: number }>(`SELECT id, kp_id FROM review_items WHERE deck_id IN (${list}) OR odid IN (${list})`);
+      for (const r of doomed) {
+        undo.item(r.id);
+        this.db.run("DELETE FROM review_items WHERE id = ?", [r.id]);
+      }
+      let kps = 0;
+      for (const kpId of new Set(doomed.map((r) => r.kp_id))) {
+        if (this.db.value("SELECT 1 FROM review_items WHERE kp_id = ? LIMIT 1", [kpId])) continue;
+        undo.kp(kpId);
+        this.db.run("DELETE FROM knowledge_point_tags WHERE kp_id = ?", [kpId]);
+        this.db.run("DELETE FROM presentations WHERE kp_id = ?", [kpId]);
+        this.db.run("DELETE FROM knowledge_points WHERE id = ?", [kpId]);
+        kps++;
+      }
+      for (const d of ids) {
+        undo.deck(d);
+        this.db.run("DELETE FROM decks WHERE id = ?", [d]);
+      }
+      this.touch();
+      return { decks: ids.length, reviewItems: doomed.length, knowledgePoints: kps };
+    });
+    this.reload();
+    return result;
   }
 
   listNoteTypes(): NoteType[] {
@@ -523,7 +628,11 @@ export class Engine implements WenguApi {
     const newLimit = d.newLimitToday && d.newLimitToday.today === today ? d.newLimitToday.limit : (d.newLimit ?? p.newPerDay);
     const revLimit = d.reviewLimitToday && d.reviewLimitToday.today === today ? d.reviewLimitToday.limit : (d.reviewLimit ?? p.reviewsPerDay);
     const s = d.stats.lastDayStudied === today ? d.stats : { newStudied: 0, reviewStudied: 0 };
-    return { new: Math.max(0, newLimit - s.newStudied), review: Math.max(0, revLimit - s.reviewStudied) };
+    const p2 = this.pretend && this.pretend.decks.has(deckId) ? this.pretend.kind : null;
+    return {
+      new: Math.max(0, newLimit - s.newStudied - (p2 === "new" ? 1 : 0)),
+      review: Math.max(0, revLimit - s.reviewStudied - (p2 === "review" ? 1 : 0)),
+    };
   }
 
   /** Items of one deck (not subdecks) due today, each count bounded by the given allowance. */
@@ -589,25 +698,33 @@ export class Engine implements WenguApi {
    *     the preset's "new/review mix" decides between 2 and 3 (reviews first, new first, or spread evenly);
    *  4. learning items due within the learn-ahead window (Anki's collapseTime, default 20 min).
    */
-  private pickNext(deckId: number | null, t: DayTiming, counts: QueueCounts): { row: ItemRow | null; nextLearningDueAt: number | null } {
+  private pickNext(
+    deckId: number | null,
+    t: DayTiming,
+    counts: QueueCounts,
+    exclude = -1,
+    studiedOffset = 0,
+  ): { row: ItemRow | null; nextLearningDueAt: number | null } {
     const nowSecs = Math.floor(t.nowMs / 1000);
     const decks = this.allDecksOf(deckId);
+    const first = (cond: string, params: number[], order: string) =>
+      this.firstRow(`${cond} AND id != ? ORDER BY ${order} LIMIT 1`, [...params, exclude]);
     const pickMin = (rows: (ItemRow | undefined)[]) =>
       rows.reduce<ItemRow | null>((best, r) => (r && (!best || r.due < best.due || (r.due === best.due && r.id < best.id)) ? r : best), null);
 
-    const learningNow = pickMin(decks.map((d) => this.firstRow("deck_id = ? AND queue IN (1, 4) AND due <= ? ORDER BY due, id LIMIT 1", [d, nowSecs])));
+    const learningNow = pickMin(decks.map((d) => first("deck_id = ? AND queue IN (1, 4) AND due <= ?", [d, nowSecs], "due, id")));
     if (learningNow) return { row: learningNow, nextLearningDueAt: null };
 
     const review = () =>
       pickMin(
         this.allowedDecks(deckId, t.today, "review").flatMap((d) => [
-          this.firstRow("deck_id = ? AND queue = 2 AND due <= ? ORDER BY due, id LIMIT 1", [d, t.today]),
-          this.firstRow("deck_id = ? AND queue = 3 AND due <= ? ORDER BY due, id LIMIT 1", [d, t.today]),
+          first("deck_id = ? AND queue = 2 AND due <= ?", [d, t.today], "due, id"),
+          first("deck_id = ? AND queue = 3 AND due <= ?", [d, t.today], "due, id"),
         ]),
       );
     const fresh = () => {
       for (const d of this.allowedDecks(deckId, t.today, "new")) {
-        const r = this.firstRow("deck_id = ? AND queue = 0 ORDER BY due, ord, id LIMIT 1", [d]);
+        const r = first("deck_id = ? AND queue = 0", [d], "due, ord, id");
         if (r) return r;
       }
       return null;
@@ -621,7 +738,7 @@ export class Engine implements WenguApi {
     else {
       // spread new items evenly: one new item after every `gap` reviews
       const gap = Math.max(1, Math.floor(counts.review / counts.new));
-      const studied = deckId !== null ? this.studiedToday(deckId, t.today) : 0;
+      const studied = (deckId !== null ? this.studiedToday(deckId, t.today) : 0) + studiedOffset;
       order = studied % (gap + 1) === gap ? ["new", "review"] : ["review", "new"];
     }
     for (const k of order) {
@@ -629,11 +746,37 @@ export class Engine implements WenguApi {
       if (r) return { row: r, nextLearningDueAt: null };
     }
 
-    const ahead = pickMin(decks.map((d) => this.firstRow("deck_id = ? AND queue IN (1, 4) AND due <= ? ORDER BY due, id LIMIT 1", [d, nowSecs + this.learnAheadSecs()])));
+    const ahead = pickMin(decks.map((d) => first("deck_id = ? AND queue IN (1, 4) AND due <= ?", [d, nowSecs + this.learnAheadSecs()], "due, id")));
     if (ahead) return { row: ahead, nextLearningDueAt: null };
-    const later = pickMin(decks.map((d) => this.firstRow("deck_id = ? AND queue IN (1, 4) AND due < ? ORDER BY due, id LIMIT 1", [d, Math.floor(t.nextDayAtMs / 1000)])));
+    const later = pickMin(decks.map((d) => first("deck_id = ? AND queue IN (1, 4) AND due < ?", [d, Math.floor(t.nextDayAtMs / 1000)], "due, id")));
     return { row: null, nextLearningDueAt: later ? later.due * 1000 : null };
   }
+
+  /**
+   * What `pickNext` would choose once `current` has been answered and left the queue: the current item excluded,
+   * its deck's (and parents') allowance reduced by one as the answer will reduce it.
+   */
+  private predictNext(deckId: number | null, t: DayTiming, counts: QueueCounts, current: ItemRow): ItemRow | null {
+    const kind = current.type === 0 ? "new" : current.type === 2 ? "review" : null;
+    const adjusted: QueueCounts = {
+      new: counts.new - (kind === "new" ? 1 : 0),
+      review: counts.review - (kind === "review" ? 1 : 0),
+      learning: counts.learning - (kind === null ? 1 : 0),
+    };
+    this.pretend = kind ? { decks: new Set([current.deck_id, ...this.ancestors(current.deck_id)]), kind } : null;
+    try {
+      return this.pickNext(deckId, t, adjusted, current.id, kind ? 1 : 0).row;
+    } finally {
+      this.pretend = null;
+    }
+  }
+
+  /** Where answer() spends its time (last 1000 answers; diagnostics, not part of the API). */
+  readonly answerTimings: { computeMs: number; writeMs: number; commitMs: number; studyMs: number }[] = [];
+
+  private pretend: { decks: Set<number>; kind: "new" | "review" } | null = null;
+  /** Set by `undo()` of an answer: that item is shown next (as in Anki), until it is answered. */
+  private pinnedItem: number | null = null;
 
   private studiedToday(deckId: number, today: number): number {
     const s = this.decks.get(deckId)?.stats;
@@ -645,13 +788,24 @@ export class Engine implements WenguApi {
     const t = this.timing();
     this.maybeUnbury(t);
     const counts = this.subtreeCounts(deckId, t);
-    const { row, nextLearningDueAt } = this.pickNext(deckId, t, counts);
+    let row: ItemRow | null = null;
+    let nextLearningDueAt: number | null = null;
+    if (this.pinnedItem !== null) {
+      const pinned = this.getItemRow(this.pinnedItem);
+      const inScope = pinned && (deckId === null || this.subtree(deckId).includes(pinned.deck_id));
+      if (pinned && pinned.queue >= 0 && inScope) row = pinned;
+    }
+    if (!row) ({ row, nextLearningDueAt } = this.pickNext(deckId, t, counts));
+    const next = row ? this.predictNext(deckId, t, counts, row) : null;
+    const undo = this.undoInfo();
     return {
       deckId,
       counts,
       card: row ? this.reviewCard(row, t) : null,
+      upNext: next ? this.reviewCard(next, t) : null,
       nextLearningDueAt,
-      undoLabel: this.undoLabel(),
+      undoLabel: undo?.label ?? null,
+      undoCode: undo?.code ?? null,
       today: t.today,
     };
   }
@@ -800,7 +954,11 @@ export class Engine implements WenguApi {
     const row = this.getItemRow(input.itemId);
     if (!row) throw new Error(`no review item ${input.itemId}`);
     if (row.queue < 0) throw new Error(`review item ${row.id} is suspended or buried`);
+    this.pinnedItem = null;
+    const t0 = performance.now();
     const { cfg, updates } = this.explainRow(row, t);
+    const t1 = performance.now();
+    let bodyEnd = 0;
     const u = updates[rating - 1]!;
     const preset = this.presetForDeck(this.homeDeck(row));
     const nowSecs = Math.floor(t.nowMs / 1000);
@@ -863,22 +1021,36 @@ export class Engine implements WenguApi {
         }
       }
       undo.commit(t.nowMs, UNDO_LIMIT);
+      bodyEnd = performance.now();
     });
+    const t2 = performance.now();
     void cfg;
-    return this.study(input.deckId ?? null);
+    const state = this.study(input.deckId ?? null);
+    const t3 = performance.now();
+    this.answerTimings.push({ computeMs: t1 - t0, writeMs: bodyEnd - t1, commitMs: t2 - bodyEnd, studyMs: t3 - t2 });
+    if (this.answerTimings.length > 1000) this.answerTimings.shift();
+    return state;
   }
 
   undoLabel(): string | null {
-    const v = this.db.value("SELECT label FROM undo_steps ORDER BY id DESC LIMIT 1");
-    return typeof v === "string" ? v : null;
+    return this.undoInfo()?.label ?? null;
   }
 
-  undo(): UndoResult | null {
+  /** The operation `undo()` would revert: English label and stable code. */
+  undoInfo(): { label: string; code: UndoCode } | null {
+    const v = this.db.value("SELECT label FROM undo_steps ORDER BY id DESC LIMIT 1");
+    return typeof v === "string" ? { label: v, code: undoCodeOf(v) } : null;
+  }
+
+  undo(options: { deckId?: Id | null } = {}): UndoResult | null {
     const r = this.db.transaction(() => applyUndo(this));
-    if (r) {
-      this.reload();
-    }
-    return r;
+    if (!r) return null;
+    this.reload();
+    const code = undoCodeOf(r.label);
+    // After undoing an answer, that item is what the learner sees next (as in Anki).
+    this.pinnedItem = code.startsWith("answer-") ? (r.itemIds[0] ?? null) : null;
+    const deckId = options.deckId !== undefined && options.deckId !== null && this.decks.has(options.deckId) ? options.deckId : null;
+    return { ...r, code, state: this.study(deckId) };
   }
 
   /** Records an undoable operation. */
@@ -949,8 +1121,9 @@ export class Engine implements WenguApi {
   // browse / edit (browse.ts)
   // ----------------------------------------------------------------------------------------------
 
-  search(query: BrowseQuery): BrowsePage {
-    return browse.search(this, query);
+  search(query: BrowseQuery, options: SearchOptions = {}): BrowsePage {
+    const ms = options.timeoutMs ?? 3000;
+    return this.db.withTimeLimit(ms, () => browse.search(this, query));
   }
 
   getKnowledgePoint(id: Id): KnowledgePointDetail | null {
@@ -1068,6 +1241,28 @@ async function memorySink(): Promise<ExportSink> {
       parts.length = 0;
     },
   };
+}
+
+const UNDO_CODES: Record<string, UndoCode> = {
+  "Answer again": "answer-again",
+  "Answer hard": "answer-hard",
+  "Answer good": "answer-good",
+  "Answer easy": "answer-easy",
+  Suspend: "suspend",
+  Unsuspend: "unsuspend",
+  Bury: "bury",
+  Unbury: "unbury",
+  Flag: "flag",
+  "Change deck": "move",
+  Add: "add",
+  Edit: "edit",
+  Delete: "delete",
+  "Delete deck": "delete-deck",
+};
+
+/** Stable code of an undo label (labels are the fixed English strings recorded by the engine). */
+export function undoCodeOf(label: string): UndoCode {
+  return UNDO_CODES[label] ?? "other";
 }
 
 export function cmpName(a: string, b: string): number {

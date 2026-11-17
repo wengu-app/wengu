@@ -26,6 +26,8 @@ export interface SqlDatabase {
   /** Runs `fn` in a transaction (a savepoint when nested). Rolls back if it throws. */
   transaction<T>(fn: () => T): T;
   close(): void;
+  /** Runs read-only `fn`, interrupting any statement that is still running after `ms` (throws, name "QueryTimeout"). */
+  withTimeLimit<T>(ms: number, fn: () => T): T;
   /** Serialises the whole database (tests, backups). */
   exportBytes(): Uint8Array;
 }

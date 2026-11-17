@@ -117,6 +117,36 @@ async function bench(): Promise<unknown> {
     info: () => client.info(),
   };
   const rows = await runScenario(api, pkg, log);
+  // Where answer() spends its time inside the worker, and the fixed cost of a durable commit.
+  const debug = (msg: Record<string, unknown>) =>
+    new Promise<unknown>((resolve) => {
+      const on = (ev: MessageEvent) => {
+        const d = ev.data as { t?: string; value?: unknown };
+        if (d.t !== "bench-result") return;
+        worker.removeEventListener("message", on);
+        resolve(d.value);
+      };
+      worker.addEventListener("message", on);
+      worker.postMessage({ t: "bench", ...msg });
+    });
+  const med = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)] ?? NaN;
+  const timings = (await debug({ op: "timings" })) as { computeMs: number; writeMs: number; commitMs: number; studyMs: number }[];
+  const answerBreakdown = {
+    n: timings.length,
+    computeMs: med(timings.map((x) => x.computeMs)),
+    writeMs: med(timings.map((x) => x.writeMs)),
+    commitMs: med(timings.map((x) => x.commitMs)),
+    studyMs: med(timings.map((x) => x.studyMs)),
+  };
+  log(`answer() inside the worker, medians: ${JSON.stringify(answerBreakdown)}`);
+  const commits: Record<string, number> = {};
+  for (const sync of ["NORMAL", "FULL", "OFF", "NORMAL"]) {
+    await debug({ op: "pragma", sql: `PRAGMA synchronous = ${sync}` });
+    commits[`synchronous=${sync}`] = med((await debug({ op: "commit", n: 40 })) as number[]);
+  }
+  log(`one-row write transaction, median ms: ${JSON.stringify(commits)}`);
+  const pages = await debug({ op: "pages" });
+  log(`write transaction touching n pages, median ms: ${JSON.stringify(pages)}`);
   await client.close();
   worker.terminate();
   // reopen the 50k collection from OPFS
@@ -129,7 +159,7 @@ async function bench(): Promise<unknown> {
   const est = await navigator.storage.estimate();
   await again.client.close();
   again.worker.terminate();
-  return { table: formatRows(rows), rows, reopenMs, firstStudyAfterReopenMs: firstStudyMs, hasCard: !!s.card, storageUsageMB: (est.usage ?? 0) / 1e6, ua: navigator.userAgent, cores: navigator.hardwareConcurrency };
+  return { answerBreakdown, commits, pages, table: formatRows(rows), rows, reopenMs, firstStudyAfterReopenMs: firstStudyMs, hasCard: !!s.card, storageUsageMB: (est.usage ?? 0) / 1e6, ua: navigator.userAgent, cores: navigator.hardwareConcurrency };
 }
 
 const params = new URLSearchParams(location.search);

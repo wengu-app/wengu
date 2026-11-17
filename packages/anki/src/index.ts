@@ -1,4 +1,4 @@
-export { readAnkiPackage } from "./read.js";
+export { parseCardData, readAnkiPackage } from "./read.js";
 export type { ReadOptions } from "./read.js";
 export * from "./model.js";
 export { renderCard, renderPackageCard, renderCloze, clozeNumbers, isFieldEmpty, htmlToText } from "./render.js";
