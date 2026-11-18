@@ -212,7 +212,12 @@ test("window size and position are remembered", async () => {
   writeFileSync(path.join(profile, "window-state.json"), JSON.stringify({ bounds: { x: 30, y: 30, width: 720, height: 410 }, maximized: false, fullscreen: false }));
   const app = await launch({ userDataDir: profile });
   try {
-    const size = await app.page.evaluate(() => ({ w: window.outerWidth, h: window.outerHeight, x: window.screenX, y: window.screenY }));
+    // Linux can include the compositor's shadow in outerWidth/outerHeight.
+    // With overlay controls, the page fills the restored app window.
+    const size = await app.page.evaluate((linux) => ({
+      w: linux ? window.innerWidth : window.outerWidth,
+      h: linux ? window.innerHeight : window.outerHeight,
+    }), process.platform === "linux");
     console.log("restored window:", JSON.stringify(size));
     expect(size.w).toBe(720);
     expect(size.h).toBe(410);
@@ -220,7 +225,7 @@ test("window size and position are remembered", async () => {
     await app.close();
   }
   const saved = JSON.parse(readFileSync(path.join(profile, "window-state.json"), "utf8"));
-  expect(saved.bounds.width).toBe(720);
+  expect(saved.bounds).toMatchObject({ width: 720, height: 410 });
 });
 
 test("links leave for the system browser; the app never navigates away; permissions are denied", async () => {

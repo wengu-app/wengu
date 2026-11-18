@@ -93,7 +93,7 @@ function Shell() {
   }, [focus, route.name]);
 
   return (
-    <div className={`shell ${focus ? "shell-focus" : ""}`}>
+    <div className={`shell ${focus ? "shell-focus" : ""}`} data-desktop={window.wenguDesktop ? "" : undefined}>
       {!focus && (
         <header className="topbar">
           <nav className="topbar-in" aria-label={t("nav.main")}>

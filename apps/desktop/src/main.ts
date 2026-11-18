@@ -247,6 +247,10 @@ function main(): void {
       minHeight: MIN_SIZE.height,
       show: false,
       title: DISPLAY_NAME,
+      titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "hidden",
+      // On Linux pure transparent black falls back to the system title-bar background.
+      titleBarOverlay: process.platform === "linux" ? { color: "#01000000", symbolColor: dark ? "#efece4" : "#5b5850", height: 68 } : true,
+      autoHideMenuBar: true,
       backgroundColor: dark ? "#141311" : "#f7f4ee",
       ...(process.platform === "linux" ? { icon: path.join(__dirname, "../resources/icons/512x512.png") } : {}),
       webPreferences: {

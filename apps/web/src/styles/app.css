@@ -776,3 +776,17 @@ kbd {
   .ix-cards { grid-template-columns: 1fr; }
   .holder-col { max-width: 260px; justify-self: center; width: 100%; }
 }
+
+/* Electron exposes the usable title-bar rectangle beside the native window controls. */
+.shell[data-desktop] {
+  .topbar, .review-bar {
+    app-region: drag;
+    padding-left: env(titlebar-area-x, 0px);
+    padding-right: calc(100% - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100%));
+  }
+  .review-bar {
+    padding-left: calc(20px + env(titlebar-area-x, 0px));
+    padding-right: calc(100% - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100%) + 20px);
+  }
+  :is(.topbar, .review-bar) :is(a, button, [role="menu"]) { app-region: no-drag; }
+}
