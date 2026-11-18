@@ -1,6 +1,8 @@
+import { agentTag } from "../agent/run.ts";
 import { reasonText } from "../card/prepare.ts";
+import { agentName, forgetAgents, useAgents } from "../lib/agents.ts";
 import { useApp } from "../lib/app.tsx";
-import { formatNumber } from "../lib/format.ts";
+import { formatDateTime, formatNumber } from "../lib/format.ts";
 import { useLang, useT } from "../lib/i18n.ts";
 import { updateSettings, useSettings, type LangPref, type NoteTypeMode, type ThemePref } from "../lib/settings.ts";
 import { Icon } from "../ui/Icon.tsx";
@@ -127,6 +129,8 @@ export function Settings() {
         )}
       </section>
 
+      <AgentSection />
+
       <section className="set-section">
         <h2 className="section-title">{t("settings.data")}</h2>
         <p>{t("settings.storage", { storage: info.storage })}</p>
@@ -142,5 +146,70 @@ export function Settings() {
         <p className="muted small">{t("settings.version", { sqlite: info.sqliteVersion, schema: info.schemaVersion })}</p>
       </section>
     </div>
+  );
+}
+
+/** Shell-quotes one argument (POSIX; Windows paths rarely need it). */
+const quote = (a: string) => (/^[\w@%+=:,./-]+$/.test(a) ? a : `'${a.replace(/'/g, `'\\''`)}'`);
+
+function AgentSection() {
+  const t = useT();
+  const lang = useLang();
+  const s = useSettings();
+  const agents = useAgents();
+  const bridge = window.wenguDesktop?.agent;
+  const [exe = "", ...args] = bridge?.command ?? [];
+  const config = JSON.stringify({ mcpServers: { wengu: { command: exe, args } } }, null, 2);
+  const claude = ["claude", "mcp", "add", "--scope", "user", "wengu", "--", exe, ...args].map(quote).join(" ");
+
+  return (
+    <section className="set-section" data-testid="agent-settings">
+      <h2 className="section-title">{t("settings.agents")}</h2>
+      {!bridge ? (
+        <p className="muted">{t("settings.agents.desktopOnly")}</p>
+      ) : (
+        <>
+          <label className="check">
+            <input type="checkbox" data-testid="agent-access" checked={s.agentAccess} onChange={(e) => updateSettings({ agentAccess: e.target.checked })} />
+            <span>
+              {t("settings.agents.allow")}
+              <small>{t("settings.agents.allowHint")}</small>
+            </span>
+          </label>
+          {s.agentAccess && (
+            <div className="agent-setup">
+              <p className="small">{t("settings.agents.claude")}</p>
+              <pre className="code-block" data-testid="agent-claude-command">{claude}</pre>
+              <p className="small">{t("settings.agents.json")}</p>
+              <pre className="code-block" data-testid="agent-config">{config}</pre>
+            </div>
+          )}
+          {agents.length > 0 && (
+            <div className="agent-list">
+              <h3 className="set-label">{t("settings.agents.seen")}</h3>
+              <ul>
+                {agents.map((a) => (
+                  <li key={a.name} className="agent-row" data-testid="agent-row">
+                    <div className="nt-info">
+                      <span className="nt-name">
+                        {agentName(a)}
+                        {a.version && <span className="muted small"> {a.version}</span>}
+                      </span>
+                      <span className="small muted">
+                        {t("settings.agents.activity", { time: formatDateTime(a.lastSeen, lang), added: formatNumber(a.notesAdded, lang), updated: formatNumber(a.notesUpdated, lang) })}
+                      </span>
+                    </div>
+                    <code className="small">{agentTag(a)}</code>
+                  </li>
+                ))}
+              </ul>
+              <button type="button" className="btn btn-ghost btn-small" onClick={forgetAgents}>
+                {t("settings.agents.forget")}
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </section>
   );
 }

@@ -21,6 +21,8 @@ export interface Settings {
   collapsedDecks: Record<string, boolean>;
   /** Show the "why" panel next to the card when the answer is shown. */
   whyOpen: boolean;
+  /** Desktop: local agents may read and write the collection through MCP. */
+  agentAccess: boolean;
 }
 
 const KEY = "wengu.settings.v1";
@@ -33,6 +35,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoplay: true,
   collapsedDecks: {},
   whyOpen: false,
+  agentAccess: false,
 };
 
 function load(): Settings {

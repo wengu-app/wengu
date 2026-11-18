@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Id, WenguClient } from "@wengu/core";
 
 import { AppProvider, navigate, routeHash, useApp, useRoute, type Route, type Toast } from "./lib/app.tsx";
+import { useAgentBridge } from "./lib/agents.ts";
 import { useDesktopCommands } from "./lib/desktop.ts";
 import { useT, type MessageKey } from "./lib/i18n.ts";
 import { Browse } from "./screens/Browse.tsx";
@@ -31,6 +32,7 @@ export function App({ db }: { db: WenguClient }) {
   return (
     <AppProvider db={db} onImport={onImport} onExport={onExport} toasts={setToasts}>
       <Shell />
+      <AgentBridge />
       <input
         ref={fileInput}
         type="file"
@@ -54,6 +56,11 @@ export function App({ db }: { db: WenguClient }) {
       <Toasts toasts={toasts} />
     </AppProvider>
   );
+}
+
+function AgentBridge() {
+  useAgentBridge();
+  return null;
 }
 
 function Shell() {

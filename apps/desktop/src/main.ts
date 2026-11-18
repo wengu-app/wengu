@@ -8,6 +8,9 @@
  *   WENGU_DOWNLOAD_DIR    save exports here without asking (automation); default: a native save dialog.
  *   WENGU_DEVTOOLS=1      allow DevTools in a packaged build.
  *   WENGU_DEBUG=1, WENGU_TIMING=1   log IPC/permission/download decisions, or startup timing, to stdout.
+ *
+ * `--mcp` runs an MCP server on stdin/stdout for local agents instead of the app (see mcp.ts); it relays tool calls
+ * to the running app of the same profile.
  */
 import { app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, session, shell, type IpcMainEvent, type MenuItemConstructorOptions } from "electron";
 import { existsSync, statSync } from "node:fs";
@@ -15,6 +18,9 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import { APP_ORIGIN, APP_URL, handleAppScheme, registerSchemePrivileges } from "./protocol.ts";
+import { AgentBridge } from "./agentBridge.ts";
+import { runMcpServer } from "./mcp.ts";
+import type { AgentAnswer, AgentCall, AgentReply } from "../../web/src/agent/tools.ts";
 import { applyCommandLineHardening, hardenSession, hardenWebContents, isAppUrl, type AppOrigins } from "./security.ts";
 import { watchCardFrames } from "./frameWatchdog.ts";
 import { initialBounds, loadWindowState, MIN_SIZE, trackWindowState } from "./windowState.ts";
@@ -38,15 +44,26 @@ const webRoot = app.isPackaged ? path.join(app.getAppPath(), "web") : path.resol
 // (~/.config/Wengu, ~/Library/Application Support/Wengu, %APPDATA%\Wengu). Development uses its own.
 // macOS shows app.name in the app menu ("Quit 温故"), matching the bundle's CFBundleName.
 app.setName(process.platform === "darwin" ? DISPLAY_NAME : "Wengu");
-app.setPath("userData", process.env.WENGU_USER_DATA_DIR ? path.resolve(process.env.WENGU_USER_DATA_DIR) : path.join(app.getPath("appData"), app.isPackaged ? "Wengu" : "Wengu-dev"));
+// `--wengu-profile=<dir>` does the same as WENGU_USER_DATA_DIR (for `--mcp` commands, which agents start without our env).
+const profileArg = process.argv.find((a) => a.startsWith("--wengu-profile="))?.slice("--wengu-profile=".length);
+const profileDir = profileArg || process.env.WENGU_USER_DATA_DIR;
+app.setPath("userData", profileDir ? path.resolve(profileDir) : path.join(app.getPath("appData"), app.isPackaged ? "Wengu" : "Wengu-dev"));
 if (process.platform === "win32") app.setAppUserModelId("dev.wengu.app");
+
+const mcpMode = process.argv.includes("--mcp");
 
 registerSchemePrivileges();
 applyCommandLineHardening(origins);
 
-// One instance per profile: the database is held by one window (a Web Lock), so a second launch hands its files to
-// the first one and quits.
-if (!app.requestSingleInstanceLock()) {
+if (mcpMode) {
+  // No window and no GPU: this process only relays between the agent and the app. On Linux its command also carries
+  // --no-sandbox and --ozone-platform=headless (see mcpCommand): Chromium reads those before any of our code runs.
+  app.disableHardwareAcceleration();
+  app.dock?.hide();
+  runMcpServer({ userData: app.getPath("userData"), version: app.getVersion(), exit: (code) => app.exit(code) });
+} else if (!app.requestSingleInstanceLock()) {
+  // One instance per profile: the database is held by one window (a Web Lock), so a second launch hands its files to
+  // the first one and quits.
   app.quit();
 } else {
   main();
@@ -121,6 +138,44 @@ function main(): void {
     const main = win?.webContents.mainFrame;
     return !!win && !!f && !!main && e.sender === win.webContents && f.processId === main.processId && f.routingId === main.routingId && isAppUrl(f.url, origins);
   };
+  // ----------------------------------------------------------------------------------------- agent access (MCP)
+
+  let nextCall = 1;
+  const calls = new Map<number, (r: AgentAnswer) => void>();
+  const failCalls = (error: string) => {
+    for (const done of calls.values()) done({ ok: false, error });
+    calls.clear();
+  };
+  const bridge = new AgentBridge(
+    app.getPath("userData"),
+    (call) =>
+      new Promise((resolve) => {
+        if (!win || !rendererReady) return resolve({ ok: false, error: "Wengu is starting up; try again in a moment." });
+        const id = nextCall++;
+        const timer = setTimeout(() => {
+          calls.delete(id);
+          resolve({ ok: false, error: "Wengu did not answer in time." });
+        }, 110_000);
+        calls.set(id, (r) => {
+          clearTimeout(timer);
+          resolve(r);
+        });
+        send({ type: "agent-call", call: { ...call, id } satisfies AgentCall });
+      }),
+    debug,
+  );
+  ipcMain.on("wengu:agent-access", (e, on: unknown) => {
+    if (!fromApp(e) || typeof on !== "boolean") return;
+    bridge.setEnabled(on);
+  });
+  ipcMain.on("wengu:agent-reply", (e, r: AgentReply) => {
+    if (!fromApp(e) || !r || typeof r.id !== "number") return;
+    const done = calls.get(r.id);
+    calls.delete(r.id);
+    done?.(r.ok ? { ok: true, result: r.result } : { ok: false, error: String(r.error) });
+  });
+  app.on("will-quit", () => bridge.close());
+
   ipcMain.on("wengu:ready", (e) => {
     debug(`ready from ${e.senderFrame?.url} accepted=${fromApp(e)}`);
     if (!fromApp(e)) return;
@@ -196,7 +251,7 @@ function main(): void {
       ...(process.platform === "linux" ? { icon: path.join(__dirname, "../resources/icons/512x512.png") } : {}),
       webPreferences: {
         preload: path.join(__dirname, "preload.cjs"),
-        additionalArguments: [`--wengu-app-origin=${devUrl ? devUrl.origin : APP_ORIGIN}`],
+        additionalArguments: [`--wengu-app-origin=${devUrl ? devUrl.origin : APP_ORIGIN}`, `--wengu-agent-command=${JSON.stringify(mcpCommand())}`],
         contextIsolation: true,
         sandbox: true,
         nodeIntegration: false,
@@ -221,9 +276,15 @@ function main(): void {
 
     const wc = win.webContents;
     wc.on("did-start-navigation", (details) => {
-      if (details.isMainFrame && !details.isSameDocument) rendererReady = false;
+      if (details.isMainFrame && !details.isSameDocument) {
+        rendererReady = false;
+        failCalls("Wengu reloaded; try again.");
+      }
     });
-    wc.on("render-process-gone", () => (rendererReady = false));
+    wc.on("render-process-gone", () => {
+      rendererReady = false;
+      failCalls("Wengu's window stopped; try again.");
+    });
     win.once("ready-to-show", () => {
       win?.show();
       if (process.env.WENGU_TIMING === "1") console.log(`[wengu] ready-to-show ${Date.now() - t0} ms after main start`);
@@ -233,6 +294,17 @@ function main(): void {
       rendererReady = false;
     });
     void win.loadURL(startUrl);
+  }
+
+  /** How agents start the MCP server for this profile: [executable, ...args]. */
+  function mcpCommand(): string[] {
+    const args = app.isPackaged ? [] : [app.getAppPath()];
+    // AppImage: the stable path is the image, not the temporary mount the process runs from
+    const exe = process.env.APPIMAGE ?? process.execPath;
+    // Linux: no display needed (agents may run over SSH), and no Chromium sandbox: this process loads no web content,
+    // and the sandbox is unavailable outside the .deb on many hosts, where it would abort the start.
+    const linux = process.platform === "linux" ? ["--no-sandbox", "--ozone-platform=headless"] : [];
+    return [exe, ...args, "--mcp", ...linux, ...(profileDir ? [`--wengu-profile=${app.getPath("userData")}`] : [])];
   }
 
   app.on("window-all-closed", () => app.quit());

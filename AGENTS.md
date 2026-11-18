@@ -114,6 +114,12 @@ corepack pnpm --filter @wengu/web test
 - `packages/core/src/worker/buffered-journal-vfs.ts` 合并回滚日志写入以降低延迟，依赖 `synchronous = NORMAL` 和 `journal_mode = PERSIST`：日志在 xSync 前落盘。改这些 pragma 或这个文件前，先跑 `test:browser` 和 `apps/desktop/tests/review-kill.spec.ts`。
 - 排期结果必须与 Anki 一致，核心测试里有对照记录，不能改期望值来通过。
 
+### 本机 agent（MCP）
+
+- 工具定义在 `apps/web/src/agent/tools.ts`（`--mcp` 进程和应用共用），执行在 `apps/web/src/agent/run.ts`。加工具时两处都改，并更新 `apps/desktop/tests/agent.spec.ts` 里的工具列表。
+- `--mcp` 进程的 stdout 只能输出 MCP 消息，不要在那条路径上 `console.log`。
+- Linux 上 `--no-sandbox`、`--ozone-platform=headless` 必须在命令行里：Chromium 在主进程代码运行前就读取它们，用 `appendSwitch` 加没有用。
+
 ### 真实卡组对照
 
 `corepack pnpm --filter @wengu/anki verify:real <绝对路径.apkg>`：用 Anki 官方库对照导入、渲染和导出往返。卡组放在 `packages/anki/.real-decks/`（已忽略，第三方内容不要提交）。

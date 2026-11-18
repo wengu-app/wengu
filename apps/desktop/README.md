@@ -89,6 +89,27 @@ WebTransport, prefetch/preload/preconnect/dns-prefetch, popups, forms, top navig
 permissions, WebRTC with STUN/TURN and with a forged peer, frame navigations, an endless loop) and checks what
 reaches local test servers and Chromium's net log.
 
+## Local agents (MCP)
+
+Agents on the same computer (Claude Code, Codex, Cursor, …) can read the collection and add or edit notes through
+MCP. It is off by default: Settings → Agents → "Allow local agents". The settings page then shows the exact command
+for the agent's configuration (`claude mcp add --scope user wengu -- <command>` for Claude Code, or an
+`mcpServers` JSON block).
+
+- The command is the app's own executable with `--mcp` (plus `--no-sandbox --ozone-platform=headless` on Linux, and
+  `--wengu-profile=<dir>` for a non-default profile). That process opens no window and loads no web content; it speaks
+  MCP over stdin/stdout (`src/mcp.ts`) and answers `tools/list` by itself.
+- Each tool call goes over a Unix socket in the profile directory (`agent.sock`, mode 0600; a named pipe on Windows,
+  `src/agentBridge.ts`) to the running app, which runs it through the page's database client
+  (`apps/web/src/agent/run.ts`). The socket exists only while access is on; no TCP port is opened. The app must be
+  open; otherwise the agent is told to open it.
+- Tools: `list_decks`, `list_note_types`, `search_notes`, `get_note`, `create_deck`, `add_notes`, `update_note`
+  (definitions in `apps/web/src/agent/tools.ts`). Nothing can be deleted. `add_notes` adds a batch in one undo step
+  and tags every note `agent::<client name>`; the app shows a toast with Undo. Settings lists the agents that have
+  connected (from the MCP `clientInfo`), with what they added and edited.
+- No media yet: fields are HTML, and images from the web do not load (the app has no network).
+- Tested on Linux (`tests/agent.spec.ts`); the `--mcp` mode is untested on macOS and Windows.
+
 ## Where the data lives
 
 The collection is in Chromium's Origin Private File System for `wengu://app`, inside the profile directory:

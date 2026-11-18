@@ -7,12 +7,21 @@
  */
 import { useEffect } from "react";
 
-export type DesktopCommand = { type: "import"; file?: { name: string; bytes: Uint8Array } } | { type: "export" };
+import type { AgentCall, AgentReply } from "../agent/tools.ts";
+
+export type DesktopCommand = { type: "import"; file?: { name: string; bytes: Uint8Array } } | { type: "export" } | { type: "agent-call"; call: AgentCall };
 
 export interface WenguDesktop {
   readonly platform: string;
   /** Subscribes to shell commands (and tells the shell the app is ready for them); returns an unsubscribe function. */
   onCommand(cb: (command: DesktopCommand) => void): () => void;
+  /** Local agent access (MCP); absent in older shells. */
+  readonly agent?: {
+    /** The command agents run to reach this profile: [executable, ...args]. */
+    readonly command: string[];
+    setAccess(on: boolean): void;
+    reply(r: AgentReply): void;
+  };
 }
 
 declare global {
