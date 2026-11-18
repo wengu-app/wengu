@@ -5,6 +5,8 @@ import { useApp } from "../lib/app.tsx";
 import { formatDuration, formatNumber, formatPercent } from "../lib/format.ts";
 import { useLang, useT, type MessageKey } from "../lib/i18n.ts";
 import { Cuboids, type CuboidCol } from "../ui/Charts.tsx";
+import { PageHead } from "../ui/PageHead.tsx";
+import { deckOptions, Select } from "../ui/Select.tsx";
 import { flattenDecks } from "./Editor.tsx";
 
 const DAYS = 30;
@@ -79,21 +81,14 @@ export function Stats() {
 
   return (
     <div className="page page-stats" data-testid="stats">
-      <header className="page-head">
-        <div>
-          <h1 className="page-title">{t("stats.title")}</h1>
-        </div>
-        <div className="page-actions">
-          <select className="select" value={deckId ?? ""} onChange={(e) => setDeckId(e.target.value ? Number(e.target.value) : null)} aria-label={t("stats.scope")}>
-            <option value="">{t("browse.anyDeck")}</option>
-            {decks.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name.replace(/::/g, " / ")}
-              </option>
-            ))}
-          </select>
-        </div>
-      </header>
+      <PageHead
+        title={t("stats.title")}
+        actions={
+          <Select label={t("stats.scope")} value={deckId ?? 0}
+            options={[{ value: 0, label: t("browse.anyDeck") }, ...deckOptions(decks)]}
+            onChange={(v) => setDeckId(v || null)} />
+        }
+      />
       {stats && (
         <>
           <section className="stats-section">

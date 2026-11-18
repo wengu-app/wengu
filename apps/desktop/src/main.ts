@@ -33,6 +33,11 @@ const debug = (msg: string) => {
 const DISPLAY_NAME = "温故";
 const WEBSITE = "https://wengu.dev";
 const ANKI_EXT = /\.(apkg|colpkg)$/i;
+/** Height of the web app's title bar in CSS pixels; keep in step with --titlebar-h in apps/web/src/styles/app.css. */
+const TITLEBAR_HEIGHT = 68;
+/** macOS draws the traffic lights 14 points tall at any page zoom. */
+const WINDOW_BUTTON_RADIUS = 7;
+const WINDOW_BUTTON_X = 20;
 
 const devUrl = !app.isPackaged && process.env.WENGU_DEV_URL ? new URL(process.env.WENGU_DEV_URL) : null;
 const origins: AppOrigins = { app: APP_ORIGIN, dev: devUrl ? devUrl.origin : null };
@@ -267,11 +272,12 @@ function main(): void {
           { role: "reload" },
           ...(dev ? [{ role: "forceReload" as const }, { role: "toggleDevTools" as const }] : []),
           { type: "separator" },
-          { role: "resetZoom" },
-          { role: "zoomIn" },
-          // Ctrl+= as in browsers (the role's own accelerator is Ctrl+Plus, i.e. Ctrl+Shift+= on most layouts)
-          { role: "zoomIn", accelerator: "CmdOrCtrl+=", visible: false, acceleratorWorksWhenHidden: true },
-          { role: "zoomOut" },
+          // Electron's zoom roles, minus the role (a role ignores `click`), so the traffic lights follow the zoom.
+          { label: "Actual Size", accelerator: "CmdOrCtrl+0", click: () => zoom("reset") },
+          { label: "Zoom In", accelerator: "CmdOrCtrl+Plus", click: () => zoom("in") },
+          // Ctrl+= as in browsers (Ctrl+Plus is Ctrl+Shift+= on most layouts)
+          { label: "Zoom In", accelerator: "CmdOrCtrl+=", visible: false, acceleratorWorksWhenHidden: true, click: () => zoom("in") },
+          { label: "Zoom Out", accelerator: "CmdOrCtrl+-", click: () => zoom("out") },
           { type: "separator" },
           { role: "togglefullscreen" },
         ],
@@ -289,6 +295,23 @@ function main(): void {
     Menu.setApplicationMenu(Menu.buildFromTemplate(template));
   }
 
+  /**
+   * Centre the macOS traffic lights on the title bar. The bar is TITLEBAR_HEIGHT CSS pixels tall (--titlebar-h in
+   * app.css) and grows with page zoom; the buttons stay 14 points whatever the zoom, so recompute after each zoom.
+   */
+  function syncWindowButtons(w: BrowserWindow): void {
+    if (process.platform !== "darwin" || w.isDestroyed() || w.isFullScreen()) return;
+    w.setWindowButtonPosition({ x: WINDOW_BUTTON_X, y: Math.round((TITLEBAR_HEIGHT * w.webContents.getZoomFactor()) / 2 - WINDOW_BUTTON_RADIUS) });
+  }
+
+  function zoom(direction: "in" | "out" | "reset"): void {
+    const w = BrowserWindow.getFocusedWindow() ?? win;
+    if (!w || w.isDestroyed()) return;
+    const wc = w.webContents;
+    wc.setZoomLevel(direction === "reset" ? 0 : wc.getZoomLevel() + (direction === "in" ? 0.5 : -0.5));
+    syncWindowButtons(w);
+  }
+
   function createWindow(): void {
     const state = loadWindowState(app.getPath("userData"));
     const dark = nativeTheme.shouldUseDarkColors;
@@ -300,7 +323,8 @@ function main(): void {
       title: DISPLAY_NAME,
       titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "hidden",
       // On Linux pure transparent black falls back to the system title-bar background.
-      titleBarOverlay: process.platform === "linux" ? { color: "#01000000", symbolColor: dark ? "#efece4" : "#5b5850", height: 68 } : true,
+      trafficLightPosition: { x: WINDOW_BUTTON_X, y: TITLEBAR_HEIGHT / 2 - WINDOW_BUTTON_RADIUS },
+      titleBarOverlay: process.platform === "linux" ? { color: "#01000000", symbolColor: dark ? "#efece4" : "#5b5850", height: TITLEBAR_HEIGHT } : true,
       autoHideMenuBar: true,
       backgroundColor: dark ? "#141311" : "#f7f4ee",
       ...(process.platform === "linux" ? { icon: path.join(__dirname, "../resources/icons/512x512.png") } : {}),
@@ -340,6 +364,9 @@ function main(): void {
       rendererReady = false;
       failCalls("Wengu's window stopped; try again.");
     });
+    // Chromium keeps the zoom level per origin across reloads, and macOS resets the buttons after full screen.
+    wc.on("did-finish-load", () => win && syncWindowButtons(win));
+    win.on("leave-full-screen", () => win && syncWindowButtons(win));
     win.once("ready-to-show", () => {
       win?.show();
       if (process.env.WENGU_TIMING === "1") console.log(`[wengu] ready-to-show ${Date.now() - t0} ms after main start`);

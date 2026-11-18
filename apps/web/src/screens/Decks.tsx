@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { DeckNode, Id, Stats } from "@wengu/core";
+import type { DeckNode, Id, Stats, WenguClient } from "@wengu/core";
 
 import { navigate, routeHash, useApp } from "../lib/app.tsx";
 import { useLang, useT, type Translate } from "../lib/i18n.ts";
@@ -12,17 +12,30 @@ import { Icon } from "../ui/Icon.tsx";
 import { Menu } from "../ui/Menu.tsx";
 
 /** Anki's "Default" deck is hidden while it is empty and has no subdecks. */
-function visibleRoots(tree: DeckNode[]): DeckNode[] {
+export function visibleRoots(tree: DeckNode[]): DeckNode[] {
   return tree.filter((d) => !(d.id === 1 && d.totalItems === 0 && d.children.length === 0));
 }
 
-const dueOf = (d: DeckNode) => d.counts.new + d.counts.learning + d.counts.review;
+export const dueOf = (d: DeckNode) => d.counts.new + d.counts.learning + d.counts.review;
 const FORECAST_DAYS = 14;
 /** Reference line on the retention gauge (FSRS's default desired retention). */
 const TARGET = 90;
 
+/** What the card on top of a deck's pack shows: the next due card, else the next new one, else any; "" if none. */
+export async function deckFront(db: WenguClient, deckId: Id): Promise<string> {
+  try {
+    for (const state of ["due", "new"] as const) {
+      const page = await db.search({ deckId, state, limit: 1 });
+      if (page.rows[0]) return page.rows[0].sortField;
+    }
+    return (await db.search({ deckId, limit: 1 })).rows[0]?.sortField ?? "";
+  } catch {
+    return ""; // the pack just stays blank
+  }
+}
+
 export function Decks() {
-  const { db, version, changed, openExport } = useApp();
+  const { db, version, changed, openImport, openExport } = useApp();
   const t = useT();
   const lang = useLang();
   const [tree, setTree] = useState<DeckNode[] | null>(null);
@@ -36,23 +49,7 @@ export function Decks() {
     setStats(st);
     // The card on top of each pack shows what that deck asks next.
     const out: Record<number, string> = {};
-    await Promise.all(
-      visibleRoots(tr).map(async (d) => {
-        try {
-          for (const state of ["due", "new"] as const) {
-            const page = await db.search({ deckId: d.id, state, limit: 1 });
-            if (page.rows[0]) {
-              out[d.id] = page.rows[0].sortField;
-              return;
-            }
-          }
-          const any = await db.search({ deckId: d.id, limit: 1 });
-          if (any.rows[0]) out[d.id] = any.rows[0].sortField;
-        } catch {
-          /* the pack just stays blank */
-        }
-      }),
-    );
+    await Promise.all(visibleRoots(tr).map(async (d) => (out[d.id] = await deckFront(db, d.id))));
     setFronts(out);
   }, [db]);
   useEffect(() => {
@@ -118,12 +115,6 @@ export function Decks() {
                 <kbd>Space</kbd>
               </button>
             </div>
-            {due > 0 && from.length > 1 && (
-              <p className="hero-note">
-                <Icon name="info" size={14} />
-                {t("home.mixNote", { n: from.length })}
-              </p>
-            )}
           </div>
           {from.length > 0 && (
             <table className="mix">
@@ -138,10 +129,10 @@ export function Decks() {
               </thead>
               <tbody>
                 {from.map((d) => (
-                  <tr key={d.id} onClick={() => navigate({ name: "review", deckId: d.id })}>
+                  <tr key={d.id} onClick={() => navigate({ name: "deck", deckId: d.id })}>
                     <td>
                       <i style={{ background: deckColor(d.name)[0] }} />
-                      <a href={routeHash({ name: "review", deckId: d.id })} onClick={(e) => e.stopPropagation()}>
+                      <a href={routeHash({ name: "deck", deckId: d.id })} onClick={(e) => e.stopPropagation()}>
                         {d.shortName}
                       </a>
                     </td>
@@ -152,22 +143,25 @@ export function Decks() {
                   </tr>
                 ))}
               </tbody>
-              <tfoot>
-                <tr>
-                  <td colSpan={5}>{t("home.fromHint")}</td>
-                </tr>
-              </tfoot>
             </table>
           )}
         </section>
 
-        <TodayBlock stats={stats} />
+        <MemoryTiles stats={stats} />
 
         <section className="blk packs-blk">
           <header className="blk-head">
             <h2>
               {t("decks.title")} <small>{t("home.decksSum", { n: n(roots.length), cards: n(totalCards) })}</small>
             </h2>
+            <span className="blk-acts">
+              <button type="button" className="blk-more" onClick={() => openImport()}>
+                <Icon name="import" size={15} /> {t("nav.import")}
+              </button>
+              <button type="button" className="blk-more" onClick={() => openExport()}>
+                <Icon name="export" size={15} /> {t("nav.export")}
+              </button>
+            </span>
           </header>
           <div className="packs">
             {roots.map((d) => (
@@ -196,7 +190,6 @@ export function Decks() {
           {stats && <Forecast stats={stats} counts={sum} t={t} lang={lang} />}
         </section>
 
-        <MemoryBlock stats={stats} />
 
         <section className="blk tree-blk">
           <header className="blk-head">
@@ -250,8 +243,9 @@ export function Decks() {
   );
 }
 
-/** A root deck as a card holder: a back panel, a pile of cards and a half-height front pocket. */
-function Pack({ deck, front }: { deck: DeckNode; front: string }) {
+/** A deck as a card holder: a back panel, a pile of cards and a half-height front pocket. A link to the deck's page,
+ * unless `still` (on that page itself). */
+export function Pack({ deck, front, still = false }: { deck: DeckNode; front: string; still?: boolean }) {
   const t = useT();
   const lang = useLang();
   const [c, d] = deckColor(deck.name);
@@ -265,8 +259,9 @@ function Pack({ deck, front }: { deck: DeckNode; front: string }) {
     return { x: isTop ? 0 : (rnd() - 0.5) * 14, y: -(layers - 1 - k) * 5, r: isTop ? 0 : (rnd() - 0.5) * 7, isTop };
   });
   const n = (v: number) => formatNumber(v, lang);
+  const Tag = still ? "div" : "a";
   return (
-    <a className="pack" href={routeHash({ name: "review", deckId: deck.id })} style={{ "--pc": c, "--pd": d } as React.CSSProperties} title={deck.name}>
+    <Tag className={`pack ${still ? "is-still" : ""}`} href={still ? undefined : routeHash({ name: "deck", deckId: deck.id })} style={{ "--pc": c, "--pd": d } as React.CSSProperties} title={still ? undefined : deck.name}>
       <span className="pack-back" />
       <span className="pack-pile">
         {pile.map((p, k) => (
@@ -308,67 +303,7 @@ function Pack({ deck, front }: { deck: DeckNode; front: string }) {
           {deck.children.length > 0 && <span className="pack-sub">{t("home.subdecks", { n: n(deck.children.length) })}</span>}
         </span>
       </span>
-    </a>
-  );
-}
-
-function TodayBlock({ stats }: { stats: Stats | null }) {
-  const t = useT();
-  const lang = useLang();
-  const n = (v: number) => formatNumber(v, lang);
-  const today = stats?.today;
-  const answers = today ? today.byRating.reduce((a, b) => a + b, 0) : 0;
-  const mins = today ? Math.round(today.timeMs / 60000) : 0;
-  const names = ["review.again", "review.hard", "review.good", "review.easy"] as const;
-  const cls = ["again", "hard", "good", "easy"];
-  return (
-    <section className="blk today-blk">
-      <header className="blk-head">
-        <h2>{t("home.today")}</h2>
-      </header>
-      <div className="big3">
-        <div>
-          <b>
-            {n(today?.reviews ?? 0)}
-            <small>{t("home.unitCards")}</small>
-          </b>
-          <span>{t("home.reviewed")}</span>
-        </div>
-        <div>
-          <b>
-            {n(today?.newItems ?? 0)}
-            <small>{t("home.unitCards")}</small>
-          </b>
-          <span>{t("home.newLearned")}</span>
-        </div>
-        <div>
-          <b>
-            {n(mins)}
-            <small>{t("home.unitMin")}</small>
-          </b>
-          <span>{t("home.time")}</span>
-        </div>
-      </div>
-      {answers > 0 && today ? (
-        <div className="answers-keys">
-          <div className="keyrow" aria-hidden="true">
-            {today.byRating.map((v, i) =>
-              Array.from({ length: Math.min(v, 60) }, (_, k) => <i key={`${i}-${k}`} className={`key key-${cls[i]}`} />),
-            )}
-          </div>
-          <ul className="legend">
-            {today.byRating.map((v, i) => (
-              <li key={i}>
-                <span className={`swatch seg-${cls[i]}`} />
-                {t(names[i]!)} <span className="muted">{n(v)}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : (
-        <p className="muted small today-empty">{t("home.noReviewsToday")}</p>
-      )}
-    </section>
+    </Tag>
   );
 }
 
@@ -410,7 +345,8 @@ function Forecast({ stats, counts, t, lang }: { stats: Stats; counts: { new: num
   );
 }
 
-function MemoryBlock({ stats }: { stats: Stats | null }) {
+/** Four tiles beside "due today": 30-day retention, cards learned, this week's retention, time per card. */
+function MemoryTiles({ stats }: { stats: Stats | null }) {
   const t = useT();
   const lang = useLang();
   const n = (v: number) => formatNumber(v, lang);
@@ -425,12 +361,8 @@ function MemoryBlock({ stats }: { stats: Stats | null }) {
   const perCard = stats && stats.today.reviews ? stats.today.timeMs / stats.today.reviews / 1000 : null;
   const pin = (r: number | null) => (r === null ? 0 : Math.min(100, Math.max(0, ((r * 100 - 70) / 30) * 100)));
   return (
-    <section className="blk mem-blk">
-      <header className="blk-head">
-        <h2>{t("home.memory")}</h2>
-      </header>
-      <div className="mem-grid">
-        <div className="m m-gauge">
+    <div className="mem-tiles" aria-label={t("home.memory")} role="group">
+        <section className="blk m m-gauge">
           <span className="m-l">{t("home.retention30")}</span>
           <Gauge value={pct30} target={TARGET} ok={ok} />
           <span className="m-v m-c">
@@ -440,16 +372,18 @@ function MemoryBlock({ stats }: { stats: Stats | null }) {
           <span className="m-d m-c">
             {pct30 === null ? t("stats.noData") : t(ok ? "home.onTarget" : "home.belowTarget", { goal: TARGET })}
           </span>
-        </div>
-        <div className="m m-row">
-          <Jar fraction={frac} />
-          <div>
-            <span className="m-l">{t("home.learned")}</span>
-            <span className="m-v">{n(learned)}</span>
-            <span className="m-d">{t("home.learnedSub", { pct: Math.round(frac * 100) })}</span>
+        </section>
+        <section className="blk m">
+          <span className="m-l">{t("home.learned")}</span>
+          <div className="m-row">
+            <Jar fraction={frac} />
+            <div>
+              <span className="m-v">{n(learned)}</span>
+              <span className="m-d">{t("home.learnedSub", { pct: Math.round(frac * 100) })}</span>
+            </div>
           </div>
-        </div>
-        <div className="m">
+        </section>
+        <section className="blk m">
           <span className="m-l">{t("home.week")}</span>
           <span className="m-v">
             {r7 === null ? "—" : n(Math.round(r7 * 100))}
@@ -467,20 +401,21 @@ function MemoryBlock({ stats }: { stats: Stats | null }) {
             {r7 !== null && <span className="ruler-pin" style={{ left: `${pin(r7)}%` }} />}
           </div>
           <span className="m-d">{t("home.weekSub")}</span>
-        </div>
-        <div className="m m-row">
-          <Stopwatch seconds={perCard} />
-          <div>
-            <span className="m-l">{t("home.perCard")}</span>
-            <span className="m-v">
-              {perCard === null ? "—" : perCard.toFixed(1)}
-              <small>{t("home.unitSec")}</small>
-            </span>
-            <span className="m-d">{t("home.perCardSub")}</span>
+        </section>
+        <section className="blk m">
+          <span className="m-l">{t("home.perCard")}</span>
+          <div className="m-row">
+            <Stopwatch seconds={perCard} />
+            <div>
+              <span className="m-v">
+                {perCard === null ? "—" : perCard.toFixed(1)}
+                <small>{t("home.unitSec")}</small>
+              </span>
+              <span className="m-d">{t("home.perCardSub")}</span>
+            </div>
           </div>
-        </div>
-      </div>
-    </section>
+        </section>
+    </div>
   );
 }
 
@@ -516,7 +451,7 @@ function DeckRows(props: { deck: DeckNode; depth: number; color: string; onRenam
             <span className="twisty-space" />
           )}
           {depth === 0 && <i className="deck-dot" style={{ background: props.color }} aria-hidden="true" />}
-          <a className="deck-link" href={routeHash({ name: "review", deckId: deck.id })} title={deck.name}>
+          <a className="deck-link" href={routeHash({ name: "deck", deckId: deck.id })} title={deck.name}>
             {deck.shortName}
             {deck.kind === "filtered" && <span className="pill">{t("decks.filtered")}</span>}
           </a>

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { readAnkiPackage, writeAnkiPackage } from "@wengu/anki";
-import { fixture, importFixture, openApp, openNote, previewFrame } from "./helpers.ts";
+import { fixture, importFixture, openApp, openNote, pick, previewFrame } from "./helpers.ts";
 
 test("Wengu mode: stock note types in Wengu typography; images, MathJax, furigana, cloze, audio", async ({ page }) => {
   await page.addInitScript(() => {
@@ -43,7 +43,7 @@ test("Wengu mode: stock note types in Wengu typography; images, MathJax, furigan
   const editor = await openNote(page, "好き", "猫");
   await page.getByRole("tab", { name: "Answer" }).click();
   await expect(previewFrame(page).locator("#qa ruby rt")).toHaveText("ねこ");
-  await editor.getByLabel("Cards").last().selectOption({ label: "Listening" });
+  await pick(editor.getByLabel("Cards").last(), "Listening");
   await page.getByRole("tab", { name: "Question" }).click();
   const play = previewFrame(page).locator("#qa button.replay-button");
   await expect(play).toHaveCount(1);

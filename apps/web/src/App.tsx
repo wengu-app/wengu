@@ -2,11 +2,12 @@ import { DesktopUpdate } from "./ui/DesktopUpdate.tsx";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Id, WenguClient } from "@wengu/core";
 
-import { AppProvider, navigate, routeHash, useApp, useRoute, type Route, type Toast } from "./lib/app.tsx";
+import { AppProvider, goBack, navigate, routeHash, useApp, useRoute, type Route, type Toast } from "./lib/app.tsx";
 import { useAgentBridge } from "./lib/agents.ts";
 import { useDesktopCommands } from "./lib/desktop.ts";
 import { useT, type MessageKey } from "./lib/i18n.ts";
 import { Browse } from "./screens/Browse.tsx";
+import { DeckPage } from "./screens/DeckPage.tsx";
 import { Decks } from "./screens/Decks.tsx";
 import { ExportDialog } from "./screens/ExportDialog.tsx";
 import { ImportDialog, isAnkiFile } from "./screens/ImportDialog.tsx";
@@ -66,7 +67,7 @@ function AgentBridge() {
 
 function Shell() {
   const route = useRoute();
-  const { info, openImport, openExport } = useApp();
+  const { info } = useApp();
   const t = useT();
   const empty = info.counts.knowledgePoints === 0 && info.counts.decks <= 1;
   const focus = route.name === "review";
@@ -118,20 +119,10 @@ function Shell() {
                 <a className="btn btn-primary btn-small top-make" href={routeHash({ name: "make", deckId: null })} aria-label={t("nav.make")} title={`${t("nav.make")} (A)`}>
                   <Icon name="plus" />
                   <span className="btn-text">{t("nav.make")}</span>
-                  <kbd>A</kbd>
                 </a>
               )}
-              <TopLink route={{ name: "stats" }} icon="stats" label="nav.stats" current={route.name === "stats"} />
-              <button type="button" className="btn btn-ghost btn-small" onClick={() => openImport()} aria-label={t("nav.import")} title={t("nav.import")}>
-                <Icon name="import" />
-                <span className="btn-text">{t("nav.import")}</span>
-              </button>
-              <button type="button" className="btn btn-ghost btn-small" onClick={() => openExport()} disabled={empty} aria-label={t("nav.export")} title={t("nav.export")}>
-                <Icon name="export" />
-                <span className="btn-text">{t("nav.export")}</span>
-              </button>
               <DesktopUpdate />
-              <TopLink route={{ name: "settings" }} icon="settings" label="nav.settings" current={route.name === "settings"} />
+              <TopLink route={{ name: "settings" }} icon="settings" label="nav.settings" />
             </div>
           </nav>
         </header>
@@ -143,10 +134,11 @@ function Shell() {
   );
 }
 
-function TopLink({ route, icon, label, current }: { route: Route; icon: IconName; label: MessageKey; current: boolean }) {
+/** A top-bar shortcut to a page; it looks the same on every page (each page has its own Back key). */
+function TopLink({ route, icon, label }: { route: Route; icon: IconName; label: MessageKey }) {
   const t = useT();
   return (
-    <a className="icon-btn top-link" href={routeHash(route)} aria-current={current ? "page" : undefined} title={t(label)} aria-label={t(label)}>
+    <a className="icon-btn top-link" href={routeHash(route)} title={t(label)} aria-label={t(label)}>
       <Icon name={icon} size={20} />
     </a>
   );
@@ -156,8 +148,10 @@ function Screen({ route, empty }: { route: Route; empty: boolean }) {
   switch (route.name) {
     case "decks":
       return empty ? <Welcome /> : <Decks />;
+    case "deck":
+      return <DeckPage key={route.deckId} deckId={route.deckId} />;
     case "review":
-      return <Review key={String(route.deckId)} deckId={route.deckId} onExit={() => navigate({ name: "decks" })} />;
+      return <Review key={String(route.deckId)} deckId={route.deckId} onExit={goBack} />;
     case "browse":
       return <Browse initialDeckId={route.deckId} initialNoteId={route.noteId} />;
     case "make":

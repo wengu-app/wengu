@@ -14,6 +14,7 @@ type AvTag = AnkiTemplatePresentation["questionAvTags"][number];
 import { useSettings } from "../lib/settings.ts";
 import { Dialog } from "../ui/Dialog.tsx";
 import { Icon } from "../ui/Icon.tsx";
+import { deckOptions, Select } from "../ui/Select.tsx";
 
 // ------------------------------------------------------------------------------------------ field editor
 
@@ -232,26 +233,12 @@ function ItemRow({ item, detail, decks, onChanged }: { item: ReviewItem; detail:
         </div>
       </dl>
       <div className="item-actions">
-        <label className="select-inline">
-          <span className="sr-only">{t("editor.moveTo")}</span>
-          <select
-            className="select select-sm"
-            value={item.deckId}
-            aria-label={t("editor.moveTo")}
-            onChange={async (e) => {
-              await db.moveItems([item.id], Number(e.target.value));
-              onChanged();
-            }}
-          >
-            {decks
-              .filter((d) => d.kind === "normal")
-              .map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name.replace(/::/g, " / ")}
-                </option>
-              ))}
-          </select>
-        </label>
+        <Select size="sm" className="item-move" label={t("editor.moveTo")} value={item.deckId}
+          options={deckOptions(decks.filter((d) => d.kind === "normal"))}
+          onChange={async (v) => {
+            await db.moveItems([item.id], v);
+            onChanged();
+          }} />
         {item.status === "buried" ? (
           <button type="button" className="btn btn-small btn-ghost" onClick={async () => (await db.unbury([item.id]), onChanged())}>
             {t("editor.unbury")}
@@ -461,13 +448,9 @@ export function NoteEditor(props: { noteId: Id; onSaved?(): void; onDeleted?(): 
               <div className="section-label-row">
                 <h3 className="section-label">{t("editor.preview")}</h3>
                 {detail.items.length > 1 && (
-                  <select className="select select-sm" value={previewItem} onChange={(e) => setPreviewItem(Number(e.target.value))} aria-label={t("editor.cards")}>
-                    {detail.items.map((it, i) => (
-                      <option key={it.id} value={i}>
-                        {itemName(nt, it, t)}
-                      </option>
-                    ))}
-                  </select>
+                  <Select size="sm" label={t("editor.cards")} value={previewItem}
+                    options={detail.items.map((it, i) => ({ value: i, label: itemName(nt, it, t) }))}
+                    onChange={setPreviewItem} />
                 )}
               </div>
               <Preview detail={detail} item={detail.items[Math.min(previewItem, detail.items.length - 1)]!} />

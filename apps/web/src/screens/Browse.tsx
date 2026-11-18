@@ -4,7 +4,9 @@ import type { BrowseQuery, BrowseRow, DeckNode, Id, ItemFilter } from "@wengu/co
 import { navigate, useApp } from "../lib/app.tsx";
 import { formatNumber } from "../lib/format.ts";
 import { useLang, useT, type MessageKey } from "../lib/i18n.ts";
+import { deckOptions, Select } from "../ui/Select.tsx";
 import { Icon } from "../ui/Icon.tsx";
+import { PageHead } from "../ui/PageHead.tsx";
 import { VirtualList, type VirtualListHandle } from "../ui/VirtualList.tsx";
 import { flattenDecks, NoteEditor } from "./Editor.tsx";
 
@@ -123,6 +125,7 @@ export function Browse(props: { initialDeckId: Id | null; initialNoteId: Id | nu
 
   return (
     <div className={`page page-browse ${selected !== null ? "has-selection" : ""}`}>
+      <PageHead title={t("nav.browse")} className="browse-page-head" />
       <div className="browse-list-pane">
         <header className="browse-head">
           <div className="search">
@@ -146,46 +149,21 @@ export function Browse(props: { initialDeckId: Id | null; initialNoteId: Id | nu
             />
           </div>
           <div className="filters" role="group" aria-label={t("browse.filters")}>
-            <select className="select select-sm" value={filters.deckId ?? ""} onChange={(e) => setFilters((f) => ({ ...f, deckId: e.target.value ? Number(e.target.value) : null }))} aria-label={t("browse.deck")} data-testid="filter-deck">
-              <option value="">{t("browse.anyDeck")}</option>
-              {decks.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {" ".repeat(d.name.split("::").length - 1)}
-                  {d.shortName}
-                </option>
-              ))}
-            </select>
-            <select className="select select-sm" value={filters.state} onChange={(e) => setFilters((f) => ({ ...f, state: e.target.value as ItemFilter | "" }))} aria-label={t("browse.state")} data-testid="filter-state">
-              <option value="">{t("browse.anyState")}</option>
-              {STATES.map((s) => (
-                <option key={s} value={s}>
-                  {t(`browse.state.${s}` as MessageKey)}
-                </option>
-              ))}
-            </select>
-            <select className="select select-sm" value={filters.noteTypeId ?? ""} onChange={(e) => setFilters((f) => ({ ...f, noteTypeId: e.target.value ? Number(e.target.value) : null }))} aria-label={t("browse.noteType")}>
-              <option value="">{t("browse.anyNoteType")}</option>
-              {noteTypes.map((n) => (
-                <option key={n.id} value={n.id}>
-                  {n.name}
-                </option>
-              ))}
-            </select>
-            <select className="select select-sm" value={filters.tag} onChange={(e) => setFilters((f) => ({ ...f, tag: e.target.value }))} aria-label={t("browse.tag")} data-testid="filter-tag">
-              <option value="">{t("browse.anyTag")}</option>
-              {tags.map((tg) => (
-                <option key={tg} value={tg}>
-                  {tg}
-                </option>
-              ))}
-            </select>
-            <select className="select select-sm" value={filters.sort} onChange={(e) => setFilters((f) => ({ ...f, sort: e.target.value as Filters["sort"] }))} aria-label={t("browse.sort")}>
-              {(["created", "modified", "sortField"] as const).map((s) => (
-                <option key={s} value={s}>
-                  {t(`browse.sort.${s}`)}
-                </option>
-              ))}
-            </select>
+            <Select size="sm" label={t("browse.deck")} data-testid="filter-deck" value={filters.deckId ?? 0}
+              options={[{ value: 0, label: t("browse.anyDeck") }, ...deckOptions(decks)]}
+              onChange={(v) => setFilters((f) => ({ ...f, deckId: v || null }))} />
+            <Select size="sm" label={t("browse.state")} data-testid="filter-state" value={filters.state}
+              options={[{ value: "" as ItemFilter | "", label: t("browse.anyState") }, ...STATES.map((s) => ({ value: s, label: t(`browse.state.${s}` as MessageKey) }))]}
+              onChange={(v) => setFilters((f) => ({ ...f, state: v }))} />
+            <Select size="sm" label={t("browse.noteType")} data-testid="filter-notetype" value={filters.noteTypeId ?? 0}
+              options={[{ value: 0, label: t("browse.anyNoteType") }, ...noteTypes.map((n) => ({ value: n.id, label: n.name }))]}
+              onChange={(v) => setFilters((f) => ({ ...f, noteTypeId: v || null }))} />
+            <Select size="sm" label={t("browse.tag")} data-testid="filter-tag" value={filters.tag}
+              options={[{ value: "", label: t("browse.anyTag") }, ...tags.map((tg) => ({ value: tg, label: tg }))]}
+              onChange={(v) => setFilters((f) => ({ ...f, tag: v }))} />
+            <Select size="sm" label={t("browse.sort")} data-testid="filter-sort" value={filters.sort}
+              options={(["created", "modified", "sortField"] as const).map((s) => ({ value: s, label: t(`browse.sort.${s}`) }))}
+              onChange={(v) => setFilters((f) => ({ ...f, sort: v }))} />
           </div>
           <div className="browse-meta">
             <span className="muted small" data-testid="browse-count" data-total={total ?? ""}>

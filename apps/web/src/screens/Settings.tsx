@@ -6,6 +6,7 @@ import { formatDateTime, formatNumber } from "../lib/format.ts";
 import { useLang, useT } from "../lib/i18n.ts";
 import { updateSettings, useSettings, type LangPref, type NoteTypeMode, type ThemePref } from "../lib/settings.ts";
 import { Icon } from "../ui/Icon.tsx";
+import { PageHead } from "../ui/PageHead.tsx";
 
 function Segmented<T extends string>(props: { label: string; value: T; options: { value: T; label: string }[]; onChange(v: T): void; testId?: string }) {
   return (
@@ -19,23 +20,40 @@ function Segmented<T extends string>(props: { label: string; value: T; options: 
   );
 }
 
+/** One setting: its name and a line of explanation on the left, the control on the right. */
+function Row(props: { label: string; hint?: string; children?: React.ReactNode; testId?: string }) {
+  return (
+    <div className="set-row" data-testid={props.testId}>
+      <div className="set-text">
+        <span className="set-name">{props.label}</span>
+        {props.hint && <span className="set-hint">{props.hint}</span>}
+      </div>
+      {props.children && <div className="set-control">{props.children}</div>}
+    </div>
+  );
+}
+
+/** An on/off setting: a checkbox drawn as a switch. */
+export function Switch(props: { label: string; checked: boolean; onChange(v: boolean): void; testId?: string }) {
+  return (
+    <input type="checkbox" role="switch" className="switch" aria-label={props.label} checked={props.checked} data-testid={props.testId} onChange={(e) => props.onChange(e.target.checked)} />
+  );
+}
+
 export function Settings() {
   const s = useSettings();
   const t = useT();
   const lang = useLang();
-  const { noteTypes, analysis, info, openExport } = useApp();
+  const { noteTypes, analysis, info, openImport, openExport } = useApp();
   const n = (v: number) => formatNumber(v, lang);
 
   return (
     <div className="page page-settings">
-      <header className="page-head">
-        <h1 className="page-title">{t("settings.title")}</h1>
-      </header>
+      <PageHead title={t("settings.title")} />
 
       <section className="set-section">
         <h2 className="section-title">{t("settings.appearance")}</h2>
-        <div className="set-row">
-          <span className="set-label">{t("settings.theme")}</span>
+        <Row label={t("settings.theme")}>
           <Segmented<ThemePref>
             label={t("settings.theme")}
             value={s.theme}
@@ -47,9 +65,8 @@ export function Settings() {
               { value: "dark", label: t("settings.theme.dark") },
             ]}
           />
-        </div>
-        <div className="set-row">
-          <span className="set-label">{t("settings.language")}</span>
+        </Row>
+        <Row label={t("settings.language")}>
           <Segmented<LangPref>
             label={t("settings.language")}
             value={s.lang}
@@ -61,49 +78,45 @@ export function Settings() {
               { value: "en", label: "English" },
             ]}
           />
-        </div>
+        </Row>
       </section>
 
       <section className="set-section">
-        <h2 className="section-title">{t("settings.cards")}</h2>
-        <fieldset className="fieldset">
-          <legend className="set-label">{t("settings.render")}</legend>
-          <label className="check">
-            <input type="radio" name="render" checked={s.renderDefault === "auto"} onChange={() => updateSettings({ renderDefault: "auto" })} />
-            <span>
-              {t("settings.render.auto")}
-              <small>{t("settings.render.autoHint")}</small>
-            </span>
-          </label>
-          <label className="check">
-            <input type="radio" name="render" checked={s.renderDefault === "original"} onChange={() => updateSettings({ renderDefault: "original" })} />
-            <span>
-              {t("settings.render.original")}
-              <small>{t("settings.render.originalHint")}</small>
-            </span>
-          </label>
-        </fieldset>
-        <label className="check">
-          <input type="checkbox" checked={s.autoplay} onChange={(e) => updateSettings({ autoplay: e.target.checked })} />
-          <span>{t("settings.autoplay")}</span>
-        </label>
+        <h2 className="section-title">{t("settings.review")}</h2>
+        <Row label={t("settings.render")} hint={t(s.renderDefault === "auto" ? "settings.render.autoHint" : "settings.render.originalHint")}>
+          <Segmented<"auto" | "original">
+            label={t("settings.render")}
+            value={s.renderDefault}
+            testId="render-setting"
+            onChange={(renderDefault) => updateSettings({ renderDefault })}
+            options={[
+              { value: "auto", label: t("settings.render.wenguShort") },
+              { value: "original", label: t("settings.render.originalShort") },
+            ]}
+          />
+        </Row>
+        <Row label={t("settings.autoplay")} hint={t("settings.autoplayHint")}>
+          <Switch label={t("settings.autoplay")} checked={s.autoplay} testId="autoplay-setting" onChange={(autoplay) => updateSettings({ autoplay })} />
+        </Row>
+      </section>
 
-        {noteTypes.length > 0 && (
-          <div className="nt-list">
-            <h3 className="set-label">{t("settings.noteTypes")}</h3>
-            <p className="muted small">{t("settings.noteTypesHint")}</p>
-            <ul>
-              {noteTypes.map((nt) => {
-                const a = analysis(nt.id);
-                const mode = s.noteTypeModes[String(nt.id)] ?? "auto";
-                return (
-                  <li key={nt.id} className="nt-row" data-testid="nt-row">
-                    <div className="nt-info">
-                      <span className="nt-name">{nt.name}</span>
-                      <span className={`small ${a.safe ? "muted" : "warn-text"}`}>
-                        {a.safe ? t("settings.nt.safe") : t("settings.nt.unsafe", { reason: a.reasons.map((r) => reasonText(r, t)).join("; ") })}
-                      </span>
-                    </div>
+      {noteTypes.length > 0 && (
+        <section className="set-section">
+          <h2 className="section-title">{t("settings.noteTypesTitle")}</h2>
+          <p className="set-intro">{t("settings.noteTypesHint")}</p>
+          <ul className="nt-list">
+            {noteTypes.map((nt) => {
+              const a = analysis(nt.id);
+              const mode = s.noteTypeModes[String(nt.id)] ?? "auto";
+              return (
+                <li key={nt.id} className="set-row nt-row" data-testid="nt-row">
+                  <div className="set-text">
+                    <span className="set-name">{nt.name}</span>
+                    <span className={`set-hint ${a.safe ? "" : "warn-text"}`}>
+                      {a.safe ? t("settings.nt.safe") : t("settings.nt.unsafe", { reason: a.reasons.map((r) => reasonText(r, t)).join("; ") })}
+                    </span>
+                  </div>
+                  <div className="set-control">
                     <Segmented<NoteTypeMode>
                       label={nt.name}
                       value={mode}
@@ -121,30 +134,33 @@ export function Settings() {
                         { value: "original", label: t("settings.nt.original") },
                       ]}
                     />
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )}
-      </section>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       <AgentSection />
 
       <section className="set-section">
         <h2 className="section-title">{t("settings.data")}</h2>
-        <p>{t("settings.storage", { storage: info.storage })}</p>
-        <p className="muted">
-          {t("settings.counts", { notes: n(info.counts.knowledgePoints), cards: n(info.counts.reviewItems), reviews: n(info.counts.reviewLog), media: n(info.counts.media) })}
-        </p>
-        <div className="set-row">
-          <span className="muted small">{t("settings.exportHint")}</span>
-          <button type="button" className="btn btn-ghost" onClick={() => openExport()}>
+        <Row label={t("settings.transfer")} hint={t("settings.exportHint")}>
+          <button type="button" className="btn btn-ghost btn-small" onClick={() => openImport()}>
+            <Icon name="import" /> {t("nav.import")}
+          </button>
+          <button type="button" className="btn btn-ghost btn-small" onClick={() => openExport()}>
             <Icon name="export" /> {t("nav.export")}
           </button>
-        </div>
-        <p className="muted small">{t("settings.version", { sqlite: info.sqliteVersion, schema: info.schemaVersion })}</p>
+        </Row>
+        <Row
+          label={t("settings.storageTitle")}
+          hint={`${t("settings.storage", { storage: info.storage })} ${t("settings.counts", { notes: n(info.counts.knowledgePoints), cards: n(info.counts.reviewItems), reviews: n(info.counts.reviewLog), media: n(info.counts.media) })}`}
+        />
       </section>
+
+      <p className="set-foot">{t("settings.version", { sqlite: info.sqliteVersion, schema: info.schemaVersion })}</p>
     </div>
   );
 }
@@ -166,16 +182,12 @@ export function AgentSection() {
     <section className="set-section" data-testid="agent-settings">
       <h2 className="section-title">{t("settings.agents")}</h2>
       {!bridge ? (
-        <p className="muted">{t("settings.agents.desktopOnly")}</p>
+        <p className="set-intro">{t("settings.agents.desktopOnly")}</p>
       ) : (
         <>
-          <label className="check">
-            <input type="checkbox" data-testid="agent-access" checked={s.agentAccess} onChange={(e) => updateSettings({ agentAccess: e.target.checked })} />
-            <span>
-              {t("settings.agents.allow")}
-              <small>{t("settings.agents.allowHint")}</small>
-            </span>
-          </label>
+          <Row label={t("settings.agents.allow")} hint={t("settings.agents.allowHint")}>
+            <Switch label={t("settings.agents.allow")} checked={s.agentAccess} testId="agent-access" onChange={(agentAccess) => updateSettings({ agentAccess })} />
+          </Row>
           {s.agentAccess && (
             <div className="agent-setup">
               <p className="small">{t("settings.agents.claude")}</p>

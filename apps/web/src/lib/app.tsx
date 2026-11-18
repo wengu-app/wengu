@@ -117,6 +117,7 @@ export function AppProvider(props: {
 
 export type Route =
   | { name: "decks" }
+  | { name: "deck"; deckId: Id }
   | { name: "review"; deckId: Id | null }
   | { name: "browse"; deckId: Id | null; noteId: Id | null }
   | { name: "make"; deckId: Id | null }
@@ -129,6 +130,10 @@ export function parseRoute(hash: string): Route {
   const num = (v: string | null) => (v && /^\d+$/.test(v) ? Number(v) : null);
   const parts = path.split("/").filter(Boolean);
   switch (parts[0]) {
+    case "deck": {
+      const id = num(parts[1] ?? null);
+      return id === null ? { name: "decks" } : { name: "deck", deckId: id };
+    }
     case "review":
       return { name: "review", deckId: num(parts[1] ?? null) };
     case "browse":
@@ -148,6 +153,8 @@ export function routeHash(r: Route): string {
   switch (r.name) {
     case "decks":
       return "#/";
+    case "deck":
+      return `#/deck/${r.deckId}`;
     case "review":
       return `#/review${r.deckId !== null ? "/" + r.deckId : ""}`;
     case "browse": {
@@ -168,9 +175,32 @@ export function routeHash(r: Route): string {
 
 export function navigate(r: Route, replace = false): void {
   const h = routeHash(r);
-  if (replace) history.replaceState(null, "", h);
-  else location.hash = h;
-  if (replace) window.dispatchEvent(new HashChangeEvent("hashchange"));
+  if (!replace) {
+    location.hash = h;
+    return;
+  }
+  history.replaceState(null, "", h);
+  trail[trail.length - 1] = h;
+  window.dispatchEvent(new HashChangeEvent("hashchange"));
+}
+
+/**
+ * The pages this tab has moved through, oldest first, so Back can tell whether there is an app page to return to. A
+ * hash change to the entry before the current one is a step back (the browser's Back, or goBack); anything else is a
+ * step forward.
+ */
+const trail: string[] = [routeHash(parseRoute(location.hash))];
+window.addEventListener("hashchange", () => {
+  const h = routeHash(parseRoute(location.hash));
+  if (h === trail[trail.length - 1]) return;
+  if (h === trail[trail.length - 2]) trail.pop();
+  else trail.push(h);
+});
+
+/** Back to the page this one was opened from; home when it was the first page of the tab. */
+export function goBack(): void {
+  if (trail.length > 1) history.back();
+  else navigate({ name: "decks" }, true);
 }
 
 export function useRoute(): Route {

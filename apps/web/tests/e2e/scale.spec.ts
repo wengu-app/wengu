@@ -8,7 +8,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { writeAnkiPackage } from "@wengu/anki";
 import { syntheticPackage } from "../../../../packages/core/bench/synthetic.ts";
-import { importFixture, openApp, reveal } from "./helpers.ts";
+import { importFixture, openApp, pick, reveal } from "./helpers.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const CACHE = path.resolve(here, "../../.cache/synthetic-50k.apkg");
@@ -60,7 +60,7 @@ test("50k notes: import, virtual list, search, answer latency", async ({ page })
   await page.getByTestId("browse-search").fill("");
   await expect(page.getByTestId("browse-count")).toHaveAttribute("data-total", "50000");
   const s1 = Date.now();
-  await page.getByTestId("filter-state").selectOption("review");
+  await pick(page.getByTestId("filter-state"), "Review");
   await expect(page.getByTestId("browse-count")).not.toHaveAttribute("data-total", "50000");
   console.log(`state filter "review": ${Date.now() - s1} ms; ${await page.getByTestId("browse-count").innerText()}`);
 

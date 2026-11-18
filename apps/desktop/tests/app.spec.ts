@@ -126,7 +126,10 @@ test("import from the OS, review, quit, relaunch with data intact, export via th
   await page.keyboard.press("Control+Shift+E");
   const viaMenu = await page.getByTestId("export-dialog").isVisible({ timeout: 3000 }).catch(() => false);
   report.exportDialogViaMenuAccelerator = viaMenu;
-  if (!viaMenu) await page.getByRole("button", { name: "Export" }).click();
+  if (!viaMenu) {
+    await page.goto(page.url().replace(/#.*$/, "#/"));
+    await page.getByRole("button", { name: "Export", exact: true }).click();
+  }
   await page.getByTestId("export-go").click();
   await expect(page.getByTestId("export-done")).toBeVisible({ timeout: 60_000 });
   let file = "";

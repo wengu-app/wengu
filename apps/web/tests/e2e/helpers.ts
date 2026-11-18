@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -68,3 +68,9 @@ export async function openNote(page: Page, text: string, rowText = text) {
 }
 
 export const previewFrame = (page: Page) => page.frameLocator('[data-testid="preview-frame"]');
+
+/** Chooses an option in a ui/Select dropdown: opens it from its trigger and clicks the option by accessible name. */
+export async function pick(trigger: Locator, option: string): Promise<void> {
+  await trigger.click();
+  await trigger.page().locator(".select-pop").getByRole("option", { name: option, exact: true }).click();
+}

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { readAnkiPackage } from "@wengu/anki";
-import { importFixture, openApp, openNote, reveal, waitSide } from "./helpers.ts";
+import { importFixture, openApp, openNote, pick, reveal, waitSide } from "./helpers.ts";
 
 test("browse, edit, add, delete; export with progress and read it back", async ({ page }) => {
   await openApp(page);
@@ -39,22 +39,22 @@ test("browse, edit, add, delete; export with progress and read it back", async (
 
   // filters: tag
   await page.getByTestId("browse-search").fill("");
-  await page.getByTestId("filter-tag").selectOption("edited");
+  await pick(page.getByTestId("filter-tag"), "edited");
   await expect(page.getByTestId("browse-count")).toHaveAttribute("data-total", "1");
-  await page.getByTestId("filter-tag").selectOption("");
+  await pick(page.getByTestId("filter-tag"), "Any tag");
 
   // suspend the card, move it to another deck
   const item = editor.getByTestId("item-row").first();
   await item.getByTestId("item-suspend").click();
   await expect(item).toContainText("Suspended");
-  await item.getByLabel("Move to deck").selectOption({ label: "Wengu Test / Misc" });
+  await pick(item.getByLabel("Move to deck"), "Wengu Test / Misc");
   await expect.poll(async () => page.evaluate(async () => {
     const r = await window.__wenguDb!.search({ text: "France" });
     return r.rows[0]?.deckIds;
   })).toHaveLength(1);
-  await page.getByTestId("filter-state").selectOption("suspended");
+  await pick(page.getByTestId("filter-state"), "Suspended");
   await expect(page.getByTestId("browse-row").filter({ hasText: "France" })).toHaveCount(1);
-  await page.getByTestId("filter-state").selectOption("");
+  await pick(page.getByTestId("filter-state"), "Any state");
 
   // add a note
   await page.getByTestId("add-note").click();
@@ -79,8 +79,9 @@ test("browse, edit, add, delete; export with progress and read it back", async (
   await page.getByRole("button", { name: "Undo" }).click();
   await expect.poll(() => page.evaluate(async () => (await window.__wenguDb!.info()).counts.knowledgePoints)).toBe(notesAfterDelete + 1);
 
-  // export everything with progress (the button is always in the sidebar)
-  await page.getByRole("button", { name: "Export" }).click();
+  // export everything with progress (from the home page's Decks section)
+  await page.goto("./#/");
+  await page.getByRole("button", { name: "Export", exact: true }).click();
   const exp = page.getByTestId("export-dialog");
   await expect(exp.getByTestId("export-progress")).toBeChecked();
   const [download] = await Promise.all([page.waitForEvent("download"), page.getByTestId("export-go").click()]);
@@ -109,7 +110,7 @@ test("export one deck without progress", async ({ page }) => {
   await page.getByRole("button", { name: "Actions for Languages" }).click();
   await page.getByRole("menuitem", { name: "Export this deck" }).click();
   const exp = page.getByTestId("export-dialog");
-  await expect(exp.getByTestId("export-deck")).toHaveValue(/\d+/);
+  await expect(exp.getByTestId("export-deck")).toHaveAttribute("data-value", /^[1-9]\d*$/);
   await exp.getByTestId("export-progress").uncheck();
   const [download] = await Promise.all([page.waitForEvent("download"), page.getByTestId("export-go").click()]);
   expect(download.suggestedFilename()).toMatch(/^Wengu Test - Languages \d{4}-\d{2}-\d{2}\.apkg$/);

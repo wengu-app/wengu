@@ -50,7 +50,7 @@ for (const theme of ["light", "dark"] as const) {
     await shot("07-decks-narrow");
     await page.setViewportSize({ width: 1200, height: 820 });
 
-    await page.getByRole("button", { name: lang === "zh" ? "导出" : "Export" }).click();
+    await page.getByRole("button", { name: lang === "zh" ? "导出" : "Export", exact: true }).click();
     await expect(page.getByTestId("export-dialog")).toBeVisible();
     await page.waitForTimeout(250);
     await shot("08-export");

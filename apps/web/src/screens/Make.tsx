@@ -5,11 +5,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { DeckNode, Id, NoteType } from "@wengu/core";
 
-import { navigate, useApp } from "../lib/app.tsx";
+import { goBack, navigate, useApp } from "../lib/app.tsx";
 import { formatNumber } from "../lib/format.ts";
 import { useLang, useT } from "../lib/i18n.ts";
 import { deckColor } from "../lib/theme.ts";
 import { Icon } from "../ui/Icon.tsx";
+import { PageHead } from "../ui/PageHead.tsx";
+import { deckOptions, Select } from "../ui/Select.tsx";
 import { FieldEditor, flattenDecks } from "./Editor.tsx";
 
 const TAB_COLORS = ["var(--c-accent)", "var(--c-easy)", "var(--c-good)", "var(--c-hard)", "#9b6cf0"];
@@ -185,18 +187,16 @@ export function Make({ initialDeckId }: { initialDeckId: Id | null }) {
 
   return (
     <div className="page page-make">
-      <header className="page-head">
-        <div>
-          <h1 className="page-title">{t("make.title")}</h1>
-          <p className="page-sub">{t("make.sub")}</p>
-        </div>
-        <div className="page-actions">
-          <button type="button" className="btn btn-ghost btn-small" onClick={() => (history.length > 1 ? history.back() : navigate({ name: "decks" }))}>
+      <PageHead
+        title={t("make.title")}
+        sub={t("make.sub")}
+        actions={
+          <button type="button" className="btn btn-ghost btn-small" onClick={goBack}>
             <Icon name="check" size={16} />
             {t("make.done")}
           </button>
-        </div>
-      </header>
+        }
+      />
 
       {noteTypes.length > 0 && (
         <div className="ix-tabs" role="tablist" aria-label={t("browse.noteType")}>
@@ -217,18 +217,11 @@ export function Make({ initialDeckId }: { initialDeckId: Id | null }) {
             );
           })}
           {more.length > 0 && (
-            <label className="ix-tab ix-tab-more">
+            <Select className="ix-tab ix-tab-more" label={t("make.moreTypes")} value={0}
+              options={more.map((x) => ({ value: x.id, label: x.name }))} onChange={setNtId}>
               <span>{t("make.moreTypes")}</span>
               <Icon name="more" size={16} />
-              <select aria-label={t("make.moreTypes")} value="" onChange={(e) => e.target.value && setNtId(Number(e.target.value))}>
-                <option value="" />
-                {more.map((x) => (
-                  <option key={x.id} value={x.id}>
-                    {x.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+            </Select>
           )}
         </div>
       )}
@@ -373,13 +366,9 @@ function Holder({ deck, decks, made, onPick }: { deck: DeckNode; decks: DeckNode
           <Icon name="more" size={16} />
         </span>
       </span>
-      <select className="holder-select" aria-label={t("browse.deck")} value={deck.id} onChange={(e) => onPick(Number(e.target.value))}>
-        {decks.map((x) => (
-          <option key={x.id} value={x.id}>
-            {x.name.replace(/::/g, " / ")}
-          </option>
-        ))}
-      </select>
+      <Select className="holder-select" label={t("browse.deck")} value={deck.id} options={deckOptions(decks)} onChange={onPick}>
+        <span className="sr-only">{t("make.changeDeck")}</span>
+      </Select>
     </div>
   );
 }

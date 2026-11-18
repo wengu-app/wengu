@@ -13,9 +13,8 @@ const FACES: readonly [Phase, IconName][] = [
 ];
 
 /**
- * The update button in the top bar: quiet while there is something to fetch, a solid key once a restart will apply it.
- * Every phase's content is laid out in the same grid cell and only the current one is visible, so the button is as wide
- * as its widest phase from the start and the top bar never shifts while an update goes through.
+ * The update button in the top bar: a quiet icon while there is something to fetch (icon and percentage while it
+ * downloads), and a labelled solid key once a restart will apply it. app.css decides what each phase shows.
  */
 export function DesktopUpdate() {
   const t = useT();

@@ -6,6 +6,7 @@ import { formatBytes } from "../lib/format.ts";
 import { useLang, useT } from "../lib/i18n.ts";
 import { Dialog } from "../ui/Dialog.tsx";
 import { Icon } from "../ui/Icon.tsx";
+import { deckOptions, Select } from "../ui/Select.tsx";
 import { flattenDecks } from "./Editor.tsx";
 
 function fileName(deck: DeckNode | undefined): string {
@@ -109,13 +110,8 @@ export function ExportDialog(props: { open: boolean; deckId: Id | null; onClose(
             <span>{t("export.deck")}</span>
           </label>
           {scope === "deck" && (
-            <select className="select export-deck" value={deckId ?? ""} onChange={(e) => setDeckId(Number(e.target.value))} aria-label={t("browse.deck")} data-testid="export-deck">
-              {decks.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name.replace(/::/g, " / ")}
-                </option>
-              ))}
-            </select>
+            <Select className="export-deck" label={t("browse.deck")} data-testid="export-deck" value={deckId ?? 0}
+              options={deckOptions(decks)} onChange={setDeckId} />
           )}
         </fieldset>
         <fieldset className="fieldset" disabled={working || state.kind === "done"}>
