@@ -789,33 +789,37 @@ kbd {
    keeps it apart from the orange Make key beside it; red is only for a failed attempt. */
 @property --p { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
 .desktop-update { flex: none; min-width: 0; }
-.desktop-update svg { flex: none; }
 .desktop-update:disabled { opacity: 1; cursor: default; }
-.desktop-update[data-phase="available"] svg { color: var(--c-good); }
-.desktop-update[data-phase="available"] { --bt: var(--c-ink); }
+/* All phases share one cell; the hidden ones still take up room, so the width never changes between phases. */
+.update-faces { display: grid; }
+.update-face { grid-area: 1 / 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.update-face:not(.is-on) { visibility: hidden; }
+.update-face svg { flex: none; }
+.update-percent { display: grid; justify-items: end; font-variant-numeric: tabular-nums; }
+.update-percent > span { grid-area: 1 / 1; }
+.update-percent > span:first-child { visibility: hidden; }
+.desktop-update:not([data-phase="ready"], [data-phase="installing"]) { --bt: var(--c-ink); }
+:is([data-face="available"], [data-face="downloading"]) svg { color: var(--c-good); }
+[data-face="error"] svg { color: var(--c-again); }
 .desktop-update[data-phase="downloading"] {
-  --bt: var(--c-ink);
   --b: linear-gradient(90deg, color-mix(in srgb, var(--c-good) 22%, var(--c-surface)) var(--p), var(--c-surface) var(--p));
   box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--c-good) 45%, var(--c-line-strong)), 0 4px 0 color-mix(in srgb, var(--c-good) 45%, var(--c-line-strong));
   transition: --p 400ms var(--ease);
 }
-.desktop-update[data-phase="downloading"] svg { color: var(--c-good); }
-.update-percent { min-width: 3ch; text-align: end; font-variant-numeric: tabular-nums; }
 .desktop-update:is([data-phase="ready"], [data-phase="installing"]) {
   --b: var(--c-good); --bd: color-mix(in srgb, var(--c-good) 72%, #000); --bt: #fff;
 }
-.desktop-update[data-phase="error"] svg { color: var(--c-again); }
 @media (max-width: 900px) {
   .update-label { display: none; }
   .desktop-update { padding-inline: 10px; }
-  .desktop-update[data-phase="downloading"] svg { display: none; }
+  [data-face="downloading"] svg { display: none; }
 }
 @media (max-width: 760px) {
   .topbar-in:has(.desktop-update) { gap: 6px; padding-inline: 8px; }
   .topbar-actions:has(.desktop-update) { gap: 4px; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .desktop-update[data-phase="installing"] svg { animation: spin 1.2s linear infinite; }
-  .desktop-update[data-phase="available"] svg { animation: update-nudge 2.4s var(--ease) 3; }
+  .is-on[data-face="installing"] svg { animation: spin 1.2s linear infinite; }
+  .is-on[data-face="available"] svg { animation: update-nudge 2.4s var(--ease) 3; }
 }
 @keyframes update-nudge { 0%, 70%, 100% { transform: translateY(0); } 80% { transform: translateY(2px); } 90% { transform: translateY(-1px); } }

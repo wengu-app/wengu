@@ -1,9 +1,22 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import type { UpdateState } from "../lib/desktop.ts";
 import { useT } from "../lib/i18n.ts";
-import { Icon } from "./Icon.tsx";
+import { Icon, type IconName } from "./Icon.tsx";
 
-/** The update button in the top bar: quiet while there is something to fetch, a solid key once a restart will apply it. */
+type Phase = Exclude<UpdateState["phase"], "idle">;
+const FACES: readonly [Phase, IconName][] = [
+  ["available", "update"],
+  ["downloading", "update"],
+  ["ready", "refresh"],
+  ["installing", "refresh"],
+  ["error", "warning"],
+];
+
+/**
+ * The update button in the top bar: quiet while there is something to fetch, a solid key once a restart will apply it.
+ * Every phase's content is laid out in the same grid cell and only the current one is visible, so the button is as wide
+ * as its widest phase from the start and the top bar never shifts while an update goes through.
+ */
 export function DesktopUpdate() {
   const t = useT();
   const [state, setState] = useState<UpdateState>({ phase: "idle" });
@@ -17,7 +30,6 @@ export function DesktopUpdate() {
   const label = t(`update.${phase}`);
   const busy = phase === "downloading" || phase === "installing";
   const solid = phase === "ready" || phase === "installing";
-  const icon = phase === "error" ? "warning" : solid ? "refresh" : "update";
   const percent = phase === "downloading" ? Math.max(0, Math.min(100, Math.round(state.percent))) : 0;
 
   return (
@@ -27,14 +39,16 @@ export function DesktopUpdate() {
       aria-label={phase === "downloading" ? `${label} ${percent}%` : label} aria-busy={busy || undefined}
       disabled={busy}
       onClick={() => desktop.update?.(solid ? "install" : "download")}>
-      <Icon name={icon} />
-      <span className="update-label">{label}</span>
-      {phase === "downloading" && (
-        <>
-          <span className="update-percent">{percent}%</span>
-          <progress className="sr-only" aria-label={label} value={percent} max={100} />
-        </>
-      )}
+      <span className="update-faces" aria-hidden="true">
+        {FACES.map(([face, icon]) => (
+          <span key={face} className={`update-face${face === phase ? " is-on" : ""}`} data-face={face}>
+            <Icon name={icon} />
+            <span className="update-label">{t(`update.${face}`)}</span>
+            {face === "downloading" && <span className="update-percent"><span>100%</span><span>{percent}%</span></span>}
+          </span>
+        ))}
+      </span>
+      {phase === "downloading" && <progress className="sr-only" aria-label={label} value={percent} max={100} />}
     </button>
   );
 }
