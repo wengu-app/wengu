@@ -109,6 +109,28 @@ corepack pnpm --filter @wengu/web test
 - 修改 Electron Fuses 后必须重新签名（`resetAdHocDarwinSignature`），否则 Apple 芯片上启动即被系统终止。
 - 工作流里的"Verify signature and launch"会真实启动应用；它失败说明包不可用，不要绕过。
 
+### 桌面发版和应用内更新
+
+已安装的应用从 `https://github.com/wengu-app/downloads/releases/latest/download/` 读取 `latest.yml`、`latest-mac.yml`、`latest-linux.yml`，地址在打包时写进包里（CI 变量 `WENGU_UPDATE_URL`，`scripts/package.mjs` 有同样的默认值）。0.1.1 是第一个带更新功能的版本，更早的版本要手动装一次。
+
+发一个新版本：
+
+```sh
+# 1. 升版本号（apps/desktop/package.json 的 version），提交并推送
+gh workflow run desktop.yml --ref main          # 2. 三个平台一起打包
+gh run watch <run-id> --exit-status
+D=~/.cache/wengu-release/v<版本>                 # 3. 下载产物，放硬盘，/tmp 是内存盘放不下
+gh run download <run-id> -D "$D"
+gh release create v<版本> -R wengu-app/downloads --title "温故 <版本>" --notes "…" --latest $(find "$D" -type f | sort)
+```
+
+- 每个 CI 产物（安装包、mac 的 zip、`.blockmap`、三个 `latest*.yml`，共 15 个文件）都要传；漏了某个 `latest*.yml`，对应平台就收不到更新。
+- Release 必须是正式版、标为 latest：预发布和草稿不会出现在 `releases/latest`。
+- 产物文件名不能有空格：GitHub 会把附件名里的空格换成点，和 `latest*.yml` 里记的名字对不上。
+- 发布后用 `curl -sL <更新地址>/latest-linux.yml | head -1` 确认版本号已变。
+- 应用启动 15 秒后检查一次，之后每 6 小时一次，"帮助 → 检查更新…"立即检查。
+- 本机验证（只能测 Linux）：本机没有 FUSE 2，AppImage 用 `APPIMAGE_EXTRACT_AND_RUN=1` 运行，再加 `DISPLAY=:1 --no-sandbox`；更新后重启的进程不会带上原来的命令行参数（包括 `--user-data-dir`），会用默认数据目录 `~/.config/Wengu`。
+
 ### 数据安全
 
 - `packages/core/src/worker/buffered-journal-vfs.ts` 合并回滚日志写入以降低延迟，依赖 `synchronous = NORMAL` 和 `journal_mode = PERSIST`：日志在 xSync 前落盘。改这些 pragma 或这个文件前，先跑 `test:browser` 和 `apps/desktop/tests/review-kill.spec.ts`。
