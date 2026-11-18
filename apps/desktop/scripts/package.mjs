@@ -16,6 +16,10 @@ const args = process.argv.slice(2);
 if (!args.some((a) => a.startsWith("--publish") || a === "-p")) args.push("--publish", "never");
 
 const env = { ...process.env };
+if (process.platform === "darwin") {
+  if (env.CSC_LINK) args.push("-c.forceCodeSigning=true");
+  else args.push("-c.mac.identity=-");
+}
 const hasPnpm = spawnSync(process.platform === "win32" ? "where" : "which", ["pnpm"], { stdio: "ignore" }).status === 0;
 if (!hasPnpm && process.platform !== "win32") {
   const dir = mkdtempSync(path.join(tmpdir(), "wengu-pnpm-shim-"));

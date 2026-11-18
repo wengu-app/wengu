@@ -104,7 +104,7 @@ corepack pnpm --filter @wengu/web test
 
 - macOS、Windows 包只能由 GitHub Actions 构建：`gh workflow run desktop.yml --ref main`（手动触发）。
 - macOS 按 arm64 和 x64 **分开打包，不要打 universal**。
-- macOS 目前是临时签名（`identity: "-"`），未公证；拿到 Apple 开发者证书后去掉这一行并配置 secrets。
+- macOS CI 使用 Developer ID Application 签名；签名凭据由 MAC_CSC_LINK 和 MAC_CSC_KEY_PASSWORD 提供。本地无证书时临时签名，公证暂未启用。
 - 不要在 `extendInfo` 里覆盖 `CFBundleName`：Electron 按它找 `<名称> Helper.app`，改了会启动即崩溃。
 - 修改 Electron Fuses 后必须重新签名（`resetAdHocDarwinSignature`），否则 Apple 芯片上启动即被系统终止。
 - 工作流里的"Verify signature and launch"会真实启动应用；它失败说明包不可用，不要绕过。

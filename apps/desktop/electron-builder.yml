@@ -100,13 +100,9 @@ mac:
     # zip: what electron-updater (Squirrel.Mac) needs for updates
     - target: zip
       arch: [arm64, x64]
-  # No Developer ID yet: sign the whole bundle ad-hoc ("-") so its signature is valid after packaging. Gatekeeper still
-  # blocks the first launch of a downloaded copy. Remove this line once a real certificate (CSC_LINK) is configured.
-  identity: "-"
   hardenedRuntime: true
   # electron-builder's default entitlements (JIT etc. for V8 under the hardened runtime)
   gatekeeperAssess: false
-  # Signing/notarization need an Apple Developer ID (CSC_LINK, APPLE_ID…); without them the build is ad-hoc signed.
   notarize: false
   extendInfo:
     # Finder / Launchpad show 温故; the bundle on disk stays Wengu.app. Do NOT override CFBundleName: Electron

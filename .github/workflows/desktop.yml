@@ -1,6 +1,5 @@
 # Builds the desktop app (apps/desktop) for Linux, macOS and Windows and uploads the installers as workflow artifacts.
-# Manual only: Actions → "Desktop builds" → Run workflow. Nothing is published or signed.
-# Unverified until it has been run once.
+# Manual only. macOS artifacts are Developer ID signed. All targets use --publish never.
 name: Desktop builds
 
 on:
@@ -44,9 +43,6 @@ jobs:
               apps/desktop/dist/*.exe
               apps/desktop/dist/*.blockmap
               apps/desktop/dist/latest*.yml
-    env:
-      # No signing identities are configured: don't let electron-builder look for one in the keychain.
-      CSC_IDENTITY_AUTO_DISCOVERY: "false"
     steps:
       - uses: actions/checkout@v4
 
@@ -61,7 +57,20 @@ jobs:
         run: corepack pnpm install --frozen-lockfile --filter "@wengu/desktop..."
 
       - name: Build and package
+        if: runner.os != 'macOS'
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
         run: corepack pnpm --filter @wengu/desktop run ${{ matrix.script }}
+
+      - name: Build and sign macOS
+        if: runner.os == 'macOS'
+        env:
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+        run: |
+          : "${CSC_LINK:?Missing MAC_CSC_LINK}"
+          : "${CSC_KEY_PASSWORD:?Missing MAC_CSC_KEY_PASSWORD}"
+          corepack pnpm --filter @wengu/desktop run dist:mac
 
       # A build that packages fine can still be killed at launch by macOS if its code signature is broken.
       - name: Verify signature and launch (macOS)
@@ -71,9 +80,12 @@ jobs:
           for app in mac-arm64/Wengu.app mac/Wengu.app; do
             echo "== $app"
             codesign --verify --deep --strict --verbose=2 "$app"
-            codesign -dv "$app" 2>&1 | grep -E 'Signature|flags|TeamIdentifier' || true
+            signature=$(codesign -dv --verbose=4 "$app" 2>&1)
+            grep -Fx 'Authority=Developer ID Application: kaixiang li (W3ZB9MVRQ3)' <<< "$signature"
+            grep -Fx 'TeamIdentifier=W3ZB9MVRQ3' <<< "$signature"
           done
           host=mac-arm64; [ "$(uname -m)" = "x86_64" ] && host=mac
+          echo "Launch smoke test: $host/Wengu.app on $(uname -m)"
           "$host/Wengu.app/Contents/MacOS/Wengu" --user-data-dir="$RUNNER_TEMP/wengu-smoke" > "$RUNNER_TEMP/wengu-smoke.log" 2>&1 &
           pid=$!
           sleep 20

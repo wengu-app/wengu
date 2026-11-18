@@ -5,7 +5,7 @@ and menu, file associations for `.apkg`/`.colpkg`, and a much tighter sandbox fo
 templates contain. Everything the app does is still the web app; the shell has no features of its own.
 
 Status: Linux (AppImage, deb) is built and run-tested. macOS (separate Apple silicon and Intel dmg + zip) and Windows (NSIS)
-build in the CI workflow but are unsigned and have **never been run on a real machine**.
+build in GitHub Actions. The workflow checks both macOS signatures and launches the app on the runner architecture.
 
 ## Commands
 
@@ -128,3 +128,7 @@ app and copy the whole profile directory. Uninstalling does not remove the profi
 Not included. The build already emits what electron-updater needs (`latest*.yml`, blockmaps, a mac `zip`; a generic
 publish URL under https://wengu.dev/download/ is configured as a placeholder) so it can be added without changing
 targets; macOS updates additionally need a signed app.
+
+## macOS distribution credentials
+
+The macOS CI job imports a Developer ID Application identity from the GitHub Actions repository secrets `MAC_CSC_LINK` (base64-encoded PKCS#12) and `MAC_CSC_KEY_PASSWORD` (export password). It verifies the exact signing authority and team for both architectures before launching the host architecture. Notarization is disabled.
