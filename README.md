@@ -82,7 +82,7 @@
 M0 的导入导出、排期、沙箱和生成原型已实现。真实热门卡组（Ultimate Geography、MCAT、日语核心词汇等）的导入、渲染和导出往返已用 Anki 官方库逐项对照，结果一致；对照脚本是 `corepack pnpm --filter @wengu/anki verify:real <卡组路径>`。
 M1 的导入、复习、浏览编辑、统计、导出和本地持久化已实现，连续两周自用验收尚未完成。
 5 万笔记卡组上评分到显示下一张卡的延迟 P95 约 60 毫秒，达到 100 毫秒以内的目标。
-Linux AppImage 和 deb 已构建，AppImage 已运行验证。macOS（Apple 芯片和 Intel 分开打包）和 Windows 安装包由 GitHub Actions 构建；macOS 工作流使用 Developer ID Application 签名，尚未接入公证，Apple 芯片版在 CI 中验证过可以启动，Intel 版和 Windows 版尚未在真机上运行。
+Linux AppImage 和 deb 已构建，AppImage 已运行验证。macOS（Apple 芯片和 Intel 分开打包）和 Windows 安装包由 GitHub Actions 构建；macOS 工作流使用 Developer ID Application 签名并经过 Apple 公证（从 0.1.3 起，两个架构的 dmg 和 zip 都在 CI 中验证过公证票据），Apple 芯片版在 CI 中验证过可以启动，Intel 版和 Windows 版尚未在真机上运行。
 空卡组首屏可以导入 Anki 卡组或开始制卡。桌面端也可以从首屏连接 agent，开启"允许本机 agent 访问"：Claude Code 等本机 agent 通过 MCP（`温故 --mcp`）读取卡组、添加和修改笔记，写入经由正在运行的应用完成，可以撤销，详见 [apps/desktop/README.md](apps/desktop/README.md#local-agents-mcp)。生成可视化的工具尚未加入。
 新版桌面端发现新版本后会在右上角显示「下载更新」，点击可查看下载进度，校验成功后点击「重启更新」安装；更新源是公开下载仓库 wengu-app/downloads 的最新 Release；0.1.1 起的版本支持应用内更新，Linux AppImage 上已验证从检测、下载到重启替换的完整流程，macOS、Windows 和 deb 尚未在真机上验证。桌面数据位置、运行限制和完整命令见 [apps/desktop/README.md](apps/desktop/README.md)。
 M2 的界面重设计有两个方向的原型：`apps/prototype/magazine`（杂志风，数据写死）和 `apps/prototype/game`（游戏风，用应用的排期代码，可以真实复习）。`apps/web` 已按游戏风改版：顶栏代替侧栏，首页是今日复习、卡组卡包、未来两周和记忆状况几个区块，制卡页做成切割垫上的索引卡（顶栏"制卡"或按 A 打开），复习页和其余页面换成同一套视觉；原型里的热力图和记忆稳定性需要核心统计接口提供按天的复习历史，还没有做。
