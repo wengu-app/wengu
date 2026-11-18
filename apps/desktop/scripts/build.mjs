@@ -14,7 +14,7 @@ const options = {
   platform: "node",
   format: "cjs",
   target: "node22",
-  external: ["electron"],
+  external: ["electron", "electron-updater", "builder-util-runtime"],
   sourcemap: "linked",
   legalComments: "none",
   logLevel: "info",

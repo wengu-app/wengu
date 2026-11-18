@@ -1,3 +1,4 @@
+import { DesktopUpdate } from "../ui/DesktopUpdate.tsx";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { QueueCounts, Rating, RatingName, ReviewCard, Stats, StudyState } from "@wengu/core";
 
@@ -451,6 +452,7 @@ export function Review({ deckId, onExit }: { deckId: number | null; onExit(): vo
             { label: t("review.shortcuts"), hint: "?", onSelect: () => setHelpOpen(true) },
           ]}
         />
+        <DesktopUpdate />
       </header>
 
       <div className="review-body">

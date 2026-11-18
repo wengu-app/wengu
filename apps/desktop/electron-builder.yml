@@ -12,7 +12,7 @@ directories:
   # not "build/": that name is git-ignored repo-wide
   buildResources: resources
 
-# The app is two bundled files plus the web build; there are no runtime node_modules.
+# Production updater dependencies are collected by electron-builder.
 files:
   - package.json
   - out/main.cjs
@@ -55,13 +55,10 @@ fileAssociations:
     role: Viewer
     rank: Alternate
 
-# No updater code ships yet. This only makes the build emit the update metadata (latest*.yml, blockmaps) that
-# electron-updater would read, so auto-update can be added later without changing targets. Nothing is uploaded
-# unless a build is run with --publish (the scripts and CI pass --publish never).
-# The URL has no ${arch}: per-arch metadata and artifacts are told apart by file name.
+# The package script sets the update feed at build time.
 publish:
   - provider: generic
-    url: https://wengu.dev/download/${os}
+    url: ${env.WENGU_UPDATE_URL}
 
 linux:
   executableName: wengu

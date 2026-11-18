@@ -1,7 +1,7 @@
 {
   "name": "@wengu/desktop",
   "productName": "Wengu",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Wengu (温故) desktop app: the web app in an Electron shell",
   "homepage": "https://wengu.dev",
@@ -37,5 +37,9 @@
     "electron-builder": "26.18.0",
     "esbuild": "^0.28.2",
     "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "builder-util-runtime": "9.7.0",
+    "electron-updater": "^6.8.11"
   }
 }

@@ -6,10 +6,7 @@
  */
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from "electron";
 
-type DesktopCommand =
-  | { type: "import"; file?: { name: string; bytes: Uint8Array } }
-  | { type: "export" }
-  | { type: "agent-call"; call: { id: number; tool: string; args: unknown; client: { name: string; title?: string; version?: string } } };
+import type { DesktopCommand } from "../../web/src/lib/desktop.ts";
 
 // The shell's URL: wengu://app in a packaged build, or the dev server it was started against.
 const allowed = (process.argv.find((a) => a.startsWith("--wengu-app-origin=")) ?? "").slice("--wengu-app-origin=".length);
@@ -25,6 +22,9 @@ const agentCommand = (() => {
 if (window.top === window && allowed && location.origin === allowed) {
   contextBridge.exposeInMainWorld("wenguDesktop", {
     platform: process.platform,
+    update(action: "download" | "install") {
+      ipcRenderer.send("wengu:update-action", action);
+    },
     onCommand(cb: (command: DesktopCommand) => void): () => void {
       if (typeof cb !== "function") throw new TypeError("onCommand needs a function");
       const listener = (_e: IpcRendererEvent, command: DesktopCommand) => cb(command);

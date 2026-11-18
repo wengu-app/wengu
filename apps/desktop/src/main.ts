@@ -71,6 +71,7 @@ if (mcpMode) {
 
 function main(): void {
   let win: BrowserWindow | null = null;
+  let updates: ReturnType<typeof import("./updates.ts").startUpdates> | undefined;
   let rendererReady = false;
   const pending: string[] = [];
 
@@ -176,10 +177,17 @@ function main(): void {
   });
   app.on("will-quit", () => bridge.close());
 
+  ipcMain.on("wengu:update-action", (e, action: unknown) => {
+    if (!fromApp(e)) return;
+    if (action === "download") void updates?.download();
+    if (action === "install") updates?.install();
+  });
+
   ipcMain.on("wengu:ready", (e) => {
     debug(`ready from ${e.senderFrame?.url} accepted=${fromApp(e)}`);
     if (!fromApp(e)) return;
     rendererReady = true;
+    if (updates) send({ type: "update", state: updates.state });
     flush();
   });
 
@@ -230,6 +238,7 @@ function main(): void {
       {
         role: "help",
         submenu: [
+          ...(updates ? [{ label: app.getLocale().startsWith("zh") ? "检查更新…" : "Check for Updates…", click: () => void updates?.check(true) }] : []),
           { label: "wengu.dev", click: () => void shell.openExternal(WEBSITE) },
           ...(isMac ? [] : [{ role: "about" as const }]),
         ],
@@ -323,6 +332,10 @@ function main(): void {
     await hardenSession(session.defaultSession, origins);
     // Every web contents (our window, and anything that should never exist: webviews, popups) gets the same policy.
     app.on("web-contents-created", (_e, contents) => hardenWebContents(contents, origins));
+    if (app.isPackaged && existsSync(path.join(process.resourcesPath, "app-update.yml"))) {
+      const { startUpdates } = await import("./updates.ts");
+      updates = startUpdates(() => win, state => send({ type: "update", state }));
+    }
     buildMenu();
     createWindow();
   });

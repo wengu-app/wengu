@@ -125,9 +125,9 @@ app and copy the whole profile directory. Uninstalling does not remove the profi
 
 ## Auto-update
 
-Not included. The build already emits what electron-updater needs (`latest*.yml`, blockmaps, a mac `zip`; a generic
-publish URL under https://wengu.dev/download/ is configured as a placeholder) so it can be added without changing
-targets; macOS updates additionally need a signed app.
+Packaged builds check for a new version after launch and every six hours. Help → Check for Updates checks immediately. When a newer version is available, the top-right Download update button starts the download. It displays progress and changes to Restart to update after verification. Failed downloads can be retried from the same button. MCP and development processes do not check for updates.
+
+The source repository’s Actions variable `WENGU_UPDATE_URL` and the local packaging default point to `https://github.com/wengu-app/downloads/releases/latest/download/`. Stage the installers, macOS update ZIPs, blockmaps and all platform manifests as assets of one draft release in `wengu-app/downloads`, then publish it as the latest stable release. Increase the desktop package version for each release. GitHub workflow artifacts alone do not provide a public update feed. Users of builds predating the updater need to install an updater-enabled build once.
 
 ## macOS distribution credentials
 

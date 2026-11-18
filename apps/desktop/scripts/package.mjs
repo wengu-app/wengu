@@ -16,6 +16,8 @@ const args = process.argv.slice(2);
 if (!args.some((a) => a.startsWith("--publish") || a === "-p")) args.push("--publish", "never");
 
 const env = { ...process.env };
+env.WENGU_UPDATE_URL ||= "https://github.com/wengu-app/downloads/releases/latest/download/";
+if (!env.WENGU_UPDATE_URL.startsWith("https://")) throw new Error("WENGU_UPDATE_URL must use HTTPS");
 if (process.platform === "darwin") {
   if (env.CSC_LINK) args.push("-c.forceCodeSigning=true");
   else args.push("-c.mac.identity=-");

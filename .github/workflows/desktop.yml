@@ -43,6 +43,8 @@ jobs:
               apps/desktop/dist/*.exe
               apps/desktop/dist/*.blockmap
               apps/desktop/dist/latest*.yml
+    env:
+      WENGU_UPDATE_URL: ${{ vars.WENGU_UPDATE_URL }}
     steps:
       - uses: actions/checkout@v4
 

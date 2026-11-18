@@ -1,3 +1,4 @@
+import { DesktopUpdate } from "./ui/DesktopUpdate.tsx";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Id, WenguClient } from "@wengu/core";
 
@@ -129,6 +130,7 @@ function Shell() {
                 <Icon name="export" />
                 <span className="btn-text">{t("nav.export")}</span>
               </button>
+              <DesktopUpdate />
               <TopLink route={{ name: "settings" }} icon="settings" label="nav.settings" current={route.name === "settings"} />
             </div>
           </nav>

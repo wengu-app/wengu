@@ -9,10 +9,17 @@ import { useEffect } from "react";
 
 import type { AgentCall, AgentReply } from "../agent/tools.ts";
 
-export type DesktopCommand = { type: "import"; file?: { name: string; bytes: Uint8Array } } | { type: "export" } | { type: "agent-call"; call: AgentCall };
+export type UpdateState =
+  | { phase: "idle" }
+  | { phase: "available" | "ready" | "installing"; version: string }
+  | { phase: "downloading"; version: string; percent: number }
+  | { phase: "error"; version: string; message: string };
+
+export type DesktopCommand = { type: "update"; state: UpdateState } | { type: "import"; file?: { name: string; bytes: Uint8Array } } | { type: "export" } | { type: "agent-call"; call: AgentCall };
 
 export interface WenguDesktop {
   readonly platform: string;
+  readonly update?: (action: "download" | "install") => void;
   /** Subscribes to shell commands (and tells the shell the app is ready for them); returns an unsubscribe function. */
   onCommand(cb: (command: DesktopCommand) => void): () => void;
   /** Local agent access (MCP); absent in older shells. */
