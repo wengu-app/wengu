@@ -564,7 +564,7 @@ export interface WenguApi {
   /** Explanation and per-rating outcomes for any item, without answering. */
   explain(itemId: Id): ScheduleExplanation;
   /** Reverts the last undoable operation (answer, suspend, bury, edit, delete). */
-  undo(options?: { deckId?: Id | null }): UndoResult | null;
+  undo(options?: { deckId?: Id | null; expectedStepId?: number }): UndoResult | null;
   undoLabel(): string | null;
   /** The operation `undo()` would revert (label and stable code), or null. */
   undoInfo(): { label: string; code: UndoCode } | null;
@@ -580,6 +580,8 @@ export interface WenguApi {
   /** Renders one item (preview in the browser/editor). */
   renderItem(itemId: Id): AnkiTemplatePresentation;
   addKnowledgePoint(input: AddKnowledgePointInput): AddResult;
+  /** Adds several knowledge points at once: one transaction, one undo step ("add"); all or nothing. */
+  addKnowledgePoints(inputs: AddKnowledgePointInput[]): { added: AddResult[]; undoStepId: number | null };
   updateKnowledgePoint(input: UpdateKnowledgePointInput): UpdateResult;
   deleteKnowledgePoints(ids: Id[]): number;
   moveItems(itemIds: Id[], deckId: Id): void;

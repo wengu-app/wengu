@@ -441,6 +441,34 @@ describe("browse and edit", () => {
     const { engine, deck, nt } = await freshCollection(0);
     expect(() => engine.addKnowledgePoint({ noteTypeId: nt, deckId: deck, fields: ["", "back only"] })).toThrow(/no review items/);
   });
+
+  it("adds a batch in one undo step, and adds nothing when one input is invalid", async () => {
+    const { engine, deck, nt } = await freshCollection(0);
+    const { added, undoStepId } = engine.addKnowledgePoints([
+      { noteTypeId: nt, deckId: deck, fields: ["a", "1"], tags: ["batch"] },
+      { noteTypeId: nt, deckId: deck, fields: ["b", "2"], tags: ["batch"] },
+    ]);
+    expect(added).toHaveLength(2);
+    expect(added.every((r) => r.itemIds.length === 1)).toBe(true);
+    expect(engine.search({ tags: ["batch"] }).total).toBe(2);
+    expect(engine.undoInfo()).toEqual({ label: "Add", code: "add" });
+    engine.addKnowledgePoint({ noteTypeId: nt, deckId: deck, fields: ["later", "3"] });
+    expect(engine.undo({ expectedStepId: undoStepId! })).toBeNull();
+    expect(engine.search({}).total).toBe(3);
+    engine.undo();
+    engine.undo({ expectedStepId: undoStepId! });
+    expect(engine.search({}).total).toBe(0);
+    expect(engine.undoLabel()).toBeNull();
+
+    expect(() =>
+      engine.addKnowledgePoints([
+        { noteTypeId: nt, deckId: deck, fields: ["c", "3"] },
+        { noteTypeId: nt, deckId: deck, fields: ["", "no front"] },
+      ]),
+    ).toThrow(/knowledge point 2: .*no review items/);
+    expect(engine.search({}).total).toBe(0);
+    expect(engine.addKnowledgePoints([])).toEqual({ added: [], undoStepId: null });
+  });
 });
 
 describe("statistics, media, export of one deck", () => {

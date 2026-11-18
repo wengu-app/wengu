@@ -78,10 +78,10 @@ export function clearUndo(db: SqlDatabase): void {
   db.run("DELETE FROM undo_steps");
 }
 
-export function applyUndo(e: Engine): Omit<UndoResult, "code" | "state"> | null {
+export function applyUndo(e: Engine, expectedStepId?: number): Omit<UndoResult, "code" | "state"> | null {
   const db = e.db;
   const step = db.get<{ id: number; label: string; payload: string }>("SELECT id, label, payload FROM undo_steps ORDER BY id DESC LIMIT 1");
-  if (!step) return null;
+  if (!step || (expectedStepId !== undefined && step.id !== expectedStepId)) return null;
   const p = JSON.parse(step.payload) as Payload;
   for (const id of p.revlogInserted) db.run("DELETE FROM revlog WHERE id = ?", [id]);
   for (const d of p.decks ?? []) {

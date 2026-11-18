@@ -29,6 +29,7 @@ export const API_METHODS = [
   "getKnowledgePoint",
   "renderItem",
   "addKnowledgePoint",
+  "addKnowledgePoints",
   "updateKnowledgePoint",
   "deleteKnowledgePoints",
   "moveItems",

@@ -229,24 +229,37 @@ function newItemsFor(e: Engine, kpId: number, nt: Notetype, ords: number[], deck
 }
 
 export function addKnowledgePoint(e: Engine, input: AddKnowledgePointInput): AddResult {
-  const nt = e.noteTypes.get(input.noteTypeId);
-  if (!nt) throw new Error(`no note type ${input.noteTypeId}`);
-  if (!e.decks.has(input.deckId)) throw new Error(`no deck ${input.deckId}`);
-  const fields = fitFields(nt, input.fields);
-  const ords = cardOrdinalsForNote(nt, fields);
-  if (!ords.length) throw new Error("the knowledge point would have no review items: fill in the fields its card templates use");
+  return addKnowledgePoints(e, [input])[0]!;
+}
+
+/** Adds several knowledge points in one transaction and one undo step; nothing is added if any input is invalid. */
+export function addKnowledgePoints(e: Engine, inputs: AddKnowledgePointInput[]): AddResult[] {
+  const prepared = inputs.map((input, i) => {
+    const where = inputs.length > 1 ? `knowledge point ${i + 1}: ` : "";
+    const nt = e.noteTypes.get(input.noteTypeId);
+    if (!nt) throw new Error(`${where}no note type ${input.noteTypeId}`);
+    if (!e.decks.has(input.deckId)) throw new Error(`${where}no deck ${input.deckId}`);
+    const fields = fitFields(nt, input.fields);
+    const ords = cardOrdinalsForNote(nt, fields);
+    if (!ords.length) throw new Error(`${where}the knowledge point would have no review items: fill in the fields its card templates use`);
+    return { input, nt, fields, ords };
+  });
+  if (!prepared.length) return [];
   const nowSecs = Math.floor(e.clock.now() / 1000);
   return e.undoable("Add", (undo) => {
-    const id = e.newId("knowledge_points");
-    let guid = newGuid();
-    while (e.db.value("SELECT 1 FROM knowledge_points WHERE guid = ?", [guid])) guid = newGuid();
-    const row: KpRow = { id, guid, note_type_id: nt.id, mtime: nowSecs, usn: -1, tags: "", fields: fields.join(FIELD_SEP), flags: 0, data: "", ...derived(nt, fields) };
-    undo.kp(id);
-    e.db.run(KP_INSERT, [...kpValues(row)]);
-    writeTags(e, id, input.tags ?? [], nowSecs);
-    const itemIds = newItemsFor(e, id, nt, ords, input.deckId, nowSecs, undo);
+    const results = prepared.map(({ input, nt, fields, ords }) => {
+      const id = e.newId("knowledge_points");
+      let guid = newGuid();
+      while (e.db.value("SELECT 1 FROM knowledge_points WHERE guid = ?", [guid])) guid = newGuid();
+      const row: KpRow = { id, guid, note_type_id: nt.id, mtime: nowSecs, usn: -1, tags: "", fields: fields.join(FIELD_SEP), flags: 0, data: "", ...derived(nt, fields) };
+      undo.kp(id);
+      e.db.run(KP_INSERT, [...kpValues(row)]);
+      writeTags(e, id, input.tags ?? [], nowSecs);
+      const itemIds = newItemsFor(e, id, nt, ords, input.deckId, nowSecs, undo);
+      return { id, itemIds };
+    });
     e.touch();
-    return { id, itemIds };
+    return results;
   });
 }
 

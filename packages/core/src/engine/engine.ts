@@ -1042,8 +1042,8 @@ export class Engine implements WenguApi {
     return typeof v === "string" ? { label: v, code: undoCodeOf(v) } : null;
   }
 
-  undo(options: { deckId?: Id | null } = {}): UndoResult | null {
-    const r = this.db.transaction(() => applyUndo(this));
+  undo(options: { deckId?: Id | null; expectedStepId?: number } = {}): UndoResult | null {
+    const r = this.db.transaction(() => applyUndo(this, options.expectedStepId));
     if (!r) return null;
     this.reload();
     const code = undoCodeOf(r.label);
@@ -1132,6 +1132,12 @@ export class Engine implements WenguApi {
 
   addKnowledgePoint(input: AddKnowledgePointInput): AddResult {
     return browse.addKnowledgePoint(this, input);
+  }
+
+  addKnowledgePoints(inputs: AddKnowledgePointInput[]): { added: AddResult[]; undoStepId: number | null } {
+    const added = browse.addKnowledgePoints(this, inputs);
+    const undoStepId = added.length ? Number(this.db.value("SELECT MAX(id) FROM undo_steps")) : null;
+    return { added, undoStepId };
   }
 
   updateKnowledgePoint(input: UpdateKnowledgePointInput): UpdateResult {
