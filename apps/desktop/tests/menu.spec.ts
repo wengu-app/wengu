@@ -20,7 +20,7 @@ test("File → Import… opens the native dialog and imports the chosen file; Fi
       localStorage.setItem("wengu.settings.v1", JSON.stringify({ lang: "en", theme: "light" }));
     });
     await page.reload();
-    await expect(page.getByText("Bring your decks.")).toBeVisible();
+    await expect(page.getByTestId("welcome")).toBeVisible();
     const labels = await app.evaluate(({ Menu }) => Menu.getApplicationMenu()!.items.map((i) => `${i.label}: ${i.submenu?.items.map((s) => s.label || s.role || "—").join(", ")}`));
     console.log("menu:\n  " + labels.join("\n  "));
     // the native open dialog answers with the fixture

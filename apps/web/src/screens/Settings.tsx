@@ -152,7 +152,7 @@ export function Settings() {
 /** Shell-quotes one argument (POSIX; Windows paths rarely need it). */
 const quote = (a: string) => (/^[\w@%+=:,./-]+$/.test(a) ? a : `'${a.replace(/'/g, `'\\''`)}'`);
 
-function AgentSection() {
+export function AgentSection() {
   const t = useT();
   const lang = useLang();
   const s = useSettings();

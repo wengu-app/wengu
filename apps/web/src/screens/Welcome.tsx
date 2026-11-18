@@ -1,33 +1,40 @@
-import { useApp } from "../lib/app.tsx";
+import { useState } from "react";
+import { routeHash, useApp } from "../lib/app.tsx";
 import { useT } from "../lib/i18n.ts";
+import { Dialog } from "../ui/Dialog.tsx";
 import { Icon } from "../ui/Icon.tsx";
+import { AgentSection } from "./Settings.tsx";
 
-/** First run: one clear thing to do. */
 export function Welcome() {
   const { openImport } = useApp();
   const t = useT();
+  const [setup, setSetup] = useState(false);
+  const hasAgent = !!window.wenguDesktop?.agent;
   return (
     <div className="welcome" data-testid="welcome">
       <div className="welcome-inner">
-        <p className="eyebrow">温故而知新</p>
         <h1 className="welcome-title">{t("welcome.title")}</h1>
-        <p className="lede">{t("welcome.body")}</p>
-        <button type="button" className="dropbox" onClick={() => openImport()}>
-          <span className="dropbox-icon" aria-hidden="true">
-            <Icon name="import" size={26} />
-          </span>
-          <span className="dropbox-title">{t("welcome.drop")}</span>
-          <span className="dropbox-sub">
-            {t("welcome.or")} <span className="link-like">{t("welcome.pick")}</span>
-          </span>
-          <span className="dropbox-types">.apkg · .colpkg</span>
-        </button>
-        <ul className="facts">
-          <li>{t("welcome.points.local")}</li>
-          <li>{t("welcome.points.history")}</li>
-          <li>{t("welcome.points.export")}</li>
-        </ul>
+        <div className="welcome-options">
+          <section className="welcome-option">
+            <Icon name="import" size={28} />
+            <h2>{t("welcome.import")}</h2>
+            <p>{t("welcome.importHint")}</p>
+            <button type="button" className="btn btn-ghost" onClick={() => openImport()}>{t("welcome.pick")}</button>
+          </section>
+          <section className="welcome-option">
+            <Icon name="edit" size={28} />
+            <h2>{t("welcome.make")}</h2>
+            <p>{t(hasAgent ? "welcome.agentHint" : "welcome.makeHint")}</p>
+            <div className="welcome-actions">
+              {hasAgent && <button type="button" className="btn btn-primary" onClick={() => setSetup(true)}>{t("welcome.connect")}</button>}
+              <a className={hasAgent ? "btn btn-ghost" : "btn btn-primary"} href={routeHash({ name: "make", deckId: null })}>{t("welcome.manual")}</a>
+            </div>
+          </section>
+        </div>
       </div>
+      <Dialog open={setup} title={t("welcome.connect")} onClose={() => setSetup(false)}>
+        <AgentSection />
+      </Dialog>
     </div>
   );
 }

@@ -55,7 +55,7 @@ test("import from the OS, review, quit, relaunch with data intact, export via th
   // 1. first run: test settings (English UI, debug hook); quit
   let app = await launch({ userDataDir: profile, env });
   await useTestSettings(app.page);
-  await expect(app.page.getByText("Bring your decks.")).toBeVisible();
+  await expect(app.page.getByTestId("welcome")).toBeVisible();
   report.storage = await app.page.evaluate(async () => (await window.__wenguDb!.info()).storage);
   await app.close();
 
@@ -190,7 +190,7 @@ test("single instance: a second launch hands its file to the first window and ex
   const app = await launch({ userDataDir: profile });
   try {
     await useTestSettings(app.page);
-    await expect(app.page.getByText("Bring your decks.")).toBeVisible();
+    await expect(app.page.getByTestId("welcome")).toBeVisible();
     const t = target();
     const started = Date.now();
     const second = spawn(t.executable, [...t.args, ...(process.env.WENGU_TEST_NO_SANDBOX === "1" ? ["--no-sandbox"] : []), fixture("full-latest.apkg")], {
@@ -234,7 +234,7 @@ test("links leave for the system browser; the app never navigates away; permissi
   try {
     const page = app.page;
     await useTestSettings(page);
-    await expect(page.getByText("Bring your decks.")).toBeVisible();
+    await expect(page.getByTestId("welcome")).toBeVisible();
     // target=_blank / window.open from the app page → system browser, no Electron window
     await page.evaluate(() => window.open("https://wengu.dev/from-window-open"));
     // a plain link navigation of the app page → system browser, the app stays put
