@@ -122,6 +122,14 @@ jobs:
             exit 1
           fi
 
+      # With only `Wengu --mcp` processes running, opening the app must still start one desktop window.
+      - name: Verify opening the app next to MCP processes (macOS)
+        if: runner.os == 'macOS'
+        working-directory: apps/desktop
+        run: |
+          host=mac-arm64; [ "$(uname -m)" = "x86_64" ] && host=mac
+          WENGU_APP_EXECUTABLE="$PWD/dist/$host/Wengu.app/Contents/MacOS/Wengu" corepack pnpm exec playwright test tests/mac-reopen.spec.ts
+
       # Checks the Wengu.app inside each file that is actually shipped (dmg for download, zip for the updater).
       - name: Verify notarization of distributables (macOS)
         if: runner.os == 'macOS'

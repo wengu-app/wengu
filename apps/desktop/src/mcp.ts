@@ -123,6 +123,9 @@ export function runMcpServer(opts: { userData: string; version: string; exit(cod
   process.stdin.on("data", (c: Buffer) => {
     if (!feed(c)) opts.exit(1);
   });
+  // the agent went away (EPIPE): nobody is left to answer. Unhandled, this error keeps the process running for good.
+  process.stdout.on("error", () => opts.exit(0));
+  process.stdin.on("error", () => opts.exit(0));
   // exit once the answers are written (stdout to a pipe is asynchronous on macOS and Windows)
   process.stdin.on("end", () => void chain.then(() => process.stdout.write("", () => opts.exit(0))));
   process.stdin.resume();

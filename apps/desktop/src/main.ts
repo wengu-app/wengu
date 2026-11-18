@@ -13,6 +13,7 @@
  * to the running app of the same profile.
  */
 import { app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, session, shell, type IpcMainEvent, type MenuItemConstructorOptions } from "electron";
+import { spawn } from "node:child_process";
 import { existsSync, statSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -60,6 +61,7 @@ if (mcpMode) {
   // --no-sandbox and --ozone-platform=headless (see mcpCommand): Chromium reads those before any of our code runs.
   app.disableHardwareAcceleration();
   app.dock?.hide();
+  if (process.platform === "darwin") handOpenRequestsToDesktop();
   runMcpServer({ userData: app.getPath("userData"), version: app.getVersion(), exit: (code) => app.exit(code) });
 } else if (!app.requestSingleInstanceLock()) {
   // One instance per profile: the database is held by one window (a Web Lock), so a second launch hands its files to
@@ -67,6 +69,46 @@ if (mcpMode) {
   app.quit();
 } else {
   main();
+}
+
+/**
+ * macOS registers an `--mcp` process with Launch Services as the app itself, so opening Wengu from Finder or the Dock
+ * while one runs reopens that windowless process (`activate`, or `open-file` for a deck) instead of starting the
+ * desktop app. Pass those requests on: launch the desktop app, which opens a window or, if one is already running,
+ * hands it the files through the single-instance lock (`second-instance`). Known gap: a deck passed this way reaches
+ * a newly started desktop app but is not imported (https://github.com/wengu-app/wengu/issues/1).
+ */
+function handOpenRequestsToDesktop(): void {
+  const files: string[] = [];
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let lastLaunch = 0;
+  function launch(): void {
+    timer = undefined;
+    const decks = files.splice(0);
+    // one window per click: Launch Services may reopen several `--mcp` processes, and each may get repeated events
+    if (decks.length === 0 && Date.now() - lastLaunch < 2000) return;
+    lastLaunch = Date.now();
+    const profile = profileDir ? [`--wengu-profile=${app.getPath("userData")}`] : [];
+    // `open -n` starts a new instance of the bundle (Contents/MacOS/<exe> → the .app) with a normal GUI launch
+    const [cmd, args] = app.isPackaged
+      ? ["open", ["-n", "-a", path.resolve(process.execPath, "../../.."), "--args", ...profile, ...decks]]
+      : [process.execPath, [app.getAppPath(), ...profile, ...decks]];
+    // stdout belongs to MCP: the child must not inherit it
+    const child = spawn(cmd, args, { detached: true, stdio: "ignore" });
+    child.on("error", (e) => console.error(`[wengu] could not start the desktop app: ${e.message}`));
+    child.unref();
+    // being reopened makes this process a regular app (Dock icon, menu bar); go back to being a background one
+    app.dock?.hide();
+  }
+  const schedule = () => {
+    timer ??= setTimeout(launch, 100);
+  };
+  app.on("activate", schedule);
+  app.on("open-file", (e, file) => {
+    e.preventDefault();
+    if (ANKI_EXT.test(file)) files.push(file);
+    schedule();
+  });
 }
 
 function main(): void {

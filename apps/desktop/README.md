@@ -108,7 +108,13 @@ for the agent's configuration (`claude mcp add --scope user wengu -- <command>` 
   and tags every note `agent::<client name>`; the app shows a toast with Undo. Settings lists the agents that have
   connected (from the MCP `clientInfo`), with what they added and edited.
 - No media yet: fields are HTML, and images from the web do not load (the app has no network).
-- Tested on Linux (`tests/agent.spec.ts`); the `--mcp` mode is untested on macOS and Windows.
+- An `--mcp` process exits when its agent closes stdin or goes away.
+- macOS registers each `--mcp` process with Launch Services as the app itself, so opening Wengu from Finder while
+  only `--mcp` processes run reopens one of them. That process starts the desktop app (`open -n`), which opens a
+  window or, if one is already running, focuses it. A deck opened this way reaches the new desktop process but is not
+  imported yet ([#1](https://github.com/wengu-app/wengu/issues/1)).
+- Tested on Linux (`tests/agent.spec.ts`) and on macOS with a packaged build (`tests/agent.spec.ts`,
+  `tests/mac-reopen.spec.ts`, which needs `WENGU_APP_EXECUTABLE`); the `--mcp` mode is untested on Windows.
 
 ## Where the data lives
 

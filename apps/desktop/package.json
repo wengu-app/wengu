@@ -1,7 +1,7 @@
 {
   "name": "@wengu/desktop",
   "productName": "Wengu",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": true,
   "description": "Wengu (温故) desktop app: the web app in an Electron shell",
   "homepage": "https://wengu.dev",
