@@ -131,4 +131,6 @@ The source repository’s Actions variable `WENGU_UPDATE_URL` and the local pack
 
 ## macOS distribution credentials
 
-The macOS CI job imports a Developer ID Application identity from the GitHub Actions repository secrets `MAC_CSC_LINK` (base64-encoded PKCS#12) and `MAC_CSC_KEY_PASSWORD` (export password). It verifies the exact signing authority and team for both architectures before launching the host architecture. Notarization is disabled.
+The macOS CI job imports a Developer ID Application identity from the GitHub Actions repository secrets `MAC_CSC_LINK` (base64-encoded PKCS#12) and `MAC_CSC_KEY_PASSWORD` (export password). It verifies the exact signing authority and team for both architectures before launching the host architecture.
+
+The same job notarizes and staples Wengu.app with an App Store Connect API team key, from the secrets `APPLE_API_KEY_BASE64` (base64-encoded `.p8`), `APPLE_API_KEY_ID` and `APPLE_API_ISSUER`. The key is decoded to a mode-600 file under `$RUNNER_TEMP`, passed as `APPLE_API_KEY` together with `WENGU_NOTARIZE=1`, and deleted when the step ends or fails. Local builds are not notarized (`notarize: false` in `electron-builder.yml`). After packaging, the job opens the arm64 and x64 dmg and zip and requires `xcrun stapler validate` to pass and `spctl --assess --type execute` to report `source=Notarized Developer ID` for the Wengu.app inside each.

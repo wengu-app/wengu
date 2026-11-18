@@ -100,6 +100,8 @@ mac:
   hardenedRuntime: true
   # electron-builder's default entitlements (JIT etc. for V8 under the hardened runtime)
   gatekeeperAssess: false
+  # Off for local builds. The macOS CI job sets WENGU_NOTARIZE=1 and the APPLE_API_* env vars; scripts/package.mjs
+  # then passes -c.mac.notarize=true.
   notarize: false
   extendInfo:
     # Finder / Launchpad show 温故; the bundle on disk stays Wengu.app. Do NOT override CFBundleName: Electron

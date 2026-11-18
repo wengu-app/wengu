@@ -21,6 +21,14 @@ if (!env.WENGU_UPDATE_URL.startsWith("https://")) throw new Error("WENGU_UPDATE_
 if (process.platform === "darwin") {
   if (env.CSC_LINK) args.push("-c.forceCodeSigning=true");
   else args.push("-c.mac.identity=-");
+  // Notarization is off in electron-builder.yml; the macOS CI job turns it on with WENGU_NOTARIZE=1.
+  if (env.WENGU_NOTARIZE === "1") {
+    for (const name of ["CSC_LINK", "APPLE_API_KEY", "APPLE_API_KEY_ID", "APPLE_API_ISSUER"]) {
+      if (!env[name]) throw new Error(`WENGU_NOTARIZE=1 needs ${name}`);
+    }
+    if (!path.isAbsolute(env.APPLE_API_KEY)) throw new Error("APPLE_API_KEY must be an absolute path to the .p8 key");
+    args.push("-c.mac.notarize=true");
+  }
 }
 const hasPnpm = spawnSync(process.platform === "win32" ? "where" : "which", ["pnpm"], { stdio: "ignore" }).status === 0;
 if (!hasPnpm && process.platform !== "win32") {

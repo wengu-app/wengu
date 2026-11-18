@@ -104,7 +104,9 @@ corepack pnpm --filter @wengu/web test
 
 - macOS、Windows 包只能由 GitHub Actions 构建：`gh workflow run desktop.yml --ref main`（手动触发）。
 - macOS 按 arm64 和 x64 **分开打包，不要打 universal**。
-- macOS CI 使用 Developer ID Application 签名；签名凭据由 MAC_CSC_LINK 和 MAC_CSC_KEY_PASSWORD 提供。本地无证书时临时签名，公证暂未启用。
+- macOS CI 使用 Developer ID Application 签名；签名凭据由 MAC_CSC_LINK 和 MAC_CSC_KEY_PASSWORD 提供。本地无证书时临时签名。
+- 公证只在 macOS CI 打包时启用，用 App Store Connect API 团队密钥（Wengu CI Notarization），凭据是 Secrets `APPLE_API_KEY_BASE64`（.p8 的 base64）、`APPLE_API_KEY_ID`、`APPLE_API_ISSUER`。工作流把密钥解码到 `$RUNNER_TEMP` 下权限 600 的 .p8，以绝对路径传给 `APPLE_API_KEY`，并设 `WENGU_NOTARIZE=1`；`scripts/package.mjs` 据此加 `-c.mac.notarize=true`（`electron-builder.yml` 里保持 `notarize: false`，本地打包不公证）。electron-builder 在做 dmg 和 zip 之前公证并 staple Wengu.app。步骤结束或失败都会删除密钥。
+- 只签名不公证的包，用户下载后打开会看到"Apple 无法验证……是否包含恶意软件"。工作流里的"Verify notarization of distributables"会解开两个架构的 dmg 和 zip，对其中的 Wengu.app 跑 `xcrun stapler validate` 和 `spctl --assess --type execute --verbose=4`，要求出现 `source=Notarized Developer ID`；它失败说明包不能分发，不要绕过。
 - 不要在 `extendInfo` 里覆盖 `CFBundleName`：Electron 按它找 `<名称> Helper.app`，改了会启动即崩溃。
 - 修改 Electron Fuses 后必须重新签名（`resetAdHocDarwinSignature`），否则 Apple 芯片上启动即被系统终止。
 - 工作流里的"Verify signature and launch"会真实启动应用；它失败说明包不可用，不要绕过。

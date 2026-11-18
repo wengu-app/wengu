@@ -1,5 +1,5 @@
 # Builds the desktop app (apps/desktop) for Linux, macOS and Windows and uploads the installers as workflow artifacts.
-# Manual only. macOS artifacts are Developer ID signed. All targets use --publish never.
+# Manual only. macOS artifacts are Developer ID signed and notarized. All targets use --publish never.
 name: Desktop builds
 
 on:
@@ -64,15 +64,35 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
         run: corepack pnpm --filter @wengu/desktop run ${{ matrix.script }}
 
-      - name: Build and sign macOS
+      # Signs with Developer ID, then notarizes and staples Wengu.app (App Store Connect API team key) before the
+      # dmg and zip are made from it. The .p8 key exists only for the duration of this step.
+      - name: Build, sign and notarize macOS
         if: runner.os == 'macOS'
         env:
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
         run: |
           : "${CSC_LINK:?Missing MAC_CSC_LINK}"
           : "${CSC_KEY_PASSWORD:?Missing MAC_CSC_KEY_PASSWORD}"
-          corepack pnpm --filter @wengu/desktop run dist:mac
+          : "${APPLE_API_KEY_BASE64:?Missing APPLE_API_KEY_BASE64}"
+          : "${APPLE_API_KEY_ID:?Missing APPLE_API_KEY_ID}"
+          : "${APPLE_API_ISSUER:?Missing APPLE_API_ISSUER}"
+          key="$RUNNER_TEMP/wengu-notary-key.p8"
+          trap 'rm -f "$key"' EXIT
+          trap 'exit 130' INT
+          trap 'exit 143' TERM
+          (umask 077; printf '%s' "$APPLE_API_KEY_BASE64" | tr -d ' \r\n' | base64 --decode > "$key")
+          chmod 600 "$key"
+          grep -q -- '-----BEGIN PRIVATE KEY-----' "$key" || { echo "APPLE_API_KEY_BASE64 does not decode to a .p8 key"; exit 1; }
+          unset APPLE_API_KEY_BASE64
+          APPLE_API_KEY="$key" WENGU_NOTARIZE=1 corepack pnpm --filter @wengu/desktop run dist:mac
+
+      - name: Remove notarization key (macOS)
+        if: always() && runner.os == 'macOS'
+        run: rm -f "$RUNNER_TEMP/wengu-notary-key.p8"
 
       # A build that packages fine can still be killed at launch by macOS if its code signature is broken.
       - name: Verify signature and launch (macOS)
@@ -101,6 +121,35 @@ jobs:
             ls ~/Library/Logs/DiagnosticReports/ 2>/dev/null | tail -5
             exit 1
           fi
+
+      # Checks the Wengu.app inside each file that is actually shipped (dmg for download, zip for the updater).
+      - name: Verify notarization of distributables (macOS)
+        if: runner.os == 'macOS'
+        working-directory: apps/desktop/dist
+        run: |
+          version=$(node -p 'require("../package.json").version')
+          check() {
+            echo "== $1"
+            # called as `check ... ||`, so errexit is off in here: every failure must return explicitly
+            xcrun stapler validate "$2" || return 1
+            assessment=$(spctl --assess --type execute --verbose=4 "$2" 2>&1) || { echo "$assessment"; return 1; }
+            echo "$assessment"
+            grep -Fxq 'source=Notarized Developer ID' <<< "$assessment" || return 1
+          }
+          for arch in arm64 x64; do
+            dmg="Wengu-$version-mac-$arch.dmg"
+            zip="Wengu-$version-mac-$arch.zip"
+            mnt="$RUNNER_TEMP/verify-dmg-$arch"
+            hdiutil attach -nobrowse -readonly -noautoopen -mountpoint "$mnt" "$dmg" > /dev/null
+            status=0
+            check "$dmg" "$mnt/Wengu.app" || status=$?
+            hdiutil detach "$mnt" > /dev/null
+            [ "$status" -eq 0 ] || { echo "notarization check failed: $dmg"; exit 1; }
+            out="$RUNNER_TEMP/verify-zip-$arch"
+            mkdir -p "$out"
+            ditto -x -k "$zip" "$out"
+            check "$zip" "$out/Wengu.app" || { echo "notarization check failed: $zip"; exit 1; }
+          done
 
       - uses: actions/upload-artifact@v4
         with:
