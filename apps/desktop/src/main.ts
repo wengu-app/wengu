@@ -80,8 +80,7 @@ if (mcpMode) {
  * macOS registers an `--mcp` process with Launch Services as the app itself, so opening Wengu from Finder or the Dock
  * while one runs reopens that windowless process (`activate`, or `open-file` for a deck) instead of starting the
  * desktop app. Pass those requests on: launch the desktop app, which opens a window or, if one is already running,
- * hands it the files through the single-instance lock (`second-instance`). Known gap: a deck passed this way reaches
- * a newly started desktop app but is not imported (https://github.com/wengu-app/wengu/issues/1).
+ * hands it the files through the single-instance lock (`second-instance`).
  */
 function handOpenRequestsToDesktop(): void {
   const files: string[] = [];

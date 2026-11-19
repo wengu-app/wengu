@@ -83,7 +83,7 @@ wrangler pages deploy --branch main --commit-dirty=true --force
 
 ## 给后续 agent 的工作须知
 
-项目现状以根目录 `README.md` 的"当前开发状态"为准，改了状态要同步更新那一节。
+项目现状以根目录 `README.md` 的"当前开发状态"为准，改了状态要同步更新那一节。**不要在 README 里记录 GitHub issue 的状态**（issue 状态直接去 GitHub 查看）。
 
 ### 验证命令（提交前都要跑）
 

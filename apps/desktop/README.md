@@ -111,8 +111,7 @@ for the agent's configuration (`claude mcp add --scope user wengu -- <command>` 
 - An `--mcp` process exits when its agent closes stdin or goes away.
 - macOS registers each `--mcp` process with Launch Services as the app itself, so opening Wengu from Finder while
   only `--mcp` processes run reopens one of them. That process starts the desktop app (`open -n`), which opens a
-  window or, if one is already running, focuses it. A deck opened this way reaches the new desktop process but is not
-  imported yet ([#1](https://github.com/wengu-app/wengu/issues/1)).
+  window or, if one is already running, focuses it.
 - Tested on Linux (`tests/agent.spec.ts`) and on macOS with a packaged build (`tests/agent.spec.ts`,
   `tests/mac-reopen.spec.ts`, which needs `WENGU_APP_EXECUTABLE`); the `--mcp` mode is untested on Windows.
 
