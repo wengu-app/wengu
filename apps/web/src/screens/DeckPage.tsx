@@ -9,6 +9,7 @@ import { navigate, routeHash, useApp } from "../lib/app.tsx";
 import { formatNumber } from "../lib/format.ts";
 import { useLang, useT, type MessageKey } from "../lib/i18n.ts";
 import { deckColor } from "../lib/theme.ts";
+import { Dialog } from "../ui/Dialog.tsx";
 import { Icon } from "../ui/Icon.tsx";
 import { PageHead } from "../ui/PageHead.tsx";
 import { deckFront, dueOf, Pack } from "./Decks.tsx";
@@ -25,14 +26,20 @@ function findDeck(tree: DeckNode[], id: Id): DeckNode | null {
   return null;
 }
 
+function countSubdecks(deck: DeckNode): number {
+  return deck.children.reduce((sum, c) => sum + 1 + countSubdecks(c), 0);
+}
+
 export function DeckPage({ deckId }: { deckId: Id }) {
-  const { db, version, openExport } = useApp();
+  const { db, version, changed, toast, openExport } = useApp();
   const t = useT();
   const lang = useLang();
   const n = (v: number) => formatNumber(v, lang);
   const [deck, setDeck] = useState<DeckNode | null | undefined>(undefined);
   const [front, setFront] = useState("");
   const [notes, setNotes] = useState<{ total: number; rows: BrowseRow[] } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     const tree = await db.deckTree();
@@ -77,6 +84,38 @@ export function DeckPage({ deckId }: { deckId: Id }) {
 
   const parents = deck.name.split("::").slice(0, -1);
   const minutes = Math.max(1, Math.round((deck.counts.new * 25 + deck.counts.learning * 10 + deck.counts.review * 9) / 60));
+  const subdeckCount = countSubdecks(deck);
+  const deletePrompt =
+    deck.kind === "filtered"
+      ? t("deck.deleteConfirmFiltered", { name: deck.name })
+      : subdeckCount > 0
+        ? t("deck.deleteConfirmSubdecks", { name: deck.name, subdecks: n(subdeckCount), cards: n(deck.totalItems) })
+        : deck.totalItems > 0
+          ? t("deck.deleteConfirmCards", { name: deck.name, cards: n(deck.totalItems) })
+          : t("deck.deleteConfirmEmpty", { name: deck.name });
+
+  const onDelete = async () => {
+    if (deleting) return;
+    setDeleting(true);
+    try {
+      const label = deck.shortName;
+      await db.deleteDeck(deck.id);
+      setConfirmDelete(false);
+      await changed();
+      navigate({ name: "decks" }, true);
+      toast(t("deck.deleted", { name: label }), {
+        label: t("common.undo"),
+        run: async () => {
+          await db.undo();
+          await changed();
+        },
+      });
+    } catch (e) {
+      toast(e instanceof Error ? e.message : String(e));
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <div className="page page-deck" data-testid="deck-page">
@@ -195,6 +234,36 @@ export function DeckPage({ deckId }: { deckId: Id }) {
           </a>
         )}
       </section>
+
+      {deck.id !== 1 && (
+        <>
+          <section className="deck-danger">
+            <button type="button" className="btn btn-ghost btn-danger" onClick={() => setConfirmDelete(true)} data-testid="delete-deck">
+              <Icon name="trash" />
+              {t("deck.delete")}
+            </button>
+          </section>
+          <Dialog
+            open={confirmDelete}
+            title={t("deck.delete")}
+            onClose={() => setConfirmDelete(false)}
+            locked={deleting}
+            width="sm"
+            footer={
+              <>
+                <button type="button" className="btn btn-ghost" onClick={() => setConfirmDelete(false)} disabled={deleting} autoFocus>
+                  {t("common.cancel")}
+                </button>
+                <button type="button" className="btn btn-danger-solid" data-testid="confirm-delete-deck" onClick={onDelete} disabled={deleting}>
+                  {t("common.delete")}
+                </button>
+              </>
+            }
+          >
+            <p>{deletePrompt}</p>
+          </Dialog>
+        </>
+      )}
     </div>
   );
 }

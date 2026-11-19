@@ -76,13 +76,19 @@ export function AppProvider(props: {
 
   const toast = useCallback(
     (message: string, action?: Toast["action"]) => {
-      const t: Toast = { id: nextToast.current++, message, ...(action ? { action } : {}) };
+      const id = nextToast.current++;
+      const dismiss = () => {
+        toastList.current = toastList.current.filter((x) => x.id !== id);
+        propsRef.current.toasts(toastList.current);
+      };
+      const t: Toast = {
+        id,
+        message,
+        ...(action ? { action: { label: action.label, run: () => (dismiss(), action.run()) } } : {}),
+      };
       toastList.current = [...toastList.current.slice(-2), t];
       propsRef.current.toasts(toastList.current);
-      setTimeout(() => {
-        toastList.current = toastList.current.filter((x) => x.id !== t.id);
-        propsRef.current.toasts(toastList.current);
-      }, action ? 6000 : 3200);
+      setTimeout(dismiss, action ? 6000 : 3200);
     },
     [],
   );

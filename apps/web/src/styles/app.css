@@ -923,4 +923,5 @@ button.blk-more { border: 0; background: none; cursor: pointer; }
 .deck-row { height: 58px; text-decoration: none; padding: 0 24px; }
 .deck-all { display: block; padding: 14px 0 0; text-align: center; font-size: 13px; font-weight: 700; color: var(--c-muted); text-decoration: none; }
 .deck-all:hover { color: var(--c-ink); }
+.deck-danger { display: flex; padding-top: 4px; }
 @media (max-width: 760px) { .deck-top { grid-template-columns: 1fr; } .deck-obj { max-width: 260px; } .deck-info { height: auto; } }

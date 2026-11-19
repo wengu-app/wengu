@@ -120,3 +120,33 @@ test("export one deck without progress", async ({ page }) => {
   const names = new Set(pkg.cards.map((c) => pkg.decks.find((d) => d.id === c.deckId)!.name));
   for (const n of names) expect(n.startsWith("Wengu Test::Languages")).toBe(true);
 });
+
+test("delete a deck from its detail page and undo", async ({ page }) => {
+  await openApp(page);
+  await importFixture(page, "full-latest.apkg");
+  await page.goto("./#/");
+  await page.getByRole("link", { name: /Wengu Test/ }).first().click();
+  await expect(page.getByTestId("deck-page")).toBeVisible();
+  await page.getByRole("link", { name: /Languages/ }).click();
+  await expect(page.getByRole("heading", { name: "Languages" })).toBeVisible();
+
+  // Delete subdeck from the bottom of its detail page
+  await page.getByTestId("delete-deck").click();
+  await expect(page.getByText(/Wengu Test::Languages/)).toBeVisible();
+  await page.getByTestId("confirm-delete-deck").click();
+
+  // Navigates back to the home page (replacing the deleted deck's history entry) with an Undo toast
+  await expect(page).toHaveURL(/#\/$/);
+  await expect(page.getByText('Deleted "Languages"')).toBeVisible();
+  await expect(page.getByTestId("deck-row").filter({ hasText: "Languages" })).toHaveCount(0);
+
+  // Undo restores the deck and its subdecks
+  await page.getByRole("button", { name: "Undo" }).click();
+  await page.getByRole("button", { name: "Expand Wengu Test" }).click();
+  await expect(page.getByTestId("deck-row").filter({ hasText: "Languages" })).toHaveCount(1);
+
+  // The Default deck cannot be deleted
+  await page.goto("./#/deck/1");
+  await expect(page.getByTestId("deck-page")).toBeVisible();
+  await expect(page.getByTestId("delete-deck")).toHaveCount(0);
+});

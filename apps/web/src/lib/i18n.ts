@@ -161,6 +161,12 @@ const en = {
   "deck.noNotes": "No notes in this deck yet.",
   "deck.showAll": "Showing the first 100 · see all {n} in Browse",
   "deck.notFound": "This deck no longer exists.",
+  "deck.delete": "Delete deck",
+  "deck.deleteConfirmEmpty": 'Delete empty deck "{name}"? You can undo this right after.',
+  "deck.deleteConfirmCards": 'Delete "{name}" and its {cards} cards? Review history is kept, and you can undo this right after.',
+  "deck.deleteConfirmSubdecks": 'Delete "{name}", its {subdecks} subdecks, and {cards} cards? Review history is kept, and you can undo this right after.',
+  "deck.deleteConfirmFiltered": 'Delete filtered deck "{name}"? Its cards will return to their home decks. You can undo this right after.',
+  "deck.deleted": 'Deleted "{name}"',
   "decks.title": "Decks",
   "decks.today": "Due today",
   "decks.new": "New",
@@ -449,6 +455,7 @@ const en = {
   "undo.Edit": "edit",
   "undo.Add": "add note",
   "undo.Delete": "delete",
+  "undo.Delete deck": "delete deck",
   "undo.Change deck": "move to deck",
 } as const;
 
@@ -611,6 +618,12 @@ const zh: Record<MessageKey, string> = {
   "deck.noNotes": "这个卡组里还没有笔记。",
   "deck.showAll": "只列出前 100 条 · 在浏览里查看全部 {n} 条",
   "deck.notFound": "这个卡组已经不存在了。",
+  "deck.delete": "删除卡组",
+  "deck.deleteConfirmEmpty": "删除空卡组「{name}」？删除后可以立即撤销。",
+  "deck.deleteConfirmCards": "删除卡组「{name}」及其 {cards} 张卡片？复习记录会保留，删除后可以立即撤销。",
+  "deck.deleteConfirmSubdecks": "删除卡组「{name}」、其 {subdecks} 个子卡组和 {cards} 张卡片？复习记录会保留，删除后可以立即撤销。",
+  "deck.deleteConfirmFiltered": "删除筛选卡组「{name}」？里面的卡片会回到原来的卡组。删除后可以立即撤销。",
+  "deck.deleted": "已删除「{name}」",
   "decks.title": "卡组",
   "decks.today": "今天到期",
   "decks.new": "新卡",
@@ -899,6 +912,7 @@ const zh: Record<MessageKey, string> = {
   "undo.Edit": "编辑",
   "undo.Add": "添加笔记",
   "undo.Delete": "删除",
+  "undo.Delete deck": "删除卡组",
   "undo.Change deck": "移动卡组",
 };
 
