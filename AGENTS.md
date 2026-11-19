@@ -85,6 +85,12 @@ wrangler pages deploy --branch main --commit-dirty=true --force
 
 项目现状以根目录 `README.md` 的"当前开发状态"为准，改了状态要同步更新那一节。**不要在 README 里记录 GitHub issue 的状态**（issue 状态直接去 GitHub 查看）。
 
+**项目仍在早期开发阶段，尚未正式发布，不需要考虑后向兼容**（保持实现干净直接，不要为了旧开发版本保留回退分支或兼容层）。
+
+### UI 修改与截图对比
+
+- **每次修改 UI，都需要先截取修改前的界面截图，改完后再截取相同状态下的修改后截图，并在回复中提供前后对比图。**
+
 ### 验证命令（提交前都要跑）
 
 ```sh
@@ -140,9 +146,8 @@ gh release create v<版本> -R wengu-app/downloads --title "温故 <版本>" --n
 
 ### 本机 agent（MCP）
 
-- 工具定义在 `apps/web/src/agent/tools.ts`（`--mcp` 进程和应用共用），执行在 `apps/web/src/agent/run.ts`。加工具时两处都改，并更新 `apps/desktop/tests/agent.spec.ts` 里的工具列表。
-- `--mcp` 进程的 stdout 只能输出 MCP 消息，不要在那条路径上 `console.log`。
-- Linux 上 `--no-sandbox`、`--ozone-platform=headless` 必须在命令行里：Chromium 在主进程代码运行前就读取它们，用 `appendSwitch` 加没有用。
+- 工具定义在 `apps/web/src/agent/tools.ts`（构建时由 `apps/desktop/scripts/build-mcp.mjs` 嵌入独立 Go 二进制 `wengu-mcp`），执行在 `apps/web/src/agent/run.ts`。加工具时两处都改，并更新 `apps/desktop/tests/agent.spec.ts` 里的工具列表。
+- `wengu-mcp`（`apps/desktop/mcp/`）的 stdout 只能输出 MCP JSON-RPC 消息，不要往 stdout 打日志。
 
 ### 真实卡组对照
 

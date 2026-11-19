@@ -96,9 +96,15 @@ MCP. It is off by default: Settings → Agents → "Allow local agents". The set
 for the agent's configuration (`claude mcp add --scope user wengu -- <command>` for Claude Code, or an
 `mcpServers` JSON block).
 
-- The command is the app's own executable with `--mcp` (plus `--no-sandbox --ozone-platform=headless` on Linux, and
-  `--wengu-profile=<dir>` for a non-default profile). That process opens no window and loads no web content; it speaks
-  MCP over stdin/stdout (`src/mcp.ts`) and answers `tools/list` by itself.
+- The command is the standalone Go MCP proxy (`wengu-mcp` / `wengu-mcp.exe`, source in `apps/desktop/mcp/`), bundled in
+  the app's resources directory (`Contents/Resources/wengu-mcp` on macOS, `resources/wengu-mcp[.exe]` on Linux `.deb`
+  and Windows, or synced atomically into `<userData>/wengu-mcp` on Linux AppImage so the path stays valid after the
+  AppImage unmounts), plus `--wengu-profile=<dir>` for a non-default profile. It opens no window, loads no Electron/Chromium
+  runtime, speaks MCP over stdin/stdout, and answers `tools/list` from the manifest generated out of
+  `apps/web/src/agent/tools.ts`.
+- Because `wengu-mcp` is a plain CLI executable rather than the Electron bundle executable, macOS does not register it
+  with Launch Services as `dev.wengu.app`: Finder/Dock opens reach the desktop app directly, and Squirrel.Mac (`ShipIt`)
+  can apply in-place updates without being blocked by running MCP sessions.
 - Each tool call goes over a Unix socket in the profile directory (`agent.sock`, mode 0600; a named pipe on Windows,
   `src/agentBridge.ts`) to the running app, which runs it through the page's database client
   (`apps/web/src/agent/run.ts`). The socket exists only while access is on; no TCP port is opened. The app must be
@@ -108,12 +114,9 @@ for the agent's configuration (`claude mcp add --scope user wengu -- <command>` 
   and tags every note `agent::<client name>`; the app shows a toast with Undo. Settings lists the agents that have
   connected (from the MCP `clientInfo`), with what they added and edited.
 - No media yet: fields are HTML, and images from the web do not load (the app has no network).
-- An `--mcp` process exits when its agent closes stdin or goes away.
-- macOS registers each `--mcp` process with Launch Services as the app itself, so opening Wengu from Finder while
-  only `--mcp` processes run reopens one of them. That process starts the desktop app (`open -n`), which opens a
-  window or, if one is already running, focuses it.
-- Tested on Linux (`tests/agent.spec.ts`) and on macOS with a packaged build (`tests/agent.spec.ts`,
-  `tests/mac-reopen.spec.ts`, which needs `WENGU_APP_EXECUTABLE`); the `--mcp` mode is untested on Windows.
+- A `wengu-mcp` process exits when its agent closes stdin or goes away.
+- Tested on Linux (`tests/agent.spec.ts`), Go unit tests (`apps/desktop/mcp`), and macOS with a packaged build
+  (`tests/agent.spec.ts`, `tests/mac-reopen.spec.ts`, which needs `WENGU_APP_EXECUTABLE`).
 
 ## Where the data lives
 

@@ -52,11 +52,20 @@ jobs:
         with:
           node-version: 24
 
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          cache: false
+
       - name: Enable corepack (pnpm version from package.json)
         run: corepack enable
 
       - name: Install
         run: corepack pnpm install --frozen-lockfile --filter "@wengu/desktop..."
+
+      - name: Test Go MCP proxy
+        working-directory: apps/desktop/mcp
+        run: go test -v .
 
       - name: Build and package
         if: runner.os != 'macOS'
@@ -105,7 +114,15 @@ jobs:
             signature=$(codesign -dv --verbose=4 "$app" 2>&1)
             grep -Fx 'Authority=Developer ID Application: kaixiang li (W3ZB9MVRQ3)' <<< "$signature"
             grep -Fx 'TeamIdentifier=W3ZB9MVRQ3' <<< "$signature"
+            mcp="$app/Contents/Resources/wengu-mcp"
+            test -x "$mcp"
+            codesign --verify --strict --verbose=2 "$mcp"
+            mcp_sig=$(codesign -dv --verbose=4 "$mcp" 2>&1)
+            grep -Fx 'Authority=Developer ID Application: kaixiang li (W3ZB9MVRQ3)' <<< "$mcp_sig"
+            grep -Fx 'TeamIdentifier=W3ZB9MVRQ3' <<< "$mcp_sig"
           done
+          lipo -archs mac-arm64/Wengu.app/Contents/Resources/wengu-mcp | grep -Fx 'arm64'
+          lipo -archs mac/Wengu.app/Contents/Resources/wengu-mcp | grep -Fx 'x86_64'
           host=mac-arm64; [ "$(uname -m)" = "x86_64" ] && host=mac
           echo "Launch smoke test: $host/Wengu.app on $(uname -m)"
           "$host/Wengu.app/Contents/MacOS/Wengu" --user-data-dir="$RUNNER_TEMP/wengu-smoke" > "$RUNNER_TEMP/wengu-smoke.log" 2>&1 &
@@ -122,7 +139,7 @@ jobs:
             exit 1
           fi
 
-      # With only `Wengu --mcp` processes running, opening the app must still start one desktop window.
+      # With only `wengu-mcp` processes running, opening the app must still start one desktop window.
       - name: Verify opening the app next to MCP processes (macOS)
         if: runner.os == 'macOS'
         working-directory: apps/desktop

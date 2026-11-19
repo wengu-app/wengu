@@ -21,6 +21,11 @@ files:
   - from: ../web/dist
     to: web
     filter: ["**/*"]
+extraResources:
+  # Standalone Go MCP proxy: lives in Contents/Resources/ (macOS) / resources/ (Linux, Windows), so running it
+  # does not launch an Electron instance or register with macOS Launch Services as dev.wengu.app.
+  - from: out/mcp/${os}-${arch}
+    to: .
 asar: true
 # the packaged package.json is named plainly (artifact, updater-cache and installer-payload names derive from it)
 extraMetadata:

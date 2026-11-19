@@ -8,19 +8,14 @@
  *   WENGU_DOWNLOAD_DIR    save exports here without asking (automation); default: a native save dialog.
  *   WENGU_DEVTOOLS=1      allow DevTools in a packaged build.
  *   WENGU_DEBUG=1, WENGU_TIMING=1   log IPC/permission/download decisions, or startup timing, to stdout.
- *
- * `--mcp` runs an MCP server on stdin/stdout for local agents instead of the app (see mcp.ts); it relays tool calls
- * to the running app of the same profile.
  */
 import { app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, session, shell, type IpcMainEvent, type MenuItemConstructorOptions } from "electron";
-import { spawn } from "node:child_process";
-import { existsSync, statSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import { APP_ORIGIN, APP_URL, handleAppScheme, registerSchemePrivileges } from "./protocol.ts";
 import { AgentBridge } from "./agentBridge.ts";
-import { runMcpServer } from "./mcp.ts";
 import type { AgentAnswer, AgentCall, AgentReply } from "../../web/src/agent/tools.ts";
 import { applyCommandLineHardening, hardenSession, hardenWebContents, isAppUrl, type AppOrigins } from "./security.ts";
 import { watchCardFrames } from "./frameWatchdog.ts";
@@ -50,69 +45,21 @@ const webRoot = app.isPackaged ? path.join(app.getAppPath(), "web") : path.resol
 // (~/.config/Wengu, ~/Library/Application Support/Wengu, %APPDATA%\Wengu). Development uses its own.
 // macOS shows app.name in the app menu ("Quit 温故"), matching the bundle's CFBundleName.
 app.setName(process.platform === "darwin" ? DISPLAY_NAME : "Wengu");
-// `--wengu-profile=<dir>` does the same as WENGU_USER_DATA_DIR (for `--mcp` commands, which agents start without our env).
+// `--wengu-profile=<dir>` does the same as WENGU_USER_DATA_DIR (for launches without custom env, e.g. `open --args`).
 const profileArg = process.argv.find((a) => a.startsWith("--wengu-profile="))?.slice("--wengu-profile=".length);
 const profileDir = profileArg || process.env.WENGU_USER_DATA_DIR;
 app.setPath("userData", profileDir ? path.resolve(profileDir) : path.join(app.getPath("appData"), app.isPackaged ? "Wengu" : "Wengu-dev"));
 if (process.platform === "win32") app.setAppUserModelId("dev.wengu.app");
 
-const mcpMode = process.argv.includes("--mcp");
-
 registerSchemePrivileges();
 applyCommandLineHardening(origins);
 
-if (mcpMode) {
-  // No window and no GPU: this process only relays between the agent and the app. On Linux its command also carries
-  // --no-sandbox and --ozone-platform=headless (see mcpCommand): Chromium reads those before any of our code runs.
-  app.disableHardwareAcceleration();
-  app.dock?.hide();
-  if (process.platform === "darwin") handOpenRequestsToDesktop();
-  runMcpServer({ userData: app.getPath("userData"), version: app.getVersion(), exit: (code) => app.exit(code) });
-} else if (!app.requestSingleInstanceLock()) {
+if (!app.requestSingleInstanceLock()) {
   // One instance per profile: the database is held by one window (a Web Lock), so a second launch hands its files to
   // the first one and quits.
   app.quit();
 } else {
   main();
-}
-
-/**
- * macOS registers an `--mcp` process with Launch Services as the app itself, so opening Wengu from Finder or the Dock
- * while one runs reopens that windowless process (`activate`, or `open-file` for a deck) instead of starting the
- * desktop app. Pass those requests on: launch the desktop app, which opens a window or, if one is already running,
- * hands it the files through the single-instance lock (`second-instance`).
- */
-function handOpenRequestsToDesktop(): void {
-  const files: string[] = [];
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  let lastLaunch = 0;
-  function launch(): void {
-    timer = undefined;
-    const decks = files.splice(0);
-    // one window per click: Launch Services may reopen several `--mcp` processes, and each may get repeated events
-    if (decks.length === 0 && Date.now() - lastLaunch < 2000) return;
-    lastLaunch = Date.now();
-    const profile = profileDir ? [`--wengu-profile=${app.getPath("userData")}`] : [];
-    // `open -n` starts a new instance of the bundle (Contents/MacOS/<exe> → the .app) with a normal GUI launch
-    const [cmd, args] = app.isPackaged
-      ? ["open", ["-n", "-a", path.resolve(process.execPath, "../../.."), "--args", ...profile, ...decks]]
-      : [process.execPath, [app.getAppPath(), ...profile, ...decks]];
-    // stdout belongs to MCP: the child must not inherit it
-    const child = spawn(cmd, args, { detached: true, stdio: "ignore" });
-    child.on("error", (e) => console.error(`[wengu] could not start the desktop app: ${e.message}`));
-    child.unref();
-    // being reopened makes this process a regular app (Dock icon, menu bar); go back to being a background one
-    app.dock?.hide();
-  }
-  const schedule = () => {
-    timer ??= setTimeout(launch, 100);
-  };
-  app.on("activate", schedule);
-  app.on("open-file", (e, file) => {
-    e.preventDefault();
-    if (ANKI_EXT.test(file)) files.push(file);
-    schedule();
-  });
 }
 
 function main(): void {
@@ -377,15 +324,45 @@ function main(): void {
     void win.loadURL(startUrl);
   }
 
+  /**
+   * Locates the standalone Go MCP proxy (`wengu-mcp[.exe]`).
+   * On AppImage, `process.resourcesPath` is a temporary mount that vanishes when the app exits, so copy the binary
+   * into the profile directory atomically and point agents at that stable path.
+   */
+  function mcpExecutable(): string {
+    const bin = process.platform === "win32" ? "wengu-mcp.exe" : "wengu-mcp";
+    if (!app.isPackaged) {
+      const osKey = process.platform === "darwin" ? "mac" : process.platform === "win32" ? "win" : process.platform;
+      return path.join(app.getAppPath(), "out", "mcp", `${osKey}-${process.arch}`, bin);
+    }
+    const bundled = path.join(process.resourcesPath, bin);
+    if (!process.env.APPIMAGE) return bundled;
+    const stable = path.join(app.getPath("userData"), bin);
+    try {
+      const src = readFileSync(bundled);
+      let same = false;
+      try {
+        same = readFileSync(stable).equals(src);
+      } catch {
+        /* missing or unreadable */
+      }
+      if (!same) {
+        mkdirSync(path.dirname(stable), { recursive: true, mode: 0o700 });
+        const tmp = `${stable}.tmp.${process.pid}`;
+        writeFileSync(tmp, src, { mode: 0o755 });
+        renameSync(tmp, stable);
+      }
+      return stable;
+    } catch (e) {
+      console.warn(`[wengu] could not install wengu-mcp for AppImage: ${String(e)}`);
+      return bundled;
+    }
+  }
+
   /** How agents start the MCP server for this profile: [executable, ...args]. */
   function mcpCommand(): string[] {
-    const args = app.isPackaged ? [] : [app.getAppPath()];
-    // AppImage: the stable path is the image, not the temporary mount the process runs from
-    const exe = process.env.APPIMAGE ?? process.execPath;
-    // Linux: no display needed (agents may run over SSH), and no Chromium sandbox: this process loads no web content,
-    // and the sandbox is unavailable outside the .deb on many hosts, where it would abort the start.
-    const linux = process.platform === "linux" ? ["--no-sandbox", "--ozone-platform=headless"] : [];
-    return [exe, ...args, "--mcp", ...linux, ...(profileDir ? [`--wengu-profile=${app.getPath("userData")}`] : [])];
+    const profile = profileDir || !app.isPackaged ? [`--wengu-profile=${app.getPath("userData")}`] : [];
+    return [mcpExecutable(), ...profile];
   }
 
   app.on("window-all-closed", () => app.quit());

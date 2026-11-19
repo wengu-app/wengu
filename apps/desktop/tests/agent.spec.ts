@@ -1,5 +1,5 @@
 /**
- * Local agents over MCP: the command shown in Settings starts `--mcp`, which relays tool calls to the running app.
+ * Local agents over MCP: the command shown in Settings starts `wengu-mcp`, which relays tool calls to the running app.
  * Covers access off (no socket), adding notes (visible in the app, with the agent's tag and an undo toast), errors
  * returned to the agent, and the agent list in Settings.
  */
@@ -39,7 +39,8 @@ test("an agent adds notes through MCP while access is on", async () => {
   await access.check();
   const config = JSON.parse((await page.getByTestId("agent-config").textContent())!) as { mcpServers: { wengu: { command: string; args: string[] } } };
   const command = [config.mcpServers.wengu.command, ...config.mcpServers.wengu.args];
-  expect(command).toContain("--mcp");
+  expect(path.basename(config.mcpServers.wengu.command)).toMatch(/^wengu-mcp(\.exe)?$/);
+  expect(command).not.toContain("--mcp");
   expect(command).toContain(`--wengu-profile=${app.userDataDir}`);
   expect(await page.getByTestId("agent-claude-command").textContent()).toMatch(/^claude mcp add --scope user wengu -- /);
   const socket = path.join(app.userDataDir, "agent.sock");

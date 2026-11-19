@@ -77,8 +77,8 @@ M0 的导入导出、排期、沙箱和生成原型已实现。真实热门卡�
 M1 的导入、复习、浏览编辑、统计、导出和本地持久化已实现，连续两周自用验收尚未完成。
 5 万笔记卡组上评分到显示下一张卡的延迟 P95 约 60 毫秒，达到 100 毫秒以内的目标。
 Linux AppImage 和 deb 已构建，AppImage 已运行验证。macOS（Apple 芯片和 Intel 分开打包）和 Windows 安装包由 GitHub Actions 构建；macOS 工作流使用 Developer ID Application 签名并经过 Apple 公证（从 0.1.3 起，两个架构的 dmg 和 zip 都在 CI 中验证过公证票据），Apple 芯片版在 CI 中验证过可以启动，Intel 版和 Windows 版尚未在真机上运行。
-空卡组首屏可以导入 Anki 卡组或开始制卡。桌面端也可以从首屏连接 agent，开启"允许本机 agent 访问"：Claude Code 等本机 agent 通过 MCP（`温故 --mcp`）读取卡组、添加和修改笔记，写入经由正在运行的应用完成，可以撤销，详见 [apps/desktop/README.md](apps/desktop/README.md#local-agents-mcp)。写入与校验视觉卡面的工具将在 M2 加入。
-macOS 上关掉桌面窗口后，agent 留下的 `--mcp` 进程会被系统当成应用本身；从 0.1.4 起，这时从 Finder 打开应用会正常打开桌面窗口，agent 断开后 `--mcp` 进程也会退出。
+空卡组首屏可以导入 Anki 卡组或开始制卡。桌面端也可以从首屏连接 agent，开启"允许本机 agent 访问"：Claude Code 等本机 agent 通过独立 Go MCP 代理（`wengu-mcp`）读取卡组、添加和修改笔记，写入经由正在运行的应用完成，可以撤销，详见 [apps/desktop/README.md](apps/desktop/README.md#local-agents-mcp)。写入与校验视觉卡面的工具将在 M2 加入。
+`wengu-mcp` 独立于 Electron 主进程，macOS 上不会注册进 Launch Services，因此既不会干扰 Finder 打开窗口，也不会阻塞 Squirrel.Mac 应用内更新；agent 断开后 `wengu-mcp` 会自动退出。
 新版桌面端发现新版本后会在右上角显示「下载更新」，点击可查看下载进度，校验成功后点击「重启更新」安装；更新源是公开下载仓库 wengu-app/downloads 的最新 Release；0.1.1 起的版本支持应用内更新，Linux AppImage 上已验证从检测、下载到重启替换的完整流程，macOS、Windows 和 deb 尚未在真机上验证。桌面数据位置、运行限制和完整命令见 [apps/desktop/README.md](apps/desktop/README.md)。
 界面重设计已按 `apps/prototype/game` 落地到 `apps/web` 并随桌面端 0.1.5 发布：顶栏保留搜索、制卡和设置，首页是今日复习（右侧 2×2 的四个记忆小块）、卡组卡包和未来两周，点卡组进入卡组详情页（卡包、今日待复习和学习按钮、子卡组、笔记列表与删除卡组），其余页面标题上方都有"返回"；制卡页做成切割垫上的索引卡（顶栏"制卡"或按 A 打开），下拉框、单选框、复选框和开关都是自绘的，复习页和其余页面换成同一套视觉；原型里的热力图和记忆稳定性需要核心统计接口提供按天的复习历史，尚未实现。
 产品定位与边界已进一步收口至 [docs/product.md](docs/product.md)，接下来将推进 M2（单画布两态原地揭晓运行时、面向 AI 的 3D/2D 建构原语与自检、MCP 视觉卡写入与 20 张卡对照实验）。

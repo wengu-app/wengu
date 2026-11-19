@@ -1,5 +1,5 @@
 /**
- * The local channel between `Wengu --mcp` processes (started by agents such as Claude Code) and the running app.
+ * The local channel between `wengu-mcp` processes (started by agents such as Claude Code) and the running app.
  *
  * The app listens on a Unix socket in the profile directory (a named pipe on Windows) only while the user has turned
  * on agent access in Settings. No TCP port is opened, so the shell still has no network. Each connection carries
@@ -13,7 +13,7 @@ import path from "node:path";
 
 import type { AgentAnswer, AgentCall, AgentReply } from "../../web/src/agent/tools.ts";
 
-/** Socket path for a profile directory (the `--mcp` process computes the same from the same profile). */
+/** Socket path for a profile directory (`wengu-mcp` computes the same from the same profile). */
 export function agentSocketPath(userData: string): string {
   if (process.platform === "win32") return `\\\\.\\pipe\\wengu-agent-${createHash("sha256").update(path.resolve(userData)).digest("hex").slice(0, 16)}`;
   return path.join(userData, "agent.sock");

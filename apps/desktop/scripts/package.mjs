@@ -11,9 +11,44 @@ import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
+import { buildMcp, hostTarget } from "./build-mcp.mjs";
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
 if (!args.some((a) => a.startsWith("--publish") || a === "-p")) args.push("--publish", "never");
+
+function mcpTargets(cliArgs) {
+  const oses = [];
+  if (cliArgs.some((a) => a === "--mac" || a === "-m")) oses.push("mac");
+  if (cliArgs.some((a) => a === "--linux" || a === "-l")) oses.push("linux");
+  if (cliArgs.some((a) => a === "--win" || a === "-w")) oses.push("win");
+  if (oses.length === 0) {
+    if (cliArgs.includes("--dir")) return [hostTarget()];
+    oses.push(process.platform === "darwin" ? "mac" : process.platform === "win32" ? "win" : process.platform);
+  }
+
+  const arches = [];
+  if (cliArgs.includes("--arm64")) arches.push("arm64");
+  if (cliArgs.includes("--x64")) arches.push("x64");
+  if (cliArgs.includes("--ia32")) arches.push("ia32");
+
+  const targets = [];
+  for (const osKey of oses) {
+    if (arches.length > 0) {
+      for (const a of arches) targets.push(`${osKey}-${a}`);
+    } else if (osKey === "mac") {
+      // electron-builder.yml builds both arm64 and x64 for macOS
+      targets.push("mac-arm64", "mac-x64");
+    } else if (osKey === "win") {
+      targets.push("win-x64");
+    } else {
+      targets.push(`linux-${process.arch}`);
+    }
+  }
+  return targets;
+}
+
+await buildMcp(mcpTargets(args));
 
 const env = { ...process.env };
 env.WENGU_UPDATE_URL ||= "https://github.com/wengu-app/downloads/releases/latest/download/";

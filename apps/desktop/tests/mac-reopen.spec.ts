@@ -1,7 +1,8 @@
 /**
- * macOS, packaged app only: Launch Services registers each `Wengu --mcp` process as the app itself, so opening Wengu
- * from Finder while only MCP processes run reopens one of them. They must start the desktop app instead:
- * one desktop process, which the agents that were already connected can use.
+ * macOS, packaged app only: the standalone `wengu-mcp` Go proxy in `Contents/Resources/` must NOT register with
+ * Launch Services as `dev.wengu.app`, so:
+ *   1. Squirrel.Mac (`ShipIt`) sees zero running instances of `Wengu.app` after the desktop app quits for an update.
+ *   2. Opening Wengu from Finder/Dock while MCP clients run starts one desktop window that those clients can use.
  *
  * Run with WENGU_APP_EXECUTABLE=<…/Wengu.app/Contents/MacOS/Wengu>.
  */
@@ -15,16 +16,19 @@ import { agentCommand, startMcp, type McpClient } from "./mcp-client.ts";
 
 const exe = process.env.WENGU_APP_EXECUTABLE ?? "";
 const bundle = path.resolve(exe, "../../..");
+const mcpExe = path.join(bundle, "Contents/Resources/wengu-mcp");
 test.skip(process.platform !== "darwin" || !exe.endsWith(".app/Contents/MacOS/Wengu"), "macOS packaged app only");
 
-/** pids of this bundle's main processes, split into desktop and `--mcp` ones (helpers have their own executables). */
+/** pids of this bundle's desktop main process and standalone `wengu-mcp` proxies. */
 function processes(): { desktop: number[]; mcp: number[] } {
   const desktop: number[] = [];
   const mcp: number[] = [];
   for (const line of execFileSync("ps", ["-axo", "pid=,args="], { encoding: "utf8" }).split("\n")) {
     const m = /^\s*(\d+) (.*)$/.exec(line);
-    if (!m || !(m[2] === exe || m[2]!.startsWith(exe + " "))) continue;
-    (m[2]!.split(" ").includes("--mcp") ? mcp : desktop).push(Number(m[1]));
+    if (!m) continue;
+    const args = m[2]!;
+    if (args === exe || args.startsWith(exe + " ")) desktop.push(Number(m[1]));
+    else if (args === mcpExe || args.startsWith(mcpExe + " ")) mcp.push(Number(m[1]));
   }
   return { desktop, mcp };
 }
@@ -47,21 +51,26 @@ async function cards(c: McpClient): Promise<number | null> {
 
 /**
  * The app with agent access on and `n` agents connected; then the user closes the last window, which quits the app,
- * and only the MCP processes are left.
+ * and only the standalone `wengu-mcp` processes are left.
  */
-async function onlyMcpLeft(n: number): Promise<void> {
+async function onlyMcpLeft(n: number): Promise<string> {
   const app = await launch();
   const { page } = app;
   await useTestSettings(page);
   await page.evaluate(() => (location.hash = "#/settings"));
   await page.getByTestId("agent-access").check();
   const command = await agentCommand(page);
+  expect(command[0]).toBe(mcpExe);
   await expect.poll(() => existsSync(path.join(app.userDataDir, "agent.sock"))).toBe(true);
   for (let i = 0; i < n; i++) clients.push(await startMcp(command));
   for (const c of clients) expect(await cards(c)).not.toBeNull();
   await app.close();
   expect(processes()).toEqual({ desktop: [], mcp: expect.arrayContaining(clients.map((c) => c.proc.pid)) });
+  // None of the MCP proxies may be registered with Launch Services (otherwise Squirrel.Mac ShipIt blocks updates).
+  const registered = appTypes();
+  for (const c of clients) expect(registered.has(c.proc.pid!)).toBe(false);
   for (const c of clients) expect(await cards(c)).toBeNull();
+  return app.userDataDir;
 }
 
 async function oneDesktop(): Promise<number> {
@@ -78,16 +87,17 @@ test.afterEach(async () => {
 
 for (const n of [1, 2]) {
   test(`opening the app while only ${n} MCP process(es) run starts one desktop window`, async () => {
-    await onlyMcpLeft(n);
+    const userDataDir = await onlyMcpLeft(n);
 
-    // what a double-click in Finder does
-    execFileSync("open", [bundle]);
+    // what a double-click in Finder does (with --wengu-profile so the test stays isolated from the user's own profile)
+    execFileSync("open", [bundle, "--args", `--wengu-profile=${userDataDir}`]);
     const desktop = await oneDesktop();
     // the window has loaded (agent calls need its page), and every agent uses it
     for (const c of clients) await expect.poll(() => cards(c), { timeout: 60_000, intervals: [500] }).not.toBeNull();
     await expect.poll(() => appTypes().get(desktop), { timeout: 10_000 }).toBe("Foreground");
-    // the MCP processes stay in the background (no Dock icon)
-    await expect.poll(() => clients.map((c) => appTypes().get(c.proc.pid!)), { timeout: 10_000 }).toEqual(clients.map(() => "UIElement"));
+    // the MCP proxies stay unregistered in Launch Services
+    const registered = appTypes();
+    for (const c of clients) expect(registered.has(c.proc.pid!)).toBe(false);
 
     // opening it again reaches the same desktop process instead of starting a second one
     execFileSync("open", [bundle]);

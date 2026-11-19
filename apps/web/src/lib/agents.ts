@@ -1,5 +1,5 @@
 /**
- * Local agents (desktop only): runs the tool calls the shell relays from `Wengu --mcp`, tells the user what an agent
+ * Local agents (desktop only): runs the tool calls the shell relays from `wengu-mcp`, tells the user what an agent
  * changed (with undo), and remembers which agents have connected, for Settings.
  */
 import { useEffect, useSyncExternalStore } from "react";

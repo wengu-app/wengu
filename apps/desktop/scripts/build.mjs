@@ -1,8 +1,10 @@
 #!/usr/bin/env node
-/** Bundles the main process and the preload (TypeScript) into out/*.cjs with esbuild. `--watch` to rebuild on change. */
+/** Bundles the main process and the preload (TypeScript) into out/*.cjs with esbuild, and builds the Go MCP proxy. `--watch` to rebuild on change. */
 import { context, build } from "esbuild";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+
+import { buildMcp } from "./build-mcp.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const options = {
@@ -20,6 +22,7 @@ const options = {
   logLevel: "info",
 };
 
+await buildMcp();
 if (process.argv.includes("--watch")) {
   const ctx = await context(options);
   await ctx.watch();

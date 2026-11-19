@@ -1,8 +1,8 @@
 /**
  * The tools that local agents (Claude Code, Codex, …) get through the desktop app's MCP bridge.
  *
- * Plain data only: the desktop shell's `--mcp` process imports this list to answer `tools/list` without the app,
- * and the app runs the calls (`run.ts`). Names and schemas are the contract with agents; change them with care.
+ * Plain data only: `apps/desktop/scripts/build-mcp.mjs` embeds this list into the standalone `wengu-mcp` Go binary to
+ * answer `tools/list` without the app, and the app runs the calls (`run.ts`). Names and schemas are the contract with agents; change them with care.
  */
 
 export interface AgentToolDef {
@@ -139,7 +139,7 @@ export interface AgentClient {
   version?: string;
 }
 
-/** A call relayed from the `--mcp` process to the app. */
+/** A call relayed from `wengu-mcp` to the app. */
 export interface AgentCall {
   id: number;
   tool: string;

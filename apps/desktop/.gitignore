@@ -1,4 +1,5 @@
-# bundled main/preload (scripts/build.mjs) and packaged apps (electron-builder)
+# bundled main/preload (scripts/build.mjs), generated MCP manifest, and packaged apps (electron-builder)
 out/
 dist/
 test-results/
+mcp/cmd/wengu-mcp/tools_gen.json
