@@ -1,9 +1,18 @@
-# Builds the desktop app (apps/desktop) for Linux, macOS and Windows and uploads the installers as workflow artifacts.
-# Manual only. macOS artifacts are Developer ID signed and notarized. All targets use --publish never.
+# Builds the desktop app (apps/desktop) for Linux, macOS and Windows and automatically publishes the release to
+# wengu-app/downloads when triggered on main (unless publish=false). macOS artifacts are Developer ID signed & notarized.
 name: Desktop builds
 
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish release to wengu-app/downloads (only on main)"
+        type: boolean
+        default: true
+      notes:
+        description: "Release notes (optional; defaults to commit summary since previous version)"
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -182,3 +191,82 @@ jobs:
           path: ${{ matrix.files }}
           if-no-files-found: error
           retention-days: 14
+
+  release:
+    name: Publish release (wengu-app/downloads)
+    needs: build
+    if: ${{ github.ref == 'refs/heads/main' && inputs.publish != false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Publish to wengu-app/downloads
+        env:
+          GH_TOKEN: ${{ secrets.DOWNLOADS_RELEASE_TOKEN }}
+          RELEASE_NOTES: ${{ inputs.notes }}
+        run: |
+          set -euo pipefail
+          : "${GH_TOKEN:?Missing DOWNLOADS_RELEASE_TOKEN}"
+          version=$(node -p 'require("./apps/desktop/package.json").version')
+          tag="v$version"
+
+          if gh release view "$tag" -R wengu-app/downloads >/dev/null 2>&1; then
+            echo "Release $tag already exists in wengu-app/downloads; bump apps/desktop/package.json version first."
+            exit 1
+          fi
+
+          mapfile -t files < <(find release-assets -type f | sort)
+          echo "Found ${#files[@]} release assets:"
+          printf '  %s\n' "${files[@]}"
+          [ "${#files[@]}" -ge 15 ] || { echo "Expected at least 15 assets, got ${#files[@]}"; exit 1; }
+
+          for f in "${files[@]}"; do
+            base=$(basename "$f")
+            [ "$base" = "${base// /}" ] || { echo "Asset filename contains spaces: $base"; exit 1; }
+          done
+
+          for manifest in latest.yml latest-mac.yml latest-linux.yml; do
+            mpath=$(find release-assets -type f -name "$manifest" | head -1)
+            [ -n "$mpath" ] || { echo "Missing manifest: $manifest"; exit 1; }
+            first=$(head -1 "$mpath" | tr -d '\r')
+            [ "$first" = "version: $version" ] || { echo "Manifest $manifest has '$first', expected 'version: $version'"; exit 1; }
+          done
+
+          notes_file="$RUNNER_TEMP/release-notes.md"
+          if [ -n "$RELEASE_NOTES" ]; then
+            printf '%s\n' "$RELEASE_NOTES" > "$notes_file"
+          else
+            prev_commit=$(git log -n 2 --format=%H -- apps/desktop/package.json | tail -1)
+            {
+              echo "## 更新内容"
+              echo ""
+              if [ -n "$prev_commit" ] && [ "$prev_commit" != "$(git rev-parse HEAD)" ]; then
+                git log --format='- %s' "${prev_commit}..HEAD"
+              else
+                git log -n 1 --format='- %s' HEAD
+              fi
+              echo ""
+              echo "已安装 0.1.1 及以后版本的用户会在应用内收到更新。"
+            } > "$notes_file"
+          fi
+
+          gh release create "$tag" -R wengu-app/downloads \
+            --title "温故 $version" \
+            --notes-file "$notes_file" \
+            --latest \
+            "${files[@]}"
+
+          # Verify the public update feed now serves the new version on all three platforms.
+          for manifest in latest.yml latest-mac.yml latest-linux.yml; do
+            first=$(curl -fsSL "https://github.com/wengu-app/downloads/releases/latest/download/$manifest" | head -1 | tr -d '\r')
+            echo "Published $manifest -> $first"
+            [ "$first" = "version: $version" ] || { echo "Unexpected published $manifest header: $first"; exit 1; }
+          done

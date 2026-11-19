@@ -121,21 +121,19 @@ corepack pnpm --filter @wengu/web test
 
 已安装的应用从 `https://github.com/wengu-app/downloads/releases/latest/download/` 读取 `latest.yml`、`latest-mac.yml`、`latest-linux.yml`，地址在打包时写进包里（CI 变量 `WENGU_UPDATE_URL`，`scripts/package.mjs` 有同样的默认值）。0.1.1 是第一个带更新功能的版本，更早的版本要手动装一次。
 
-发一个新版本：
+发一个新版本（三平台打包通过后由 `desktop.yml` 的 `release` job 自动发布到 `wengu-app/downloads`，使用 Secret `DOWNLOADS_RELEASE_TOKEN`）：
 
 ```sh
 # 1. 升版本号（apps/desktop/package.json 的 version），提交并推送
-gh workflow run desktop.yml --ref main          # 2. 三个平台一起打包
+gh workflow run desktop.yml --ref main                         # 2. 三平台打包、签名公证并自动发布为 latest Release
+# 可选：自定义 release notes 或仅测试构建不发布：
+# gh workflow run desktop.yml --ref main -f notes="## 更新内容..."
+# gh workflow run desktop.yml --ref main -f publish=false
 gh run watch <run-id> --exit-status
-D=~/.cache/wengu-release/v<版本>                 # 3. 下载产物，放硬盘，/tmp 是内存盘放不下
-gh run download <run-id> -D "$D"
-gh release create v<版本> -R wengu-app/downloads --title "温故 <版本>" --notes "…" --latest $(find "$D" -type f | sort)
 ```
 
-- 每个 CI 产物（安装包、mac 的 zip、`.blockmap`、三个 `latest*.yml`，共 15 个文件）都要传；漏了某个 `latest*.yml`，对应平台就收不到更新。
-- Release 必须是正式版、标为 latest：预发布和草稿不会出现在 `releases/latest`。
-- 产物文件名不能有空格：GitHub 会把附件名里的空格换成点，和 `latest*.yml` 里记的名字对不上。
-- 发布后用 `curl -sL <更新地址>/latest-linux.yml | head -1` 确认版本号已变。
+- `release` job 会自动校验全部 15 个产物、三个 `latest*.yml` 的版本号以及文件名无空格，发布为正式版 `--latest`，并在发布后用 `curl` 校验更新地址的三个 `latest*.yml` 版本号已更新。
+- 仅在 `main` 分支上才会触发自动发布；若目标版本 tag 已存在于 `wengu-app/downloads`，`release` job 会直接报错退出，避免覆盖已发布的版本。
 - 应用启动 15 秒后检查一次，之后每 6 小时一次，"帮助 → 检查更新…"立即检查。
 - 本机验证（只能测 Linux）：本机没有 FUSE 2，AppImage 用 `APPIMAGE_EXTRACT_AND_RUN=1` 运行，再加 `DISPLAY=:1 --no-sandbox`；更新后重启的进程不会带上原来的命令行参数（包括 `--user-data-dir`），会用默认数据目录 `~/.config/Wengu`。
 
