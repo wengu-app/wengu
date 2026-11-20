@@ -54,14 +54,18 @@ const env = { ...process.env };
 env.WENGU_UPDATE_URL ||= "https://github.com/wengu-app/downloads/releases/latest/download/";
 if (!env.WENGU_UPDATE_URL.startsWith("https://")) throw new Error("WENGU_UPDATE_URL must use HTTPS");
 if (process.platform === "darwin") {
-  if (env.CSC_LINK) args.push("-c.forceCodeSigning=true");
+  const hasSigning = Boolean(env.CSC_LINK || env.CSC_NAME);
+  if (hasSigning) args.push("-c.forceCodeSigning=true");
   else args.push("-c.mac.identity=-");
-  // Notarization is off in electron-builder.yml; the macOS CI job turns it on with WENGU_NOTARIZE=1.
+  // Notarization is off in electron-builder.yml; CI and local releases turn it on with WENGU_NOTARIZE=1.
   if (env.WENGU_NOTARIZE === "1") {
-    for (const name of ["CSC_LINK", "APPLE_API_KEY", "APPLE_API_KEY_ID", "APPLE_API_ISSUER"]) {
-      if (!env[name]) throw new Error(`WENGU_NOTARIZE=1 needs ${name}`);
+    if (!hasSigning) throw new Error("WENGU_NOTARIZE=1 needs CSC_LINK or CSC_NAME");
+    if (!env.APPLE_KEYCHAIN_PROFILE) {
+      for (const name of ["APPLE_API_KEY", "APPLE_API_KEY_ID", "APPLE_API_ISSUER"]) {
+        if (!env[name]) throw new Error(`WENGU_NOTARIZE=1 needs ${name} (or APPLE_KEYCHAIN_PROFILE)`);
+      }
+      if (!path.isAbsolute(env.APPLE_API_KEY)) throw new Error("APPLE_API_KEY must be an absolute path to the .p8 key");
     }
-    if (!path.isAbsolute(env.APPLE_API_KEY)) throw new Error("APPLE_API_KEY must be an absolute path to the .p8 key");
     args.push("-c.mac.notarize=true");
   }
 }

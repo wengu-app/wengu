@@ -134,6 +134,13 @@ gh run watch <run-id> --exit-status
 ```
 
 - `release` job 会自动校验全部 15 个产物、三个 `latest*.yml` 的版本号以及文件名无空格，发布为正式版 `--latest`，并在发布后用 `curl` 校验更新地址的三个 `latest*.yml` 版本号已更新。
+- GitHub Actions 额度不足时，可在本机 macOS 直接构建、Developer ID 签名、公证并发布 macOS 版（arm64 + x64）到 `wengu-app/downloads`：
+  ```sh
+  # 使用本机钥匙串里的 Developer ID Application 证书 + App Store Connect API 密钥（或 APPLE_KEYCHAIN_PROFILE）
+  APPLE_API_KEY=/绝对路径/AuthKey_XXXX.p8 APPLE_API_KEY_ID=XXXX APPLE_API_ISSUER=XXXX \
+    ./apps/desktop/scripts/release-mac-local.sh
+  # 仅本地验证打包公证不发布：加 --no-publish
+  ```
 - 仅在 `main` 分支上才会触发自动发布；若目标版本 tag 已存在于 `wengu-app/downloads`，`release` job 会直接报错退出，避免覆盖已发布的版本。
 - 应用启动 15 秒后检查一次，之后每 6 小时一次，"帮助 → 检查更新…"立即检查。
 - 本机验证（只能测 Linux）：本机没有 FUSE 2，AppImage 用 `APPIMAGE_EXTRACT_AND_RUN=1` 运行，再加 `DISPLAY=:1 --no-sandbox`；更新后重启的进程不会带上原来的命令行参数（包括 `--user-data-dir`），会用默认数据目录 `~/.config/Wengu`。
