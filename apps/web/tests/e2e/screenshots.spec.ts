@@ -72,5 +72,22 @@ for (const theme of ["light", "dark"] as const) {
     await shot("10-stats");
     await page.goto("./#/settings");
     await shot("11-settings");
+
+    await page.goto("./#/make");
+    await page.getByRole("tab", { name: "Basic", exact: true }).click();
+    await page.getByTestId("add-field-0").locator(".fe-rich").click();
+    await page.keyboard.type(lang === "zh" ? "FSRS 中稳定性（Stability）的含义是什么？" : "What does Stability mean in FSRS?");
+    await page.keyboard.press("Tab");
+    await page.keyboard.type(lang === "zh" ? "回忆概率从 100% 降到 90% 所需的天数。" : "Days until recall probability falls from 100% to 90%.");
+    const tagInput = page.getByLabel(lang === "zh" ? "标签" : "Tags");
+    await tagInput.fill("memory::fsrs ");
+    await tagInput.fill("concept ");
+    await page.waitForTimeout(150);
+    await shot("12-make");
+
+    await page.getByTestId("make-more-types").click();
+    await expect(page.getByTestId("make-more-pop")).toBeVisible();
+    await page.waitForTimeout(150);
+    await shot("13-make-more");
   });
 }

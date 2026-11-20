@@ -8,7 +8,7 @@ import { fsrsParametersFor, renderCard } from "@wengu/anki";
 import type { SqlDatabase } from "../db/driver.js";
 import { SCHEMA_VERSION, migrate } from "../db/schema.js";
 import type { MediaStore } from "../media/store.js";
-import { mimeType } from "../media/store.js";
+import { mimeType, sha256Hex } from "../media/store.js";
 import type {
   AddKnowledgePointInput,
   AddResult,
@@ -1175,6 +1175,42 @@ export class Engine implements WenguApi {
       out[name] = r ? await this.media.get(r.hash, mimeType(name)) : null;
     }
     return out;
+  }
+
+  async putMedia(rawName: string, data: Uint8Array): Promise<string> {
+    const clean = rawName
+      .trim()
+      .replace(/[/\\<>:"|?*\x00-\x1f]+/g, "_")
+      .replace(/^\.+/, "");
+    let name = clean || "media.bin";
+    const hash = await sha256Hex(data);
+    const existing = this.db.get<{ hash: string }>("SELECT hash FROM media WHERE name = ?", [name]);
+    if (existing) {
+      if (existing.hash === hash) {
+        await this.media.put(hash, data);
+        return name;
+      }
+      const dot = name.lastIndexOf(".");
+      const base = dot > 0 ? name.slice(0, dot) : name;
+      const ext = dot > 0 ? name.slice(dot) : "";
+      name = `${base}-${hash.slice(0, 8)}${ext}`;
+      const again = this.db.get<{ hash: string }>("SELECT hash FROM media WHERE name = ?", [name]);
+      if (again?.hash === hash) {
+        await this.media.put(hash, data);
+        return name;
+      }
+    }
+    await this.media.put(hash, data);
+    const pos = Number(this.db.value("SELECT coalesce(max(position), -1) FROM media") ?? -1) + 1;
+    this.db.run("INSERT OR REPLACE INTO media (name, hash, size, sha1, position, added_at) VALUES (?, ?, ?, NULL, ?, ?)", [
+      name,
+      hash,
+      data.length,
+      pos,
+      this.clock.now(),
+    ]);
+    this.touch();
+    return name;
   }
 
   listMedia(): MediaInfo[] {

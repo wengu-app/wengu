@@ -56,12 +56,12 @@ test("browse, edit, add, delete; export with progress and read it back", async (
   await expect(page.getByTestId("browse-row").filter({ hasText: "France" })).toHaveCount(1);
   await pick(page.getByTestId("filter-state"), "Any state");
 
-  // add a note
+  // add a note (Tab flows directly from front to back)
   await page.getByTestId("add-note").click();
-  await page.getByRole("tab", { name: "Basic", exact: true }).first().click();
+  await page.getByRole("tab", { name: "Basic", exact: true }).click();
   await page.getByTestId("add-field-0").locator(".fe-rich").click();
   await page.keyboard.type("温故而知新");
-  await page.getByTestId("add-field-1").locator(".fe-rich").click();
+  await page.keyboard.press("Tab");
   await page.keyboard.type("Review the old, learn the new");
   await page.getByLabel("Tags").fill("lunyu ");
   await page.getByTestId("add-note-submit").click();
@@ -149,4 +149,29 @@ test("delete a deck from its detail page and undo", async ({ page }) => {
   await page.goto("./#/deck/1");
   await expect(page.getByTestId("deck-page")).toBeVisible();
   await expect(page.getByTestId("delete-deck")).toHaveCount(0);
+});
+
+test("make screen shows an unsupported notice for Anki Image Occlusion and lets users pin note types", async ({ page }) => {
+  await openApp(page);
+  await importFixture(page, "full-latest.colpkg");
+  await page.goto("./#/make");
+  await expect(page.getByTestId("make-more-types")).toBeVisible();
+
+  // Image Occlusion is kept out of the default pinned pills and lives under More
+  await expect(page.getByTestId("make-note-types").getByRole("tab", { name: "Image Occlusion", exact: true })).toHaveCount(0);
+  await page.getByTestId("make-more-types").click();
+  await page.getByTestId("make-more-pop").getByRole("option", { name: /Image Occlusion/ }).click();
+  await expect(page.getByTestId("make-unsupported")).toBeVisible();
+  await expect(page.getByTestId("add-note-submit")).toHaveCount(0);
+  await page.getByRole("button", { name: /Switch to/ }).click();
+  await expect(page.getByTestId("make-unsupported")).toHaveCount(0);
+  await expect(page.getByTestId("add-note-submit")).toBeVisible();
+
+  // Pinning a type from More adds it to the outer capsule bar and persists across reloads
+  await page.getByTestId("make-more-types").click();
+  await page.getByRole("button", { name: "Pin to bar Basic (type in the answer)" }).click();
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("make-note-types").getByRole("tab", { name: "Basic (type in the answer)", exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByTestId("make-note-types").getByRole("tab", { name: "Basic (type in the answer)", exact: true })).toBeVisible();
 });

@@ -39,6 +39,16 @@ export class MediaCache {
     return url;
   }
 
+  /** Caches a newly stored file and returns its object URL immediately. */
+  remember(name: string, blob: Blob): string {
+    this.blobs.set(name, blob);
+    const prev = this.urls.get(name);
+    if (prev) URL.revokeObjectURL(prev);
+    const url = URL.createObjectURL(blob);
+    this.urls.set(name, url);
+    return url;
+  }
+
   /** After an import or edit, files may have changed. */
   invalidate(): void {
     this.blobs.clear();

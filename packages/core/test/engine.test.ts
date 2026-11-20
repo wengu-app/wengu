@@ -513,6 +513,24 @@ describe("statistics, media, export of one deck", () => {
     await other.importAnki(pkg);
     expect(normaliseForCompare(await other.exportAnki({ deckId: misc }))).toEqual(normaliseForCompare(pkg));
   });
+
+  it("stores new media with putMedia, reuses identical content, and disambiguates collisions", async () => {
+    const { engine } = await engineAt(FIXTURE_NOW_SECS);
+    const a = new Uint8Array([1, 2, 3, 4]);
+    const b = new Uint8Array([5, 6, 7, 8]);
+    const n1 = await engine.putMedia("diagram.png", a);
+    expect(n1).toBe("diagram.png");
+    // same name + same content: idempotent
+    expect(await engine.putMedia("diagram.png", a)).toBe("diagram.png");
+    // same name + different content: disambiguated by content hash
+    const n2 = await engine.putMedia("diagram.png", b);
+    expect(n2).toMatch(/^diagram-[0-9a-f]{8}\.png$/);
+    expect(await engine.putMedia("diagram.png", b)).toBe(n2);
+    const got = await engine.getMedia([n1, n2]);
+    expect(got[n1]!.size).toBe(4);
+    expect(got[n2]!.size).toBe(4);
+    expect(engine.listMedia().map((m) => m.name)).toEqual([n1, n2]);
+  });
 });
 
 function normaliseForCompare(p: Awaited<ReturnType<Engine["exportAnki"]>>) {

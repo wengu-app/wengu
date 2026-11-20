@@ -28,11 +28,13 @@ const PATHS = {
   arrowLeft: "M19 12H5 M11 6l-6 6 6 6",
   trash: "M4 7h16 M9 7V4h6v3 M6 7l1 13h10l1-13",
   file: "M14 3H6v18h12V7l-4-4Z M14 3v4h4",
+  image: "M4 5.5h16v13H4z M8.5 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z M4 16l4.5-4.5 3.5 3.5 2.5-2.5L20 17.5",
   code: "M8.5 7 3.5 12l5 5 M15.5 7l5 5-5 5",
   eye: "M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z",
   move: "M4 12h16 M16 8l4 4-4 4",
   warning: "M12 4 2.5 20h19L12 4Z M12 10v4.5 M12 17.5h.01",
   lock: "M6 11h12v9H6z M8.5 11V8a3.5 3.5 0 0 1 7 0v3",
+  pin: "M9 4h6 M10 4l-1 6-2.5 2.5V14h11v-1.5L15 10l-1-6 M12 14v6.5",
 } as const;
 
 export type IconName = keyof typeof PATHS;

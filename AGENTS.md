@@ -90,6 +90,7 @@ wrangler pages deploy --branch main --commit-dirty=true --force
 ### UI 修改与截图对比
 
 - **每次修改 UI，都需要先截取修改前的界面截图，改完后再截取相同状态下的修改后截图，并在回复中提供前后对比图。**
+- **UI 迭代过程中不要每次都跑全套 Playwright E2E**（含 5 万笔记压测和延迟基准，耗时长）：迭代时只需跑 `typecheck`、相关单测、`vite build` 并**仅截取本次修改对应的页面截图**；全套 E2E 与桌面测试留到最终提交前一次性跑完即可。
 
 ### 验证命令（提交前都要跑）
 

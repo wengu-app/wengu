@@ -58,16 +58,17 @@ export function FieldEditor(props: {
   rtl: boolean;
   autoFocus?: boolean;
   testId?: string;
-  /** Drawn on an index card (Make screen) instead of a boxed field. */
+  /** Compact, frameless presentation inside the Make card surface instead of a boxed field. */
   variant?: "card";
   placeholder?: string;
   /** Shows the cloze tool; returns the number for the next deletion. */
   nextCloze?(): number;
 }) {
-  const { media } = useApp();
+  const { db, media } = useApp();
   const t = useT();
   const [mode, setMode] = useState<"rich" | "html">("rich");
   const ref = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const lastOut = useRef<string | null>(null);
   const { value } = props;
 
@@ -107,6 +108,41 @@ export function FieldEditor(props: {
     emit();
   };
 
+  const insertImages = async (files: File[]) => {
+    const imgs = files.filter((f) => f.type.startsWith("image/"));
+    if (!imgs.length) return;
+    for (const file of imgs) {
+      const ext = file.type.split("/")[1]?.replace(/[^a-z0-9]/gi, "") || "png";
+      const rawName = file.name && !/^image\.[a-z]+$/i.test(file.name) ? file.name : `paste-${Date.now()}.${ext === "jpeg" ? "jpg" : ext}`;
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const stored = await db.putMedia(rawName, bytes);
+      const url = media.remember(stored, file);
+      if (mode === "html") {
+        props.onChange((props.value ? `${props.value}\n` : "") + `<img src="${stored}">`);
+        continue;
+      }
+      const el = ref.current;
+      if (!el) continue;
+      el.focus();
+      const img = document.createElement("img");
+      img.src = url;
+      img.setAttribute("data-wg-media", stored);
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0 && el.contains(sel.anchorNode)) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(img);
+        range.setStartAfter(img);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } else {
+        el.appendChild(img);
+      }
+      emit();
+    }
+  };
+
   return (
     <div className={`fe ${props.variant === "card" ? "fe-card" : ""}`} data-testid={props.testId}>
       <div className="fe-head">
@@ -114,24 +150,28 @@ export function FieldEditor(props: {
         <span className="fe-tools">
           {mode === "rich" && (
             <>
-              <button type="button" className="tool" onMouseDown={(e) => e.preventDefault()} onClick={() => exec("bold")} aria-label={t("editor.bold")} title={`${t("editor.bold")} (Ctrl+B)`}>
+              <button type="button" tabIndex={-1} className="tool" onMouseDown={(e) => e.preventDefault()} onClick={() => exec("bold")} aria-label={t("editor.bold")} title={`${t("editor.bold")} (Ctrl+B)`}>
                 <b>B</b>
               </button>
-              <button type="button" className="tool" onMouseDown={(e) => e.preventDefault()} onClick={() => exec("italic")} aria-label={t("editor.italic")} title={`${t("editor.italic")} (Ctrl+I)`}>
+              <button type="button" tabIndex={-1} className="tool" onMouseDown={(e) => e.preventDefault()} onClick={() => exec("italic")} aria-label={t("editor.italic")} title={`${t("editor.italic")} (Ctrl+I)`}>
                 <i>I</i>
               </button>
-              <button type="button" className="tool" onMouseDown={(e) => e.preventDefault()} onClick={() => exec("underline")} aria-label={t("editor.underline")} title={`${t("editor.underline")} (Ctrl+U)`}>
+              <button type="button" tabIndex={-1} className="tool" onMouseDown={(e) => e.preventDefault()} onClick={() => exec("underline")} aria-label={t("editor.underline")} title={`${t("editor.underline")} (Ctrl+U)`}>
                 <u>U</u>
               </button>
               {props.nextCloze && (
-                <button type="button" className="tool tool-wide" onMouseDown={(e) => e.preventDefault()} onClick={cloze} aria-label={t("make.cloze")} title={`${t("make.cloze")} (Ctrl+Shift+C)`}>
+                <button type="button" tabIndex={-1} className="tool tool-wide" onMouseDown={(e) => e.preventDefault()} onClick={cloze} aria-label={t("make.cloze")} title={`${t("make.cloze")} (Ctrl+Shift+C)`}>
                   [...]
                 </button>
               )}
+              <button type="button" tabIndex={-1} className="tool" onMouseDown={(e) => e.preventDefault()} onClick={() => fileRef.current?.click()} aria-label={t("editor.image")} title={t("editor.image")}>
+                <Icon name="image" size={15} />
+              </button>
             </>
           )}
           <button
             type="button"
+            tabIndex={-1}
             className={`tool ${mode === "html" ? "is-on" : ""}`}
             aria-pressed={mode === "html"}
             onClick={() => {
@@ -144,6 +184,18 @@ export function FieldEditor(props: {
           </button>
         </span>
       </div>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        multiple
+        hidden
+        onChange={(e) => {
+          const files = Array.from(e.target.files ?? []);
+          e.target.value = "";
+          void insertImages(files);
+        }}
+      />
       {mode === "rich" ? (
         <div
           ref={ref}
@@ -163,8 +215,20 @@ export function FieldEditor(props: {
             }
           }}
           onPaste={(e) => {
+            const imgs = Array.from(e.clipboardData.files).filter((f) => f.type.startsWith("image/"));
+            if (imgs.length) {
+              e.preventDefault();
+              void insertImages(imgs);
+              return;
+            }
             e.preventDefault();
             document.execCommand("insertText", false, e.clipboardData.getData("text/plain"));
+          }}
+          onDrop={(e) => {
+            const imgs = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith("image/"));
+            if (!imgs.length) return;
+            e.preventDefault();
+            void insertImages(imgs);
           }}
         />
       ) : (

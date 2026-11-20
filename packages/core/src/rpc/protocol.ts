@@ -35,6 +35,7 @@ export const API_METHODS = [
   "moveItems",
   "stats",
   "getMedia",
+  "putMedia",
   "listMedia",
   "importAnki",
   "exportAnki",

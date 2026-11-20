@@ -592,6 +592,8 @@ export interface WenguApi {
   // media
   /** Media files by name: a Blob (`File` from OPFS in the browser), or null when missing. */
   getMedia(names: string[]): Promise<Record<string, Blob | null>>;
+  /** Stores a media file in the collection and returns the stored filename (disambiguated on collision). */
+  putMedia(name: string, data: Uint8Array): Promise<string>;
   listMedia(): MediaInfo[];
 
   // import / export
