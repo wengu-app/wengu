@@ -23,7 +23,7 @@ Run from `apps/desktop` (or with `corepack pnpm --filter @wengu/desktop run <scr
 | `corepack pnpm dist:win` | Build, then an NSIS installer (on Windows, or Linux with wine; untested). |
 | `corepack pnpm test` | End-to-end tests against the dev shell. |
 | `WENGU_APP_EXECUTABLE=… corepack pnpm test:packaged` | The same tests against a packaged binary (AppImage, or `opt/Wengu/wengu` from the deb). |
-| `corepack pnpm icons` | Regenerates `resources/` icons from `apps/web/public/favicon.svg` (needs a CJK serif font). |
+| `corepack pnpm icons` | Regenerates `resources/` icons from `resources/icon-master.png`. |
 
 Packaging goes through `scripts/package.mjs`, which always passes `--publish never` and, where pnpm only exists via
 corepack, puts a `pnpm` shim on PATH for electron-builder. Build output (`out/`, `dist/`) is git-ignored.

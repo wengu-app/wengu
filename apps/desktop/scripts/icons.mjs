@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * Generates the app icons from the 温 mark (apps/web/public/favicon.svg) into resources/:
+ * Generates the app icons from the Leitner card-box master artwork (resources/icon-master.png) into resources/:
  *   icons/<n>x<n>.png  Linux (and the window icon), 16…1024
- *   icon.png           1024, full bleed (electron-builder's generic icon)
+ *   icon.png           1024, full bleed squircle (electron-builder's generic icon)
  *   icon.ico           Windows (PNG-compressed entries 16…256)
- *   icon.icns          macOS (on Apple's icon grid: 824 px tile with a margin, 16…1024)
+ *   icon.icns          macOS (Apple's icon grid: 824 px continuous squircle + shadow on 1024 px canvas, 16…1024)
  *
- * Renders with Playwright's Chromium so the glyph uses a real CJK serif font (needs "Noto Serif CJK SC" or similar
- * installed). The outputs are committed; run this only when the mark changes:  node scripts/icons.mjs
+ * Renders with Playwright's Chromium so the superellipse mask, inner bevel and macOS drop shadow match across
+ * platforms. The outputs are committed; run this only when icon-master.png changes:  node scripts/icons.mjs
  */
 import { chromium } from "@playwright/test";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -16,14 +16,54 @@ import path from "node:path";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const out = path.join(root, "resources");
-const favicon = readFileSync(path.join(root, "../web/public/favicon.svg"), "utf8");
+const masterPath = path.join(out, "icon-master.png");
+const masterDataUri = `data:image/png;base64,${readFileSync(masterPath).toString("base64")}`;
 mkdirSync(path.join(out, "icons"), { recursive: true });
 
-// The favicon's own geometry (64-unit square, rx 13). macOS: same artwork on an 824/1024 tile with Apple's corner.
-const fullSvg = favicon;
-const macSvg = favicon
-  .replace('viewBox="0 0 64 64"', 'viewBox="-7.77 -7.77 79.54 79.54"')
-  .replace('rx="13"', 'rx="14.4"');
+// Apple-style continuous superellipse (squircle) on a 0..256 coordinate box.
+const SQUIRCLE =
+  "M128,0 C196,0 222,0 239,17 C256,34 256,60 256,128 C256,196 256,222 239,239 C222,256 196,256 128,256 C60,256 34,256 17,239 C0,222 0,196 0,128 C0,60 0,34 17,17 C34,0 60,0 128,0 Z";
+const SQUIRCLE_INSET =
+  "M128,1.5 C195.2,1.5 220.8,1.5 237.6,18.4 C254.5,35.2 254.5,60.8 254.5,128 C254.5,195.2 254.5,220.8 237.6,237.6 C220.8,254.5 195.2,254.5 128,254.5 C60.8,254.5 35.2,254.5 18.4,237.6 C1.5,220.8 1.5,195.2 1.5,128 C1.5,60.8 1.5,35.2 18.4,18.4 C35.2,1.5 60.8,1.5 128,1.5 Z";
+
+// Slightly zoom the full-bleed master so the Leitner card box carries balanced Dock weight (~72% width).
+const IMG_SCALE = 1.09;
+const IMG_SIZE = 256 * IMG_SCALE;
+const IMG_X = (256 - IMG_SIZE) / 2;
+const IMG_Y = (256 - IMG_SIZE) / 2 + 2;
+
+function tileArtwork(prefix) {
+  return `
+    <defs>
+      <clipPath id="${prefix}-sq"><path d="${SQUIRCLE}"/></clipPath>
+      <linearGradient id="${prefix}-rim" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="rgba(255,255,255,0.88)"/>
+        <stop offset="45%" stop-color="rgba(255,255,255,0.08)"/>
+        <stop offset="100%" stop-color="rgba(110,82,48,0.2)"/>
+      </linearGradient>
+    </defs>
+    <g clip-path="url(#${prefix}-sq)">
+      <image href="${masterDataUri}" x="${IMG_X.toFixed(2)}" y="${IMG_Y.toFixed(2)}" width="${IMG_SIZE.toFixed(2)}" height="${IMG_SIZE.toFixed(2)}" preserveAspectRatio="xMidYMid slice"/>
+      <path d="${SQUIRCLE_INSET}" fill="none" stroke="url(#${prefix}-rim)" stroke-width="3"/>
+    </g>
+  `;
+}
+
+// Full-bleed squircle (Linux / Windows / generic 1024px icon).
+const fullSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">${tileArtwork("full")}</svg>`;
+
+// macOS Apple Icon Grid: 824/1024 tile (206 on 256 grid) centered at (25, 25) with subtle studio drop shadow.
+const macSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <filter id="mac-sh" x="-20%" y="-20%" width="140%" height="145%">
+      <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#2b1b0e" flood-opacity="0.22"/>
+      <feDropShadow dx="0" dy="1.2" stdDeviation="1.5" flood-color="#2b1b0e" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+  <g filter="url(#mac-sh)" transform="translate(25 25) scale(0.8046875)">
+    ${tileArtwork("mac")}
+  </g>
+</svg>`;
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ deviceScaleFactor: 1 });
@@ -32,7 +72,7 @@ async function render(svg, size) {
   const sized = svg.replace("<svg ", `<svg width="${size}" height="${size}" `);
   await page.setViewportSize({ width: size, height: size });
   await page.setContent(`<!doctype html><html><head><style>html,body{margin:0;background:transparent}svg{display:block}</style></head><body>${sized}</body></html>`);
-  await page.evaluate(() => document.fonts.ready);
+  await page.waitForTimeout(30);
   return page.screenshot({ omitBackground: true, clip: { x: 0, y: 0, width: size, height: size } });
 }
 

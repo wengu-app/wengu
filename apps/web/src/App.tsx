@@ -16,6 +16,7 @@ import { Review } from "./screens/Review.tsx";
 import { Settings } from "./screens/Settings.tsx";
 import { Stats } from "./screens/Stats.tsx";
 import { Welcome } from "./screens/Welcome.tsx";
+import { BrandMark } from "./ui/BrandMark.tsx";
 import { Icon, type IconName } from "./ui/Icon.tsx";
 
 export function App({ db }: { db: WenguClient }) {
@@ -100,9 +101,7 @@ function Shell() {
         <header className="topbar">
           <nav className="topbar-in" aria-label={t("nav.main")}>
             <a className="brand" href={routeHash({ name: "decks" })} aria-current={route.name === "decks" ? "page" : undefined} aria-label={t("nav.decks")}>
-              <span className="seal" aria-hidden="true">
-                温
-              </span>
+              <BrandMark />
               <span className="brand-name">{t("app.name")}</span>
             </a>
             {route.name !== "browse" ? (

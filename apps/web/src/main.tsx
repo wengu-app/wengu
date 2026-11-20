@@ -7,6 +7,7 @@ import { App } from "./App.tsx";
 import { useLang, useT } from "./lib/i18n.ts";
 import { useIsDark } from "./lib/settings.ts";
 import { appVars, dark, light } from "./lib/theme.ts";
+import { BrandMark } from "./ui/BrandMark.tsx";
 import { Icon } from "./ui/Icon.tsx";
 
 declare global {
@@ -96,9 +97,7 @@ function Boot() {
   if (state.kind === "connecting")
     return (
       <div className="boot" aria-busy="true">
-        <span className="seal seal-lg" aria-hidden="true">
-          温
-        </span>
+        <BrandMark large />
         <p className="boot-text">{t("boot.opening")}</p>
       </div>
     );
