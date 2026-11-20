@@ -9,6 +9,7 @@
  * The frame stays alive across cards (like Anki's reviewer webview), so media and MathJax are loaded once.
  */
 import { replaceMediaReferences } from "@wengu/core";
+import { decideCardLayout, extractSideMetrics, type CardLayout } from "./layout.ts";
 import type { FrameKey, FrameTheme, FrameToHost, HostToFrame, ShowCard } from "./protocol.ts";
 import { cleanHtml } from "./sanitize.ts";
 import { BASE_CSS, ORIGINAL_CSS, WENGU_CSS } from "./styles.ts";
@@ -33,7 +34,7 @@ let mathReady: Promise<void> | null = null;
 let current: ShowCard | null = null;
 let answerStash: Promise<void> = Promise.resolve();
 let theme: FrameTheme = { dark: false, vars: {} };
-let shortPrompt = false;
+let layout: CardLayout = { centered: false, shortPrompt: false, promptHeading: false };
 let revealed = false;
 
 let qa: HTMLElement;
@@ -51,7 +52,7 @@ function setup(): void {
   qa.id = "qa";
   stash = document.createElement("div");
   stash.setAttribute("aria-hidden", "true");
-  stash.style.cssText = "position:absolute;left:-10000px;top:0;width:min(36em,100vw);visibility:hidden;pointer-events:none";
+  stash.style.cssText = "position:absolute;left:-10000px;top:0;width:min(40em,100vw);visibility:hidden;pointer-events:none";
   document.body.append(qa, stash);
 
   window.addEventListener("keydown", onKey, true);
@@ -211,26 +212,27 @@ function applyTheme(): void {
 function bodyClasses(card: ShowCard, side: "question" | "answer"): string {
   const night = theme.dark ? " nightMode night_mode" : "";
   if (card.mode === "original") return `${card.cardClass}${night}`;
-  return `wg ${side === "question" ? "wg-q" : "wg-a"}${night}${shortPrompt ? " wg-short" : ""}`;
+  const flags = `${layout.centered ? " wg-center" : ""}${layout.shortPrompt ? " wg-short" : ""}${layout.promptHeading ? " wg-qa" : ""}`;
+  return `wg ${side === "question" ? "wg-q" : "wg-a"}${night}${flags}`;
 }
 
-function setProse(): void {
-  document.body.classList.toggle("wg-prose", (qa.textContent ?? "").replace(/\s+/g, " ").length > 220);
-}
-
-/** Wengu mode: the part above `<hr id=answer>` (the question) in its own block, so a short prompt can be set large. */
-function wrapFront(root: ParentNode): void {
+/** Wengu mode: wraps the question above `<hr id=answer>` in `.wg-front` and the answer below it in `.wg-back`. */
+function structureCard(root: ParentNode): void {
   const kids = Array.from(root.childNodes);
   const hr = kids.findIndex((n) => n instanceof HTMLHRElement && n.id === "answer");
   const front = document.createElement("div");
   front.className = "wg-front";
   front.append(...(hr < 0 ? kids : kids.slice(0, hr)));
   root.insertBefore(front, root.firstChild);
-}
-
-function isShortPrompt(el: Element): boolean {
-  const text = (el.textContent ?? "").replace(/\s+/g, "");
-  return text.length > 0 && Array.from(text).length <= 14 && !el.querySelector("img, table, ul, ol, pre, .wg-large");
+  if (hr >= 0) {
+    const backNodes = kids.slice(hr + 1);
+    if (backNodes.length) {
+      const back = document.createElement("div");
+      back.className = "wg-back";
+      back.append(...backNodes);
+      root.append(back);
+    }
+  }
 }
 
 function applyEmphasis(root: ParentNode, map: Record<string, string[]>): void {
@@ -272,23 +274,36 @@ async function show(card: ShowCard): Promise<void> {
   } else {
     const frag = cleanHtml(withMedia(html), { restyle: true });
     applyEmphasis(frag, card.emphasis);
-    wrapFront(frag);
+    structureCard(frag);
     qa.replaceChildren(frag);
     latexFallback(qa);
-    setProse();
-    const front = qa.querySelector(".wg-front");
-    shortPrompt = !!front && isShortPrompt(front);
-    document.body.classList.toggle("wg-short", shortPrompt);
     if (card.side === "question") {
-      // Prepare the answer side now so revealing it is a node swap.
+      // Prepare the answer side now so revealing it is a node swap, and classify layout using both sides.
       clearMath(stash);
       const answerFrag = cleanHtml(withMedia(card.answer), { restyle: true });
       applyEmphasis(answerFrag, card.emphasis);
-      wrapFront(answerFrag);
+      structureCard(answerFrag);
       stash.replaceChildren(answerFrag);
       latexFallback(stash);
+      const frontEl = qa.querySelector(".wg-front");
+      const backEl = stash.querySelector(".wg-back");
+      const answerSideEl = backEl ?? (card.answer !== card.question ? stash.querySelector(".wg-front") : null);
+      layout = decideCardLayout(extractSideMetrics(frontEl), answerSideEl ? extractSideMetrics(answerSideEl) : null, !!backEl);
       answerStash = typeset(stash);
+    } else {
+      const backEl = qa.querySelector(".wg-back");
+      let frontEl = qa.querySelector(".wg-front");
+      let answerSideEl = backEl;
+      if (!backEl && card.answer !== card.question) {
+        const qFrag = cleanHtml(withMedia(card.question), { restyle: true });
+        applyEmphasis(qFrag, card.emphasis);
+        structureCard(qFrag);
+        frontEl = qFrag.querySelector(".wg-front");
+        answerSideEl = qa.querySelector(".wg-front");
+      }
+      layout = decideCardLayout(extractSideMetrics(frontEl), answerSideEl ? extractSideMetrics(answerSideEl) : null, !!backEl);
     }
+    document.body.className = bodyClasses(card, card.side);
   }
   if (card.side === "answer") {
     for (const el of Array.from(qa.querySelectorAll(".wg-typeans-result"))) el.innerHTML = card.typeCompare ?? "";
@@ -313,7 +328,6 @@ async function reveal(seq: number, typeCompare: string | null): Promise<void> {
     await answerStash;
     if (current !== card) return;
     qa.replaceChildren(...Array.from(stash.childNodes));
-    setProse();
   } else {
     qa.style.visibility = "hidden";
     qa.innerHTML = withMedia(card.answer);
@@ -325,13 +339,8 @@ async function reveal(seq: number, typeCompare: string | null): Promise<void> {
   }
   for (const el of Array.from(qa.querySelectorAll(".wg-typeans-result"))) el.innerHTML = typeCompare ?? "";
   const hr = qa.querySelector("hr#answer");
-  if (hr && card.mode === "wengu") {
-    let n = hr.nextSibling;
-    while (n) {
-      if (n instanceof HTMLElement) n.classList.add("wg-reveal");
-      n = n.nextSibling;
-    }
-  }
+  const back = qa.querySelector(".wg-back");
+  if (back && card.mode === "wengu") back.classList.add("wg-reveal");
   if (hr instanceof HTMLElement) {
     const top = hr.getBoundingClientRect().top;
     if (top > window.innerHeight * 0.6) window.scrollTo({ top: window.scrollY + top - 24 });

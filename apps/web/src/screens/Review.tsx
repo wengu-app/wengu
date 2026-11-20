@@ -378,7 +378,7 @@ export function Review({ deckId, onExit }: { deckId: number | null; onExit(): vo
       className={`review ${whyOpen ? "review-why" : ""}`}
       data-testid="review"
       data-phase={view.kind === "card" ? view.side : view.kind}
-      style={card ? ({ "--pc": deckColor(card.deckName)[0], "--pd": deckColor(card.deckName)[1] } as React.CSSProperties) : undefined}
+      style={card ? ({ "--pc": deckColor(card.deckName)[0] } as React.CSSProperties) : undefined}
     >
       <header className="review-bar">
         <button type="button" className="review-exit" onClick={onExit} aria-label={t("review.exit")} title={`${t("review.exit")} (Esc)`}>
@@ -457,7 +457,7 @@ export function Review({ deckId, onExit }: { deckId: number | null; onExit(): vo
 
       <div className="review-body">
         <div className="review-stage">
-          <div className={`paper ${view.kind === "card" ? "" : "is-hidden"}`} data-stack={Math.min(3, Math.max(0, remaining - 1))}>
+          <div className={`paper ${view.kind === "card" ? "" : "is-hidden"}`}>
             <CardFrame onController={onController} className={view.kind === "card" ? "" : "is-hidden"} />
           </div>
           {view.kind === "card" && view.prepared.decision.mode === "original" && view.prepared.decision.reason.kind !== "default" && (

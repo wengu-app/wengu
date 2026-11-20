@@ -115,3 +115,25 @@ var i = new Image(); i.onload = function () { d.img = "loaded"; }; i.onerror = f
   }
   await expect(page.getByTestId("mode-note")).toContainText("the template runs scripts");
 });
+
+test("Wengu typography: sans-serif body, short words centered, prose/cloze left-aligned without reveal jump", async ({ page }) => {
+  await openApp(page);
+  await importFixture(page, "full-latest.apkg");
+
+  // Short vocabulary card (猫) stays centered on both sides in sans-serif typography.
+  await openNote(page, "好き", "猫");
+  const f = previewFrame(page);
+  await expect(f.locator("body")).toHaveClass(/\bwg-center\b/);
+  await expect(f.locator("#qa")).toHaveCSS("text-align", "center");
+  await expect(f.locator("body")).not.toHaveCSS("font-family", /georgia|songti/i);
+  await page.getByRole("tab", { name: "Answer" }).click();
+  await expect(f.locator("body")).toHaveClass(/\bwg-center\b/);
+  await expect(f.locator("#qa .wg-back")).toHaveCount(1);
+
+  // Cloze sentence card stays left-aligned on both sides.
+  await openNote(page, "Euler");
+  await expect(f.locator("body")).not.toHaveClass(/\bwg-center\b/);
+  await expect(f.locator("#qa")).toHaveCSS("text-align", "start");
+  await page.getByRole("tab", { name: "Answer" }).click();
+  await expect(f.locator("body")).not.toHaveClass(/\bwg-center\b/);
+});
