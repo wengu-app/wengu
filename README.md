@@ -92,6 +92,8 @@ corepack pnpm --filter @wengu/web dev
 corepack pnpm --filter @wengu/desktop dist:linux
 ```
 
-## 协议
+## 协议与贡献
 
-计划采用 AGPL-3.0。
+- 本项目源代码采用 [GNU AGPL-3.0](LICENSE) 开源协议。
+- 欢迎参与贡献，提交 PR 前请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)（含贡献者许可协议说明）。
+- 开源协议仅适用于源代码；“温故”、“Wengu”名称及应用图标归项目作者所有，二次分发请使用独立名称与图标。

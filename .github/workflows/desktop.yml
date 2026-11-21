@@ -13,6 +13,9 @@ on:
         description: "Release notes (optional; defaults to commit summary since previous version)"
         type: string
         default: ""
+  push:
+    tags:
+      - "v*"
 
 permissions:
   contents: read
@@ -195,7 +198,7 @@ jobs:
   release:
     name: Publish release (wengu-app/downloads)
     needs: build
-    if: ${{ github.ref == 'refs/heads/main' && inputs.publish != false }}
+    if: ${{ (github.ref == 'refs/heads/main' && inputs.publish != false) || startsWith(github.ref, 'refs/tags/v') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -211,12 +214,19 @@ jobs:
       - name: Publish to wengu-app/downloads
         env:
           GH_TOKEN: ${{ secrets.DOWNLOADS_RELEASE_TOKEN }}
-          RELEASE_NOTES: ${{ inputs.notes }}
+          RELEASE_NOTES: ${{ inputs.notes || '' }}
+          GITHUB_REF_TYPE: ${{ github.ref_type }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
         run: |
           set -euo pipefail
           : "${GH_TOKEN:?Missing DOWNLOADS_RELEASE_TOKEN}"
           version=$(node -p 'require("./apps/desktop/package.json").version')
           tag="v$version"
+
+          if [ "${GITHUB_REF_TYPE:-}" = "tag" ] && [ "${GITHUB_REF_NAME:-}" != "$tag" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match apps/desktop/package.json version ($tag)."
+            exit 1
+          fi
 
           if gh release view "$tag" -R wengu-app/downloads >/dev/null 2>&1; then
             echo "Release $tag already exists in wengu-app/downloads; bump apps/desktop/package.json version first."

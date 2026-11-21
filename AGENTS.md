@@ -126,7 +126,9 @@ corepack pnpm --filter @wengu/web test
 
 ```sh
 # 1. 升版本号（apps/desktop/package.json 的 version），提交并推送
-gh workflow run desktop.yml --ref main                         # 2. 三平台打包、签名公证并自动发布为 latest Release
+# 2. 触发三平台打包、签名公证并自动发布为 latest Release（二选一）：
+git tag v<version> && git push origin v<version>              # 方式 A：推送 v* tag 自动触发
+gh workflow run desktop.yml --ref main                         # 方式 B：手动触发
 # 可选：自定义 release notes 或仅测试构建不发布：
 # gh workflow run desktop.yml --ref main -f notes="## 更新内容..."
 # gh workflow run desktop.yml --ref main -f publish=false
@@ -141,7 +143,7 @@ gh run watch <run-id> --exit-status
     ./apps/desktop/scripts/release-mac-local.sh
   # 仅本地验证打包公证不发布：加 --no-publish
   ```
-- 仅在 `main` 分支上才会触发自动发布；若目标版本 tag 已存在于 `wengu-app/downloads`，`release` job 会直接报错退出，避免覆盖已发布的版本。
+- 仅在 `main` 分支或推送 `v*` tag（需与 `apps/desktop/package.json` 版本一致）时才会触发自动发布；若目标版本 tag 已存在于 `wengu-app/downloads`，`release` job 会直接报错退出，避免覆盖已发布的版本。
 - 应用启动 15 秒后检查一次，之后每 6 小时一次，"帮助 → 检查更新…"立即检查。
 - 本机验证（只能测 Linux）：本机没有 FUSE 2，AppImage 用 `APPIMAGE_EXTRACT_AND_RUN=1` 运行，再加 `DISPLAY=:1 --no-sandbox`；更新后重启的进程不会带上原来的命令行参数（包括 `--user-data-dir`），会用默认数据目录 `~/.config/Wengu`。
 
@@ -165,5 +167,4 @@ gh run watch <run-id> --exit-status
 - Intel 版 mac 和 Windows 包未在真机运行过。
 - dmg 窗口里隐藏文件（`.background.tiff`、`.VolumeIcon.icns`）在开启"显示隐藏文件"时可见，待定是否移出可视区。
 - 二十张卡的可视化对照实验尚未做。
-- 协议写的是"计划采用 AGPL-3.0"，仓库里还没有 LICENSE 文件。
 - `apps/prototype` 两个原型里的 OPPO Sans 子集取自第三方来源，随开源仓库分发前要换成 OPPO 官方下载的字体并确认授权。
