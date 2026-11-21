@@ -1,5 +1,14 @@
 # AGENTS.md
 
+## 开源安全须知（push 前必查）
+
+**本仓库为公开开源项目（Public Repository）**，所有提交、分支、tag 与 commit 历史均对外可见。**每次 `git push` 前必须先完整扫描待推送的 `git diff`（如 `git diff origin/main..HEAD`）以及新增文件**，确认不存在以下风险后再推送：
+
+- 严禁提交任何密钥、Token、私钥、证书或凭据（如 `.env`、`*.p8`、`*.p12`、`*.pem`、`*.key`、`CLOUDFLARE_*`、`APPLE_API_*`、`GH_TOKEN` 等）。
+- 严禁提交个人隐私信息、本机绝对路径（如 `/Users/...`）、第三方私有卡组或未授权素材。
+- 修改 `.github/workflows/` 时，检查不存在 `pull_request_target` 提权、未通过 `env:` 传入而直接插值 `${{ github.event.* }}` 导致的命令注入，以及把 Secrets 输出到构建日志的风险。
+- 若引入新的本地凭据或临时敏感文件，先加入 `.gitignore` 再操作。
+
 ## Landing page 部署（Cloudflare Pages）
 
 `apps/landing` 是 https://wengu.dev 的静态 landing page，部署在 Cloudflare Pages 项目 `wengu` 上。
