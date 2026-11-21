@@ -214,6 +214,9 @@ importers:
       '@wengu/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@wengu/runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
       mathjax:
         specifier: 3.2.2
         version: 3.2.2
@@ -350,6 +353,9 @@ importers:
 
   packages/runtime:
     dependencies:
+      acorn:
+        specifier: 8.15.0
+        version: 8.15.0
       three:
         specifier: 0.187.0
         version: 0.187.0

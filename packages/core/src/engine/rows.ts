@@ -75,6 +75,23 @@ export interface DeckStatsRow {
   ms_studied: number;
 }
 
+export interface PresentationRow {
+  id: number;
+  kp_id: number;
+  review_item_id: number | null;
+  kind: string;
+  kind_version: number;
+  status: string;
+  payload: string;
+  created_at: number;
+  updated_at: number;
+}
+
+export const PRESENTATION_COLS = "id, kp_id, review_item_id, kind, kind_version, status, payload, created_at, updated_at";
+export const PRESENTATION_INSERT = `INSERT INTO presentations (${PRESENTATION_COLS}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+export const presentationValues = (r: PresentationRow) =>
+  [r.id, r.kp_id, r.review_item_id, r.kind, r.kind_version, r.status, r.payload, r.created_at, r.updated_at] as const;
+
 /** A deck as cached in memory: the Anki deck (stats from the columns). */
 export type DeckRecord = Deck;
 export type PresetRecord = DeckConfig;

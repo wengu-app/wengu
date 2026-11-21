@@ -230,6 +230,12 @@ const en = {
   "review.mode.reason": "Shown in the deck’s own style: {reason}",
   "review.renderErrors": "Template problems: {list}",
   "review.deckLabel": "Deck",
+  "review.visual.badge": "Visual",
+  "review.visual.toText": "Text view",
+  "review.visual.toVisual": "Visual view",
+  "review.visual.loading": "Loading interactive card…",
+  "review.visual.failed": "Interactive card could not load",
+  "review.visual.switchText": "Show text card",
 
   "why.title": "Why these intervals",
   "why.memory": "Memory now",
@@ -438,6 +444,8 @@ const en = {
   "agent.added": "{agent} added {n} notes to {deck}",
   "agent.updated": "{agent} edited a note",
   "agent.deckCreated": "{agent} created the deck {deck}",
+  "agent.visualSet": "{agent} attached visual card “{title}”",
+  "agent.visualRemoved": "{agent} removed {n} visual card(s)",
 
   "mode.reason.script": "the template runs scripts",
   "mode.reason.handlers": "the template uses event handlers",
@@ -463,6 +471,8 @@ const en = {
   "undo.Delete": "delete",
   "undo.Delete deck": "delete deck",
   "undo.Change deck": "move to deck",
+  "undo.Set visual card": "set visual card",
+  "undo.Remove visual card": "remove visual card",
 } as const;
 
 export type MessageKey = keyof typeof en;
@@ -693,6 +703,12 @@ const zh: Record<MessageKey, string> = {
   "review.mode.reason": "按卡组原样式显示：{reason}",
   "review.renderErrors": "模板问题：{list}",
   "review.deckLabel": "卡组",
+  "review.visual.badge": "视觉卡面",
+  "review.visual.toText": "切换纯文本",
+  "review.visual.toVisual": "切回视觉卡面",
+  "review.visual.loading": "正在加载视觉卡面…",
+  "review.visual.failed": "视觉卡面加载失败",
+  "review.visual.switchText": "查看纯文本卡片",
 
   "why.title": "为什么是这些间隔",
   "why.memory": "当前记忆",
@@ -901,6 +917,8 @@ const zh: Record<MessageKey, string> = {
   "agent.added": "{agent} 向「{deck}」添加了 {n} 条笔记",
   "agent.updated": "{agent} 修改了一条笔记",
   "agent.deckCreated": "{agent} 创建了卡组「{deck}」",
+  "agent.visualSet": "{agent} 添加了视觉卡面「{title}」",
+  "agent.visualRemoved": "{agent} 移除了 {n} 张视觉卡面",
 
   "mode.reason.script": "模板运行脚本",
   "mode.reason.handlers": "模板使用事件处理",
@@ -926,6 +944,8 @@ const zh: Record<MessageKey, string> = {
   "undo.Delete": "删除",
   "undo.Delete deck": "删除卡组",
   "undo.Change deck": "移动卡组",
+  "undo.Set visual card": "设置视觉卡面",
+  "undo.Remove visual card": "移除视觉卡面",
 };
 
 export type Lang = "zh" | "en";

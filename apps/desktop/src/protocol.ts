@@ -11,7 +11,7 @@ import { protocol } from "electron";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-import { FRAME_CSP, HOST_CSP } from "../../web/src/frame/csp.ts";
+import { FRAME_CSP, HOST_CSP, VISUAL_FRAME_CSP } from "../../web/src/frame/csp.ts";
 
 export const SCHEME = "wengu";
 export const HOST = "app";
@@ -80,6 +80,7 @@ export function headersFor(file: string): Record<string, string> {
   };
   const base = path.basename(file);
   if (base === "card-frame.html") h["content-security-policy"] = FRAME_CSP;
+  else if (base === "visual-frame.html") h["content-security-policy"] = VISUAL_FRAME_CSP;
   else if (ext === ".html") {
     h["content-security-policy"] = HOST_CSP;
     h["permissions-policy"] = PERMISSIONS_POLICY;

@@ -5,8 +5,8 @@
 import type { SqlDatabase } from "../db/driver.js";
 import type { UndoResult } from "../types.js";
 import type { Engine } from "./engine.js";
-import type { DeckStatsRow, ItemRow, KpRow } from "./rows.js";
-import { ITEM_COLS, ITEM_INSERT, KP_INSERT, itemValues, kpValues } from "./rows.js";
+import type { DeckStatsRow, ItemRow, KpRow, PresentationRow } from "./rows.js";
+import { ITEM_COLS, ITEM_INSERT, KP_INSERT, PRESENTATION_COLS, PRESENTATION_INSERT, itemValues, kpValues, presentationValues } from "./rows.js";
 import { splitTags } from "./text.js";
 
 interface Payload {
@@ -16,6 +16,7 @@ interface Payload {
   deckStats: DeckStatsRow[];
   /** Whole deck rows (deck deletion); absent in steps recorded by older versions. */
   decks?: Record<string, unknown>[];
+  presentations?: [number, PresentationRow | null][];
 }
 
 export class UndoRecorder {
@@ -23,6 +24,7 @@ export class UndoRecorder {
   private readonly seenItems = new Set<number>();
   private readonly seenKps = new Set<number>();
   private readonly seenDecks = new Set<number>();
+  private readonly seenPresentations = new Set<number>();
 
   constructor(
     private readonly db: SqlDatabase,
@@ -59,9 +61,19 @@ export class UndoRecorder {
     if (r) (this.payload.decks ??= []).push(r);
   }
 
+  /** Records a presentation row (null if it does not exist yet). */
+  presentation(id: number): void {
+    if (this.seenPresentations.has(id)) return;
+    this.seenPresentations.add(id);
+    (this.payload.presentations ??= []).push([
+      id,
+      this.db.get<PresentationRow>(`SELECT ${PRESENTATION_COLS} FROM presentations WHERE id = ?`, [id]) ?? null,
+    ]);
+  }
+
   get empty(): boolean {
     const p = this.payload;
-    return !p.items.length && !p.kps.length && !p.revlogInserted.length && !p.deckStats.length && !p.decks?.length;
+    return !p.items.length && !p.kps.length && !p.revlogInserted.length && !p.deckStats.length && !p.decks?.length && !p.presentations?.length;
   }
 
   commit(nowMs: number, limit: number): void {
@@ -118,6 +130,10 @@ export function applyUndo(e: Engine, expectedStepId?: number): Omit<UndoResult, 
   for (const [id, row] of [...p.items].reverse()) {
     db.run("DELETE FROM review_items WHERE id = ?", [id]);
     if (row) db.run(ITEM_INSERT, [...itemValues(row)]);
+  }
+  for (const [id, row] of [...(p.presentations ?? [])].reverse()) {
+    db.run("DELETE FROM presentations WHERE id = ?", [id]);
+    if (row) db.run(PRESENTATION_INSERT, [...presentationValues(row)]);
   }
   db.run("DELETE FROM undo_steps WHERE id = ?", [step.id]);
   e.invalidateTotals();

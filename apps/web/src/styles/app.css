@@ -471,6 +471,16 @@ button.blk-more { border: 0; background: none; cursor: pointer; }
 .paper.is-hidden { visibility: hidden; position: absolute; }
 .card-frame { flex: 1; width: 100%; border: 0; display: block; background: transparent; color-scheme: normal; }
 .card-frame.is-hidden { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.visual-card { flex: 1; width: 100%; min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; background: var(--c-surface); }
+.visual-card-host { flex: 1; width: 100%; display: flex; flex-direction: column; justify-content: center; }
+.visual-card-host > div { width: 100%; }
+.visual-card-host iframe { display: block; width: 100%; }
+.visual-card-state, .visual-card-fallback { flex: 1; display: grid; place-content: center; justify-items: center; gap: 10px; padding: 32px; text-align: center; }
+.visual-fallback-title { font-size: 16px; font-weight: 700; color: var(--c-ink); }
+.visual-fallback-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 4px; }
+.visual-toggle { cursor: pointer; border: 0; font-family: inherit; transition: background var(--fast), color var(--fast); }
+.visual-toggle:hover { color: var(--c-ink); }
+.visual-toggle.is-visual { background: var(--c-accent-soft); color: var(--c-accent); }
 .mode-note { margin: 8px auto 0; font-size: 12px; font-weight: 600; color: var(--c-faint); white-space: nowrap; max-width: calc(100% - 32px); overflow: hidden; text-overflow: ellipsis; text-align: center; }
 .review-actions { display: flex; justify-content: center; padding: 20px 32px 26px; background: var(--c-bg); }
 .btn-reveal { --b: var(--c-ink); --bd: #000; --bt: var(--c-bg); height: 56px; width: min(820px, 100%); font-size: 16.5px; border-radius: 16px; }

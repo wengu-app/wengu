@@ -33,21 +33,40 @@ import type {
   ScheduleExplanation,
   SearchOptions,
   PresetChanges,
+  RemoveVisualPresentationInput,
   DeleteDeckResult,
+  SetVisualPresentationInput,
+  SetVisualPresentationResult,
   Stats,
   StudyState,
   UndoCode,
   UndoResult,
   UpdateKnowledgePointInput,
   UpdateResult,
+  VisualLibraryId,
+  VisualManifest,
+  VisualPresentation,
+  VisualSourceReference,
+  WeakNoteRow,
+  WeakNotesQuery,
   WenguApi,
 } from "../types.js";
 import * as browse from "./browse.js";
 import { defaultPreset, newDeck, stockNoteType, type StockNoteType } from "./defaults.js";
 import { exportPackage, writeApkg } from "./exporter.js";
 import { importPackage } from "./importer.js";
-import type { DeckStatsRow, ItemRow, KpRow } from "./rows.js";
-import { ITEM_COLS, REVLOG_INSERT, itemToPublic, kpToPublic, noteTypeToPublic, restoredQueue } from "./rows.js";
+import type { DeckStatsRow, ItemRow, KpRow, PresentationRow } from "./rows.js";
+import {
+  ITEM_COLS,
+  PRESENTATION_COLS,
+  PRESENTATION_INSERT,
+  REVLOG_INSERT,
+  itemToPublic,
+  kpToPublic,
+  noteTypeToPublic,
+  presentationValues,
+  restoredQueue,
+} from "./rows.js";
 import type { CardMemory, SchedulingConfig, SchedulingTime } from "./scheduler.js";
 import { RATING_NAMES, memoryFromData, memoryFromSm2, parseCardData, previewCard, replayMemory, retrievability, fsrsWeights } from "./scheduler.js";
 import { computeStats } from "./stats.js";
@@ -73,6 +92,87 @@ export interface EngineOptions {
 
 const UNDO_LIMIT = 30;
 const DEFAULT_LEARN_AHEAD_SECS = 1200;
+const MAX_VISUAL_SOURCE_LENGTH = 512 * 1024;
+const VISUAL_LIBRARIES: readonly VisualLibraryId[] = ["three", "d3", "katex"];
+
+function isPlainRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+
+function validateVisualInput(input: SetVisualPresentationInput): {
+  manifest: VisualManifest;
+  source: string;
+  props: Record<string, unknown>;
+} {
+  const m = input.manifest;
+  if (!isPlainRecord(m)) throw new Error("manifest must be an object");
+  if (typeof m.id !== "string" || !m.id.trim() || m.id.length > 128) throw new Error("manifest.id invalid");
+  if (typeof m.title !== "string" || !m.title.trim() || m.title.length > 200) throw new Error("manifest.title invalid");
+  if (m.apiVersion !== 1) throw new Error(`manifest.apiVersion ${String(m.apiVersion)} not supported`);
+  if (!Array.isArray(m.libraries) || !m.libraries.every((l) => VISUAL_LIBRARIES.includes(l))) {
+    throw new Error("manifest.libraries invalid");
+  }
+  const knowledgePoints = Array.isArray(m.knowledgePoints) ? m.knowledgePoints : [];
+  if (!knowledgePoints.every((k) => typeof k === "string" && k.length <= 200)) {
+    throw new Error("manifest.knowledgePoints invalid");
+  }
+  const sourcesRaw = Array.isArray(m.sources) ? m.sources : [];
+  const sources: VisualSourceReference[] = sourcesRaw.map((s) => {
+    if (!isPlainRecord(s) || typeof s.title !== "string") throw new Error("manifest.sources entry invalid");
+    const ref: VisualSourceReference = { title: s.title.slice(0, 500) };
+    if (typeof s.url === "string") ref.url = s.url.slice(0, 2000);
+    if (typeof s.locator === "string") ref.locator = s.locator.slice(0, 200);
+    return ref;
+  });
+  const modes = Array.isArray(m.modes) ? m.modes.filter((x): x is "learn" | "review" => x === "learn" || x === "review") : [];
+  if (!modes.length) throw new Error("manifest.modes invalid");
+  if (typeof input.source !== "string" || input.source.length === 0 || input.source.length > MAX_VISUAL_SOURCE_LENGTH) {
+    throw new Error("source must be a non-empty string within 512 KB");
+  }
+  const props = input.props ?? {};
+  if (!isPlainRecord(props)) throw new Error("props must be a plain object");
+  return {
+    manifest: {
+      id: m.id.trim(),
+      title: m.title.trim(),
+      apiVersion: 1,
+      libraries: [...new Set(m.libraries)],
+      knowledgePoints: [...knowledgePoints],
+      sources,
+      modes: [...new Set(modes)],
+    },
+    source: input.source,
+    props: structuredClone(props),
+  };
+}
+
+function parseVisualPresentationRow(r: PresentationRow): Presentation {
+  if (r.kind !== "visual-component") {
+    return { kind: "unknown", storedKind: r.kind, id: r.id };
+  }
+  try {
+    const parsed = JSON.parse(r.payload) as unknown;
+    if (!isPlainRecord(parsed) || !isPlainRecord(parsed["manifest"]) || typeof parsed["source"] !== "string") {
+      return { kind: "unknown", storedKind: r.kind, id: r.id };
+    }
+    const manifest = parsed["manifest"] as unknown as VisualManifest;
+    const props = isPlainRecord(parsed["props"]) ? parsed["props"] : {};
+    return {
+      kind: "visual-component",
+      id: r.id,
+      kpId: r.kp_id,
+      reviewItemId: r.review_item_id,
+      kindVersion: r.kind_version,
+      manifest,
+      source: parsed["source"],
+      props,
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
+    };
+  } catch {
+    return { kind: "unknown", storedKind: r.kind, id: r.id };
+  }
+}
 
 interface Settings {
   lastUnburiedDay?: number;
@@ -567,6 +667,7 @@ export class Engine implements WenguApi {
       for (const kpId of new Set(doomed.map((r) => r.kp_id))) {
         if (this.db.value("SELECT 1 FROM review_items WHERE kp_id = ? LIMIT 1", [kpId])) continue;
         undo.kp(kpId);
+        for (const p of this.db.values("SELECT id FROM presentations WHERE kp_id = ?", [kpId])) undo.presentation(Number(p[0]));
         this.db.run("DELETE FROM knowledge_point_tags WHERE kp_id = ?", [kpId]);
         this.db.run("DELETE FROM presentations WHERE kp_id = ?", [kpId]);
         this.db.run("DELETE FROM knowledge_points WHERE id = ?", [kpId]);
@@ -858,11 +959,119 @@ export class Engine implements WenguApi {
     return this.renderRow(row, this.getKpRow(row.kp_id)!);
   }
 
-  /** Stored presentations of other kinds for an item (none in M1; unknown kinds are passed through as such). */
+  /** Stored presentations of other kinds for an item (item-specific first, then KP-wide). */
   storedPresentations(row: ItemRow): Presentation[] {
     return this.db
-      .all<{ id: number; kind: string }>("SELECT id, kind FROM presentations WHERE kp_id = ? AND (review_item_id IS NULL OR review_item_id = ?) AND status = 'active' ORDER BY id", [row.kp_id, row.id])
-      .map((p) => ({ kind: "unknown", storedKind: p.kind, id: p.id }));
+      .all<PresentationRow>(
+        `SELECT ${PRESENTATION_COLS} FROM presentations
+         WHERE kp_id = ? AND (review_item_id IS NULL OR review_item_id = ?) AND status = 'active'
+         ORDER BY CASE WHEN review_item_id = ? THEN 0 ELSE 1 END, updated_at DESC, id DESC`,
+        [row.kp_id, row.id, row.id],
+      )
+      .map(parseVisualPresentationRow);
+  }
+
+  listPresentations(kpId: Id): VisualPresentation[] {
+    return this.db
+      .all<PresentationRow>(
+        `SELECT ${PRESENTATION_COLS} FROM presentations
+         WHERE kp_id = ? AND kind = 'visual-component' AND status = 'active'
+         ORDER BY CASE WHEN review_item_id IS NULL THEN 1 ELSE 0 END, updated_at DESC, id DESC`,
+        [kpId],
+      )
+      .map(parseVisualPresentationRow)
+      .filter((p): p is VisualPresentation => p.kind === "visual-component");
+  }
+
+  setVisualPresentation(input: SetVisualPresentationInput): SetVisualPresentationResult {
+    const kp = this.getKpRow(input.kpId);
+    if (!kp) throw new Error(`no knowledge point ${input.kpId}`);
+    const itemId = input.reviewItemId ?? null;
+    if (itemId !== null) {
+      const item = this.getItemRow(itemId);
+      if (!item || item.kp_id !== input.kpId) throw new Error(`review item ${itemId} does not belong to knowledge point ${input.kpId}`);
+    }
+    const { manifest, source, props } = validateVisualInput(input);
+    const payload = JSON.stringify({ manifest, source, props });
+    const existing = itemId === null
+      ? this.db.get<{ id: number }>(
+          "SELECT id FROM presentations WHERE kp_id = ? AND review_item_id IS NULL AND kind = 'visual-component' AND status = 'active' ORDER BY id LIMIT 1",
+          [input.kpId],
+        )
+      : this.db.get<{ id: number }>(
+          "SELECT id FROM presentations WHERE kp_id = ? AND review_item_id = ? AND kind = 'visual-component' AND status = 'active' ORDER BY id LIMIT 1",
+          [input.kpId, itemId],
+        );
+
+    const nowMs = this.clock.now();
+    const { id, replaced } = this.undoable("Set visual card", (undo) => {
+      if (existing) {
+        undo.presentation(existing.id);
+        this.db.run(
+          "UPDATE presentations SET payload = ?, kind_version = 1, updated_at = ? WHERE id = ?",
+          [payload, nowMs, existing.id],
+        );
+        this.touch();
+        return { id: existing.id, replaced: true };
+      }
+      const nextId = this.newId("presentations");
+      undo.presentation(nextId);
+      const row: PresentationRow = {
+        id: nextId,
+        kp_id: input.kpId,
+        review_item_id: itemId,
+        kind: "visual-component",
+        kind_version: 1,
+        status: "active",
+        payload,
+        created_at: nowMs,
+        updated_at: nowMs,
+      };
+      this.db.run(PRESENTATION_INSERT, [...presentationValues(row)]);
+      this.touch();
+      return { id: nextId, replaced: false };
+    });
+    const stepRaw = this.db.value("SELECT MAX(id) FROM undo_steps");
+    const undoStepId = typeof stepRaw === "number" ? stepRaw : null;
+    return { id, replaced, undoStepId };
+  }
+
+  removeVisualPresentation(input: RemoveVisualPresentationInput): number {
+    let rows: { id: number }[];
+    if (input.id !== undefined) {
+      rows = this.db.all<{ id: number }>(
+        "SELECT id FROM presentations WHERE id = ? AND kind = 'visual-component'",
+        [input.id],
+      );
+    } else if (input.kpId !== undefined) {
+      if (input.reviewItemId === undefined) {
+        rows = this.db.all<{ id: number }>(
+          "SELECT id FROM presentations WHERE kp_id = ? AND kind = 'visual-component'",
+          [input.kpId],
+        );
+      } else if (input.reviewItemId === null) {
+        rows = this.db.all<{ id: number }>(
+          "SELECT id FROM presentations WHERE kp_id = ? AND review_item_id IS NULL AND kind = 'visual-component'",
+          [input.kpId],
+        );
+      } else {
+        rows = this.db.all<{ id: number }>(
+          "SELECT id FROM presentations WHERE kp_id = ? AND review_item_id = ? AND kind = 'visual-component'",
+          [input.kpId, input.reviewItemId],
+        );
+      }
+    } else {
+      throw new Error("removeVisualPresentation requires id or kpId");
+    }
+    if (!rows.length) return 0;
+    return this.undoable("Remove visual card", (undo) => {
+      for (const r of rows) {
+        undo.presentation(r.id);
+        this.db.run("DELETE FROM presentations WHERE id = ?", [r.id]);
+      }
+      this.touch();
+      return rows.length;
+    });
   }
 
   /** Resolves the FSRS memory state of an item: card data; else review-log replay; else from SM-2 ease/interval. */
@@ -929,7 +1138,13 @@ export class Engine implements WenguApi {
   private reviewCard(row: ItemRow, t: DayTiming): ReviewCard {
     const kp = this.getKpRow(row.kp_id)!;
     const days = this.schedulerDays();
-    const presentation = this.renderRow(row, kp);
+    const anki = this.renderRow(row, kp);
+    const stored = this.storedPresentations(row);
+    const primaryVisual = stored.find((p): p is VisualPresentation => p.kind === "visual-component");
+    const presentation = primaryVisual ?? anki;
+    const presentations = primaryVisual
+      ? [primaryVisual, anki, ...stored.filter((p) => p !== primaryVisual)]
+      : [anki, ...stored];
     const deck = this.decks.get(row.deck_id);
     return {
       item: itemToPublic(row, (d) => days.dayStart(d)),
@@ -937,7 +1152,7 @@ export class Engine implements WenguApi {
       noteTypeName: this.noteTypes.get(kp.note_type_id)?.name ?? "",
       deckName: deck?.name ?? "",
       presentation,
-      presentations: [presentation, ...this.storedPresentations(row)],
+      presentations,
       schedule: this.explainRow(row, t).explanation,
     };
   }
@@ -1126,6 +1341,10 @@ export class Engine implements WenguApi {
     return this.db.withTimeLimit(ms, () => browse.search(this, query));
   }
 
+  listWeakNotes(query: WeakNotesQuery = {}): WeakNoteRow[] {
+    return browse.listWeakNotes(this, query);
+  }
+
   getKnowledgePoint(id: Id): KnowledgePointDetail | null {
     return browse.getKnowledgePoint(this, id);
   }
@@ -1300,6 +1519,8 @@ const UNDO_CODES: Record<string, UndoCode> = {
   Edit: "edit",
   Delete: "delete",
   "Delete deck": "delete-deck",
+  "Set visual card": "set-visual",
+  "Remove visual card": "remove-visual",
 };
 
 /** Stable code of an undo label (labels are the fixed English strings recorded by the engine). */

@@ -5,7 +5,7 @@
  * Framework-agnostic: plain DOM. See react.tsx for a thin React wrapper.
  */
 
-import type { Mode, ReviewResult } from './component-api.ts';
+import type { Mode, Phase, ReviewResult, ShortcutKey } from './component-api.ts';
 import { buildFrameDocument } from './frame-document.ts';
 import { checkHostNavigationProtection } from './host-csp.ts';
 import { cloneJson, isPlainObject, type JsonObject } from './json.ts';
@@ -38,6 +38,8 @@ export type HostEvent =
   | { type: 'ready'; mountMs: number; totalMs: number }
   | { type: 'resize'; height: number }
   | { type: 'result'; result: ReviewResult }
+  | { type: 'reveal-request' }
+  | { type: 'shortcut'; code: ShortcutKey }
   | { type: 'error'; phase: ErrorPhase; message: string; stack?: string }
   | { type: 'violation'; reason: string }
   | { type: 'heartbeat'; rttMs: number }
@@ -67,6 +69,7 @@ export interface HostOptions {
   props: JsonObject;
   theme: Theme;
   mode: Mode;
+  phase?: Phase;
   delivery?: Delivery;
   /** Liveness check. Default: ping every 500 ms, kill after 3000 ms without a pong. `false` disables. */
   watchdog?: { intervalMs: number; timeoutMs: number } | false;
@@ -116,6 +119,7 @@ export class ComponentHost {
       ...options,
       component: pkg.value,
       props: props as JsonObject,
+      phase: options.phase ?? 'question',
       delivery: options.delivery ?? { kind: 'srcdoc' },
       hostCspCheck: options.hostCspCheck ?? 'warn',
       watchdog: options.watchdog ?? { intervalMs: 500, timeoutMs: 3000 },
@@ -193,9 +197,18 @@ export class ComponentHost {
     this.post({ v: PROTOCOL_VERSION, type: 'theme', theme });
   }
 
+  /** Changing phase transitions in place without remounting or resetting WebGL/camera state. */
+  setPhase(phase: Phase): void {
+    if (this.opts.phase === phase) return;
+    this.opts.phase = phase;
+    if (this._status === 'killed' || this._status === 'destroyed') return;
+    this.post({ v: PROTOCOL_VERSION, type: 'phase', phase });
+  }
+
   /** Changing mode or props remounts the component inside the same frame (its cleanup runs first). */
-  remount(next: { mode?: Mode; props?: JsonObject }): void {
+  remount(next: { mode?: Mode; props?: JsonObject; phase?: Phase }): void {
     if (next.mode) this.opts.mode = next.mode;
+    if (next.phase) this.opts.phase = next.phase;
     if (next.props) {
       const p = cloneJson(next.props);
       if (!isPlainObject(p)) throw new Error('props must be a JSON object');
@@ -204,7 +217,13 @@ export class ComponentHost {
     if (this._status === 'killed' || this._status === 'destroyed') return;
     this.resultAccepted = false;
     this.setStatus('loading');
-    this.post({ v: PROTOCOL_VERSION, type: 'remount', props: this.opts.props, mode: this.opts.mode });
+    this.post({
+      v: PROTOCOL_VERSION,
+      type: 'remount',
+      props: this.opts.props,
+      mode: this.opts.mode,
+      phase: this.opts.phase,
+    });
   }
 
   /** Stop the component now: the iframe is removed, which tears down its document (and process, if it has one). */
@@ -282,6 +301,7 @@ export class ComponentHost {
       props: this.opts.props,
       theme: this.opts.theme,
       mode: this.opts.mode,
+      phase: this.opts.phase,
     });
     this.lastAliveAt = performance.now();
     this.startWatchdog();
@@ -370,6 +390,13 @@ export class ComponentHost {
         if (this.resultAccepted) return this.violation('duplicate result');
         this.resultAccepted = true;
         this.emit({ type: 'result', result: msg.result });
+        return;
+      case 'reveal-request':
+        if (this._status !== 'ready') return;
+        if (this.opts.phase === 'question') this.emit({ type: 'reveal-request' });
+        return;
+      case 'shortcut':
+        if (this._status === 'ready') this.emit({ type: 'shortcut', code: msg.code });
         return;
       case 'error':
         if (msg.phase === 'load' || msg.phase === 'mount') this.setStatus('error');

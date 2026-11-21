@@ -6,6 +6,7 @@ import { useEffect, useSyncExternalStore } from "react";
 
 import { AgentInputError, runAgentTool } from "../agent/run.ts";
 import type { AgentCall, AgentClient } from "../agent/tools.ts";
+import { verifyVisualCard } from "../card/verifyVisual.ts";
 import { useApp } from "./app.tsx";
 import { useT } from "./i18n.ts";
 import { getSettings, useSettings } from "./settings.ts";
@@ -102,10 +103,13 @@ export function useAgentBridge(): void {
         return;
       }
       try {
-        const out = await runAgentTool(db, call.tool, call.args, call.client);
+        const out = await runAgentTool(db, call.tool, call.args, call.client, { verifyVisual: verifyVisualCard });
         bridge.reply({ id: call.id, ok: true, result: out.result });
         const c = out.change;
-        record(call.client, { added: c?.kind === "add" ? c.count : 0, updated: c?.kind === "update" ? 1 : 0 });
+        record(call.client, {
+          added: c?.kind === "add" ? c.count : 0,
+          updated: c?.kind === "update" || c?.kind === "visual-set" || c?.kind === "visual-remove" ? 1 : 0,
+        });
         if (!c) return;
         await changed(out.structure ?? false);
         const who = agentName(call.client);
@@ -118,8 +122,24 @@ export function useAgentBridge(): void {
                 if (await db.undo({ expectedStepId: c.undoStepId })) await changed();
               })(),
           });
-        } else if (c.kind === "update") toast(t("agent.updated", { agent: who }));
-        else if (c.created) toast(t("agent.deckCreated", { agent: who, deck: c.name }));
+        } else if (c.kind === "update") {
+          toast(t("agent.updated", { agent: who }));
+        } else if (c.kind === "visual-set") {
+          const action = c.undoStepId
+            ? {
+                label: t("common.undo"),
+                run: () =>
+                  void (async () => {
+                    if (await db.undo({ expectedStepId: c.undoStepId! })) await changed();
+                  })(),
+              }
+            : undefined;
+          toast(t("agent.visualSet", { agent: who, title: c.title }), action);
+        } else if (c.kind === "visual-remove") {
+          toast(t("agent.visualRemoved", { agent: who, n: c.count }));
+        } else if (c.created) {
+          toast(t("agent.deckCreated", { agent: who, deck: c.name }));
+        }
       } catch (e) {
         record(call.client, {});
         const message = e instanceof Error ? e.message : String(e);

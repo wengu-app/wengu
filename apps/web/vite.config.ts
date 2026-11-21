@@ -1,6 +1,9 @@
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { build as esbuild } from "esbuild";
+import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -9,6 +12,15 @@ import { FRAME_CSP, HOST_CSP } from "./src/frame/csp.ts";
 const root = path.dirname(fileURLToPath(import.meta.url));
 const FRAME_ENTRY = path.join(root, "src/frame/frame.ts");
 const FRAME_FILE = "card-frame.html";
+const RUNTIME_ROOT = path.resolve(root, "../../packages/runtime");
+const VISUAL_SANDBOX_HTML = path.join(RUNTIME_ROOT, "generated/sandbox.html");
+const VISUAL_THREE_JSON = path.join(RUNTIME_ROOT, "generated/libs/three.json");
+const VISUAL_BUILD_SCRIPT = path.join(RUNTIME_ROOT, "scripts/build-frame.mjs");
+
+function ensureRuntimeArtifacts(): void {
+  if (existsSync(VISUAL_SANDBOX_HTML) && existsSync(VISUAL_THREE_JSON)) return;
+  execFileSync(process.execPath, [VISUAL_BUILD_SCRIPT], { cwd: RUNTIME_ROOT, stdio: "inherit" });
+}
 
 /**
  * The card frame document: a static HTML page with its own strict CSP and the frame script inlined.
@@ -63,6 +75,44 @@ function cardFrame(): Plugin {
   };
 }
 
+/** Serves and bundles @wengu/runtime's isolated sandbox document and prebuilt offline libraries. */
+function visualFrame(): Plugin {
+  return {
+    name: "wengu-visual-frame",
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        const cleanUrl = req.url?.split("?")[0];
+        if (!cleanUrl) return next();
+        try {
+          if (cleanUrl.endsWith("/visual-frame.html")) {
+            ensureRuntimeArtifacts();
+            res.setHeader("content-type", "text/html; charset=utf-8");
+            res.setHeader("cache-control", "no-store");
+            res.end(await readFile(VISUAL_SANDBOX_HTML, "utf8"));
+            return;
+          }
+          if (cleanUrl.endsWith("/visual-libs/three.json")) {
+            ensureRuntimeArtifacts();
+            res.setHeader("content-type", "application/json; charset=utf-8");
+            res.setHeader("cache-control", "no-store");
+            res.end(await readFile(VISUAL_THREE_JSON, "utf8"));
+            return;
+          }
+        } catch (e) {
+          next(e);
+          return;
+        }
+        next();
+      });
+    },
+    async generateBundle() {
+      ensureRuntimeArtifacts();
+      this.emitFile({ type: "asset", fileName: "visual-frame.html", source: await readFile(VISUAL_SANDBOX_HTML, "utf8") });
+      this.emitFile({ type: "asset", fileName: "visual-libs/three.json", source: await readFile(VISUAL_THREE_JSON, "utf8") });
+    },
+  };
+}
+
 /** The app page's CSP, in the built index.html only (the dev server needs inline scripts for React refresh). */
 function hostCsp(): Plugin {
   return {
@@ -80,7 +130,7 @@ function hostCsp(): Plugin {
 export default defineConfig({
   // Relative asset URLs: the build works from any directory and from a custom scheme (Electron).
   base: "./",
-  plugins: [react(), cardFrame(), hostCsp()],
+  plugins: [react(), cardFrame(), visualFrame(), hostCsp()],
   optimizeDeps: { exclude: ["@sqlite.org/sqlite-wasm"] },
   worker: { format: "es" },
   server: { host: "127.0.0.1", port: 5173, strictPort: true },

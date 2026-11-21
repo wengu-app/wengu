@@ -114,10 +114,62 @@ export interface KnowledgePointDetail extends KnowledgePoint {
 }
 
 /**
- * A way of showing a review item. M1 has one kind; later kinds (generated components) are added to this union
- * and stored in the `presentations` table without changing review items.
+ * A way of showing a review item. Regular cards use `anki-template`; enhanced visual cards add
+ * `visual-component` rows stored in the `presentations` table alongside the underlying Anki note.
  */
-export type Presentation = AnkiTemplatePresentation | UnknownPresentation;
+export type Presentation = AnkiTemplatePresentation | VisualPresentation | UnknownPresentation;
+
+export type VisualLibraryId = "three" | "d3" | "katex";
+
+export interface VisualSourceReference {
+  title: string;
+  url?: string;
+  locator?: string;
+}
+
+export interface VisualManifest {
+  id: string;
+  title: string;
+  apiVersion: 1;
+  libraries: VisualLibraryId[];
+  knowledgePoints: string[];
+  sources: VisualSourceReference[];
+  modes: ("learn" | "review")[];
+}
+
+/** An interactive 2D/3D visual component presentation attached to a knowledge point or specific review item. */
+export interface VisualPresentation {
+  kind: "visual-component";
+  id: Id;
+  kpId: Id;
+  reviewItemId: Id | null;
+  kindVersion: number;
+  manifest: VisualManifest;
+  source: string;
+  props: Record<string, unknown>;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface SetVisualPresentationInput {
+  kpId: Id;
+  reviewItemId?: Id | null;
+  manifest: VisualManifest;
+  source: string;
+  props?: Record<string, unknown>;
+}
+
+export interface SetVisualPresentationResult {
+  id: Id;
+  replaced: boolean;
+  undoStepId: number | null;
+}
+
+export interface RemoveVisualPresentationInput {
+  id?: Id;
+  kpId?: Id;
+  reviewItemId?: Id | null;
+}
 
 /** An Anki card template rendered for the item (question/answer HTML from the note type). */
 export interface AnkiTemplatePresentation {
@@ -322,6 +374,8 @@ export type UndoCode =
   | "edit"
   | "delete"
   | "delete-deck"
+  | "set-visual"
+  | "remove-visual"
   /** Not produced by this version; future operations. */
   | "other";
 
@@ -395,6 +449,29 @@ export interface BrowsePage {
   offset: number;
   limit: number;
   rows: BrowseRow[];
+}
+
+export interface WeakNotesQuery {
+  deckId?: Id;
+  includeSubdecks?: boolean;
+  minLapses?: number;
+  minDifficulty?: number;
+  hasVisual?: boolean;
+  limit?: number;
+}
+
+export interface WeakNoteRow {
+  id: Id;
+  noteTypeName: string;
+  first: string;
+  tags: string[];
+  deckNames: string[];
+  maxLapses: number;
+  totalReps: number;
+  maxDifficulty: number | null;
+  minStability: number | null;
+  hasVisual: boolean;
+  isLeech: boolean;
 }
 
 export interface AddKnowledgePointInput {
@@ -576,9 +653,17 @@ export interface WenguApi {
 
   // browse & edit
   search(query: BrowseQuery, options?: SearchOptions): BrowsePage;
+  /** Notes with high lapses, high FSRS difficulty, or the `leech` tag. */
+  listWeakNotes(query?: WeakNotesQuery): WeakNoteRow[];
   getKnowledgePoint(id: Id): KnowledgePointDetail | null;
   /** Renders one item (preview in the browser/editor). */
   renderItem(itemId: Id): AnkiTemplatePresentation;
+  /** Active visual presentations attached to a knowledge point (both KP-wide and item-specific). */
+  listPresentations(kpId: Id): VisualPresentation[];
+  /** Attaches or replaces a visual presentation on a knowledge point (or specific review item). Undoable. */
+  setVisualPresentation(input: SetVisualPresentationInput): SetVisualPresentationResult;
+  /** Removes matching visual presentation(s). Undoable. Returns count removed. */
+  removeVisualPresentation(input: RemoveVisualPresentationInput): number;
   addKnowledgePoint(input: AddKnowledgePointInput): AddResult;
   /** Adds several knowledge points at once: one transaction, one undo step ("add"); all or nothing. */
   addKnowledgePoints(inputs: AddKnowledgePointInput[]): { added: AddResult[]; undoStepId: number | null };

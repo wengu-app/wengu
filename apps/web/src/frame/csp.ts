@@ -24,6 +24,21 @@ export const FRAME_CSP = [
   "base-uri 'none'",
 ].join("; ");
 
+/** Matches @wengu/runtime sandbox document CSP: offline blob/wasm ESM execution without network egress. */
+export const VISUAL_FRAME_CSP = [
+  "default-src 'none'",
+  "script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob:",
+  "style-src 'unsafe-inline' blob: data:",
+  "img-src data: blob:",
+  "font-src data: blob:",
+  "media-src data: blob:",
+  "connect-src data: blob:",
+  "worker-src blob:",
+  "frame-src 'none'",
+  "form-action 'none'",
+  "base-uri 'none'",
+].join("; ");
+
 export const HOST_CSP = [
   "default-src 'self'",
   "script-src 'self'",

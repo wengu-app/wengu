@@ -6,7 +6,17 @@
  * the host's validation of every message.
  */
 
-import type { ComponentContext, Cleanup, Mode, MountFunction, ReviewResult } from '../component-api.ts';
+import {
+  SHORTCUT_KEYS,
+  type Cleanup,
+  type ComponentContext,
+  type Mode,
+  type MountFunction,
+  type Phase,
+  type ReviewResult,
+  type ShortcutKey,
+} from '../component-api.ts';
+import { CARD_PRIMITIVE_JS } from '../generated/card-primitive.ts';
 import type { JsonObject } from '../json.ts';
 import { SUPPORTED_API_VERSIONS } from '../manifest.ts';
 import {
@@ -28,7 +38,10 @@ import { tokensToCssVariables, type Theme } from '../tokens.ts';
   let port: MessagePort | null = null;
   let mountFn: MountFunction | null = null;
   let theme: Theme | null = null;
+  let phase: Phase = 'question';
+  let revealRequested = false;
   const themeListeners = new Set<(t: Theme) => void>();
+  const phaseListeners = new Set<(p: Phase) => void>();
   let current: { cleanup: Cleanup | null; abort: AbortController } | null = null;
   let errorsSent = 0;
 
@@ -58,7 +71,7 @@ import { tokensToCssVariables, type Theme } from '../tokens.ts';
     sendError('policy', `${ev.effectiveDirective} blocked ${ev.blockedURI || '(inline)'}`),
   );
 
-  // ------------------------------------------------------------------ theme
+  // ------------------------------------------------------------------ theme & phase
   const applyTheme = (t: Theme) => {
     theme = t;
     const de = document.documentElement;
@@ -73,6 +86,39 @@ import { tokensToCssVariables, type Theme } from '../tokens.ts';
       }
     }
   };
+
+  const applyPhase = (next: Phase) => {
+    phase = next;
+    revealRequested = false;
+    document.documentElement.dataset.phase = next;
+    for (const l of [...phaseListeners]) {
+      try {
+        l(next);
+      } catch (e) {
+        sendError('runtime', e);
+      }
+    }
+  };
+
+  // ------------------------------------------------------------------ keyboard shortcut forwarding
+  const isEditable = (el: EventTarget | null): boolean => {
+    if (!(el instanceof Element)) return false;
+    if (el instanceof HTMLElement && el.isContentEditable) return true;
+    const tag = el.tagName;
+    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+  };
+
+  addEventListener('keydown', (ev) => {
+    if (ev.defaultPrevented || ev.ctrlKey || ev.metaKey || ev.altKey || ev.repeat) return;
+    if (isEditable(ev.target) || isEditable(document.activeElement)) return;
+    if (!SHORTCUT_KEYS.includes(ev.code as ShortcutKey)) return;
+    const code = ev.code as ShortcutKey;
+    const interactiveTarget = ev.target instanceof Element && ev.target.closest('button, a');
+    if (code === 'Space' && !interactiveTarget) {
+      ev.preventDefault();
+    }
+    send({ v: PROTOCOL_VERSION, type: 'shortcut', code });
+  });
 
   // ------------------------------------------------------------------ size reporting
   let lastHeight = -1;
@@ -105,11 +151,13 @@ import { tokensToCssVariables, type Theme } from '../tokens.ts';
       sendError('runtime', e);
     }
     themeListeners.clear();
+    phaseListeners.clear();
     rootEl().replaceChildren();
   };
 
-  const mount = async (props: JsonObject, mode: Mode, startedAt: number) => {
+  const mount = async (props: JsonObject, mode: Mode, initialPhase: Phase, startedAt: number) => {
     unmount();
+    applyPhase(initialPhase);
     const abort = new AbortController();
     const slot: { cleanup: Cleanup | null; abort: AbortController } = { cleanup: null, abort };
     current = slot;
@@ -117,6 +165,9 @@ import { tokensToCssVariables, type Theme } from '../tokens.ts';
     const ctx: ComponentContext = Object.freeze({
       apiVersion: 1 as const,
       mode,
+      get phase() {
+        return phase;
+      },
       props: Object.freeze(structuredClone(props)),
       get theme() {
         return theme!;
@@ -124,6 +175,15 @@ import { tokensToCssVariables, type Theme } from '../tokens.ts';
       onThemeChange(listener: (t: Theme) => void) {
         themeListeners.add(listener);
         return () => void themeListeners.delete(listener);
+      },
+      onPhaseChange(listener: (p: Phase) => void) {
+        phaseListeners.add(listener);
+        return () => void phaseListeners.delete(listener);
+      },
+      requestReveal() {
+        if (revealRequested || abort.signal.aborted || phase === 'reveal') return;
+        revealRequested = true;
+        send({ v: PROTOCOL_VERSION, type: 'reveal-request' });
       },
       submitResult(result: ReviewResult) {
         if (submitted || abort.signal.aborted) return;
@@ -156,7 +216,9 @@ import { tokensToCssVariables, type Theme } from '../tokens.ts';
     applyTheme(msg.theme);
 
     // Libraries: blob URLs must be minted in this (opaque) origin; blob URLs made by the host would be unreadable.
-    const imports: Record<string, string> = {};
+    const imports: Record<string, string> = {
+      'wengu/card': URL.createObjectURL(new Blob([CARD_PRIMITIVE_JS], { type: 'text/javascript' })),
+    };
     for (const lib of msg.libraries) {
       for (const [specifier, code] of Object.entries(lib.modules)) {
         imports[specifier] = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
@@ -188,7 +250,7 @@ import { tokensToCssVariables, type Theme } from '../tokens.ts';
     }
     mountFn = ns.mount as MountFunction;
     new ResizeObserver(queueMeasure).observe(rootEl());
-    await mount(msg.props, msg.mode, t0);
+    await mount(msg.props, msg.mode, msg.phase ?? 'question', t0);
   };
 
   // ------------------------------------------------------------------ host messages
@@ -205,8 +267,11 @@ import { tokensToCssVariables, type Theme } from '../tokens.ts';
       case 'theme':
         applyTheme(msg.theme);
         break;
+      case 'phase':
+        applyPhase(msg.phase);
+        break;
       case 'remount':
-        if (mountFn) void mount(msg.props, msg.mode, now());
+        if (mountFn) void mount(msg.props, msg.mode, msg.phase ?? 'question', now());
         break;
     }
   };

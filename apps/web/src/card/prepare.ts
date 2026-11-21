@@ -1,4 +1,4 @@
-import type { AnkiTemplatePresentation, Id, Presentation } from "@wengu/core";
+import type { AnkiTemplatePresentation, Id, Presentation, ReviewCard, VisualPresentation } from "@wengu/core";
 
 import type { AppContextValue } from "../lib/app.tsx";
 import { prepareCard, type PreparedCard } from "../lib/cardPrep.ts";
@@ -9,6 +9,16 @@ import type { FrameCard } from "./frameController.ts";
 
 export function templateOf(p: Presentation): AnkiTemplatePresentation | null {
   return p.kind === "anki-template" ? p : null;
+}
+
+export function visualOf(card: Pick<ReviewCard, "presentation" | "presentations">): VisualPresentation | null {
+  if (card.presentation.kind === "visual-component") return card.presentation;
+  return card.presentations.find((p): p is VisualPresentation => p.kind === "visual-component") ?? null;
+}
+
+export function ankiTemplateOf(card: Pick<ReviewCard, "presentation" | "presentations">): AnkiTemplatePresentation | null {
+  if (card.presentation.kind === "anki-template") return card.presentation;
+  return card.presentations.find((p): p is AnkiTemplatePresentation => p.kind === "anki-template") ?? null;
 }
 
 export function prepareFor(

@@ -295,7 +295,12 @@ function main(): void {
     });
     trackWindowState(win, app.getPath("userData"));
     const appBase = devUrl ? devUrl.origin : APP_ORIGIN;
-    watchCardFrames(win, (u) => u.startsWith(`${appBase}/card-frame.html`), (m) => console.warn(`[wengu] ${m}`), debug);
+    watchCardFrames(
+      win,
+      (u) => u.startsWith(`${appBase}/card-frame.html`) || u.startsWith(`${appBase}/visual-frame.html`),
+      (m) => console.warn(`[wengu] ${m}`),
+      debug,
+    );
     if (state.maximized) win.maximize();
     if (state.fullscreen) win.setFullScreen(true);
 

@@ -18,6 +18,7 @@
     "measure:jank": "node scripts/build-frame.mjs && node scripts/measure-jank.mjs"
   },
   "dependencies": {
+    "acorn": "8.15.0",
     "three": "0.187.0"
   },
   "devDependencies": {

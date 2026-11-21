@@ -2,7 +2,7 @@
  * Thin React wrapper around ComponentHost. All logic lives in host.ts.
  */
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import type { Mode } from './component-api.ts';
+import type { Mode, Phase } from './component-api.ts';
 import { ComponentHost, type Delivery, type HostEvent, type HostOptions, type HostStatus, type KillReason } from './host.ts';
 import type { JsonObject } from './json.ts';
 import type { ComponentPackage } from './manifest.ts';
@@ -15,6 +15,7 @@ export interface SandboxedComponentProps {
   props: JsonObject;
   theme: Theme;
   mode: Mode;
+  phase?: Phase;
   delivery?: Delivery;
   watchdog?: HostOptions['watchdog'];
   hostCspCheck?: HostOptions['hostCspCheck'];
@@ -30,7 +31,7 @@ export function SandboxedComponent(p: SandboxedComponentProps) {
   const hostRef = useRef<ComponentHost | null>(null);
   const latest = useRef(p);
   latest.current = p;
-  const applied = useRef<{ theme: Theme; mode: Mode; props: JsonObject } | null>(null);
+  const applied = useRef<{ theme: Theme; mode: Mode; phase: Phase; props: JsonObject } | null>(null);
   const [generation, setGeneration] = useState(0);
   const [failure, setFailure] = useState<{ status: HostStatus; reason?: KillReason; message?: string } | null>(null);
 
@@ -40,6 +41,7 @@ export function SandboxedComponent(p: SandboxedComponentProps) {
     const container = containerRef.current;
     if (!container) return;
     const cur = latest.current;
+    const initialPhase = cur.phase ?? 'question';
     setFailure(null);
     const host = new ComponentHost({
       container,
@@ -48,6 +50,7 @@ export function SandboxedComponent(p: SandboxedComponentProps) {
       props: cur.props,
       theme: cur.theme,
       mode: cur.mode,
+      phase: initialPhase,
       ...(cur.delivery ? { delivery: cur.delivery } : {}),
       ...(cur.watchdog !== undefined ? { watchdog: cur.watchdog } : {}),
       ...(cur.hostCspCheck !== undefined ? { hostCspCheck: cur.hostCspCheck } : {}),
@@ -59,7 +62,7 @@ export function SandboxedComponent(p: SandboxedComponentProps) {
       },
     });
     hostRef.current = host;
-    applied.current = { theme: cur.theme, mode: cur.mode, props: cur.props };
+    applied.current = { theme: cur.theme, mode: cur.mode, phase: initialPhase, props: cur.props };
     return () => {
       host.destroy();
       hostRef.current = null;
@@ -74,13 +77,20 @@ export function SandboxedComponent(p: SandboxedComponentProps) {
       a.theme = p.theme;
       host.setTheme(p.theme);
     }
+    const nextPhase = p.phase ?? 'question';
     if (a.mode !== p.mode || a.props !== p.props) {
       a.mode = p.mode;
       a.props = p.props;
+      a.phase = nextPhase;
       setFailure(null);
-      host.remount({ mode: p.mode, props: p.props });
+      host.remount({ mode: p.mode, props: p.props, phase: nextPhase });
+      return;
     }
-  }, [p.theme, p.mode, p.props]);
+    if (a.phase !== nextPhase) {
+      a.phase = nextPhase;
+      host.setPhase(nextPhase);
+    }
+  }, [p.theme, p.mode, p.phase, p.props]);
 
   const retry = () => setGeneration((g) => g + 1);
 

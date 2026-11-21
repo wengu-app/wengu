@@ -146,3 +146,109 @@ test('unsupported apiVersion is rejected before anything runs', async ({ page })
   });
   expect(msg).toMatch(/apiVersion 2 not supported/);
 });
+
+test('phase: in-place transition updates ctx.phase and dataset without remounting or losing state; requestReveal notifies host', async ({
+  page,
+}) => {
+  await openHarness(page);
+  await mount(page, { component: 'phase-probe', mode: 'review', phase: 'question' });
+  await waitForStatus(page, 'ready');
+  const frame = componentFrame(page);
+  const box = frame.locator('#phase-probe');
+  await expect(box).toHaveAttribute('data-phase', 'question');
+  await expect(frame.locator('html')).toHaveAttribute('data-phase', 'question');
+  const token = await box.getAttribute('data-token');
+  expect(token).toBeTruthy();
+
+  // Clicking the check button calls ctx.requestReveal() while in question phase.
+  await frame.locator('#ask-reveal').click();
+  await expect
+    .poll(async () => byType(await events(page), 'reveal-request').length)
+    .toBe(1);
+
+  // Transition in-place to reveal: no cleanup runs, stateToken is preserved, mount count stays 1.
+  await page.evaluate(() => window.harness.setPhase('reveal'));
+  await expect(box).toHaveAttribute('data-phase', 'reveal');
+  await expect(box).toHaveText(`reveal:${token}`);
+  await expect(frame.locator('html')).toHaveAttribute('data-phase', 'reveal');
+  await expect(frame.locator('html')).toHaveAttribute('data-mounts', '1');
+  expect(await frame.locator('html').getAttribute('data-cleaned-phase')).toBeNull();
+  expect(await page.evaluate(() => window.harness.status())).toBe('ready');
+
+  // Calling requestReveal while already in reveal phase does not emit another reveal-request.
+  await frame.locator('#ask-reveal').click();
+  await page.waitForTimeout(100);
+  expect(byType(await events(page), 'reveal-request')).toHaveLength(1);
+});
+
+test('shortcuts: Space and 1-4 inside focused iframe forward to host; typing inside input is not forwarded', async ({
+  page,
+}) => {
+  await openHarness(page);
+  await mount(page, { component: 'shortcut-probe', mode: 'review' });
+  await waitForStatus(page, 'ready');
+  const frame = componentFrame(page);
+
+  await frame.locator('#stage').click();
+  await page.keyboard.press('Space');
+  await page.keyboard.press('Digit1');
+  await page.keyboard.press('Digit3');
+
+  await expect
+    .poll(async () =>
+      byType(await events(page), 'shortcut').map((e) => (e as unknown as { code: string }).code),
+    )
+    .toEqual(['Space', 'Digit1', 'Digit3']);
+
+  // Typing inside an input element inside the sandbox must NOT forward shortcuts.
+  const input = frame.locator('#text-input');
+  await input.click();
+  await page.keyboard.press('Space');
+  await page.keyboard.press('Digit2');
+  await page.keyboard.press('Digit4');
+  await page.waitForTimeout(150);
+
+  expect(
+    byType(await events(page), 'shortcut').map((e) => (e as unknown as { code: string }).code),
+  ).toEqual(['Space', 'Digit1', 'Digit3']);
+  await expect(input).toHaveValue(' 24');
+});
+
+test('primitives: wengu/card and wengu/scene3d mount, render label, handle phase/theme transitions cleanly', async ({
+  page,
+}) => {
+  await openHarness(page);
+  await mount(page, {
+    component: 'primitives-probe',
+    mode: 'review',
+    phase: 'question',
+    watchdog: SLOW_GL_WATCHDOG,
+  });
+  await waitForStatus(page, 'ready');
+  const frame = componentFrame(page);
+
+  const shell = frame.locator('.wg-card');
+  await expect(shell).toHaveAttribute('data-phase', 'question');
+  await expect(shell).toHaveAttribute('data-step', 'before');
+  await expect(shell).toHaveAttribute('data-step-index', '0');
+
+  const label = frame.locator('.wg-scene3d-label', { hasText: 'Target Sphere' });
+  await expect.poll(() => label.evaluate((el) => (el as HTMLElement).style.transform), { timeout: 15_000 }).toContain('translate(');
+  await expect(label).toHaveClass(/hidden/);
+
+  // Flip phase in place to reveal, plus theme change.
+  await page.evaluate(() => {
+    window.harness.setPhase('reveal');
+    window.harness.setTheme('dark');
+  });
+
+  await expect(shell).toHaveAttribute('data-phase', 'reveal');
+  await expect(shell).toHaveAttribute('data-step', 'after');
+  await expect(shell).toHaveAttribute('data-step-index', '1');
+  await expect(label).not.toHaveClass(/hidden/);
+  await expect(label).toHaveClass(/highlighted/);
+  await expect(frame.locator('.wg-card-feedback.show')).toBeVisible();
+  await expect(frame.locator('html')).toHaveAttribute('data-theme', 'dark');
+
+  expect(byType(await events(page), 'error')).toEqual([]);
+});

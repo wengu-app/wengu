@@ -13,12 +13,14 @@ import type {
   KnowledgePointDetail,
   UpdateKnowledgePointInput,
   UpdateResult,
+  WeakNoteRow,
+  WeakNotesQuery,
 } from "../types.js";
 import type { Engine } from "./engine.js";
 import type { UndoRecorder } from "./undo.js";
 import type { ItemRow, KpRow } from "./rows.js";
 import { FIELD_SEP, ITEM_COLS, ITEM_INSERT, KP_INSERT, itemToPublic, itemValues, kpToPublic, kpValues, noteTypeToPublic } from "./rows.js";
-import { itemStateOf } from "./scheduler.js";
+import { itemStateOf, memoryFromData, parseCardData } from "./scheduler.js";
 import { normaliseSearch, normaliseTags, searchText, splitTags } from "./text.js";
 
 const totalCache = new WeakMap<Engine, { key: string; total: number }>();
@@ -310,6 +312,7 @@ export function deleteKnowledgePoints(e: Engine, ids: number[]): number {
       if (!e.db.value("SELECT 1 FROM knowledge_points WHERE id = ?", [id])) continue;
       undo.kp(id);
       for (const r of e.db.values("SELECT id FROM review_items WHERE kp_id = ?", [id])) undo.item(Number(r[0]));
+      for (const p of e.db.values("SELECT id FROM presentations WHERE kp_id = ?", [id])) undo.presentation(Number(p[0]));
       e.db.run("DELETE FROM review_items WHERE kp_id = ?", [id]);
       e.db.run("DELETE FROM knowledge_point_tags WHERE kp_id = ?", [id]);
       e.db.run("DELETE FROM presentations WHERE kp_id = ?", [id]);
@@ -321,4 +324,123 @@ export function deleteKnowledgePoints(e: Engine, ids: number[]): number {
   });
   e.invalidateTotals();
   return n;
+}
+
+export function listWeakNotes(e: Engine, q: WeakNotesQuery = {}): WeakNoteRow[] {
+  const limit = Math.min(Math.max(1, Math.trunc(q.limit ?? 20)), 200);
+  const minLapses = q.minLapses ?? 2;
+  const minDifficulty = q.minDifficulty ?? 7.5;
+  const deckList =
+    q.deckId !== undefined ? (q.includeSubdecks === false ? [q.deckId] : e.subtree(q.deckId)) : null;
+
+  const where: string[] = [
+    "r.queue != -1",
+    "(r.reps > 0 OR r.lapses > 0 OR EXISTS (SELECT 1 FROM knowledge_point_tags kt WHERE kt.kp_id = r.kp_id AND kt.tag = 'leech'))",
+  ];
+  if (deckList) {
+    const cleanIds = deckList.map((d) => Math.trunc(d));
+    where.push(`r.deck_id IN (${cleanIds.length ? cleanIds.join(",") : "NULL"})`);
+  }
+
+  interface WeakItemJoined {
+    kp_id: number;
+    deck_id: number;
+    reps: number;
+    lapses: number;
+    data: string;
+    note_type_id: number;
+    sort_field: string | number;
+    tags: string;
+  }
+
+  const rows = e.db.all<WeakItemJoined>(
+    `SELECT r.kp_id, r.deck_id, r.reps, r.lapses, r.data, k.note_type_id, k.sort_field, k.tags
+     FROM review_items r
+     JOIN knowledge_points k ON k.id = r.kp_id
+     WHERE ${where.join(" AND ")}`,
+  );
+
+  interface Acc {
+    id: number;
+    noteTypeId: number;
+    sortField: string | number;
+    tags: string[];
+    isLeech: boolean;
+    deckIds: Set<number>;
+    maxLapses: number;
+    totalReps: number;
+    maxDifficulty: number | null;
+    minStability: number | null;
+  }
+
+  const byKp = new Map<number, Acc>();
+  for (const r of rows) {
+    let acc = byKp.get(r.kp_id);
+    if (!acc) {
+      const tags = splitTags(r.tags);
+      acc = {
+        id: r.kp_id,
+        noteTypeId: r.note_type_id,
+        sortField: r.sort_field,
+        tags,
+        isLeech: tags.some((x) => x.toLowerCase() === "leech"),
+        deckIds: new Set(),
+        maxLapses: 0,
+        totalReps: 0,
+        maxDifficulty: null,
+        minStability: null,
+      };
+      byKp.set(r.kp_id, acc);
+    }
+    acc.deckIds.add(r.deck_id);
+    acc.maxLapses = Math.max(acc.maxLapses, r.lapses);
+    acc.totalReps += r.reps;
+    const mem = memoryFromData(parseCardData(r.data));
+    if (mem) {
+      acc.maxDifficulty = acc.maxDifficulty === null ? mem.difficulty : Math.max(acc.maxDifficulty, mem.difficulty);
+      acc.minStability = acc.minStability === null ? mem.stability : Math.min(acc.minStability, mem.stability);
+    }
+  }
+
+  const candidates = [...byKp.values()].filter(
+    (a) => a.isLeech || a.maxLapses >= minLapses || (a.maxDifficulty !== null && a.maxDifficulty >= minDifficulty),
+  );
+  if (!candidates.length) return [];
+
+  const visualSet = new Set<number>();
+  for (const row of e.db.values(
+    `SELECT DISTINCT kp_id FROM presentations
+     WHERE kind = 'visual-component' AND status = 'active' AND kp_id IN (${candidates.map((c) => c.id).join(",")})`,
+  )) {
+    visualSet.add(Number(row[0]));
+  }
+
+  const out: WeakNoteRow[] = [];
+  for (const c of candidates) {
+    const hasVisual = visualSet.has(c.id);
+    if (q.hasVisual !== undefined && hasVisual !== q.hasVisual) continue;
+    out.push({
+      id: c.id,
+      noteTypeName: e.noteTypes.get(c.noteTypeId)?.name ?? "",
+      first: htmlToText(String(c.sortField ?? "")).slice(0, 200),
+      tags: c.tags,
+      deckNames: [...c.deckIds].map((did) => e.decks.get(did)?.name ?? "").filter(Boolean),
+      maxLapses: c.maxLapses,
+      totalReps: c.totalReps,
+      maxDifficulty: c.maxDifficulty,
+      minStability: c.minStability,
+      hasVisual,
+      isLeech: c.isLeech,
+    });
+  }
+
+  out.sort(
+    (a, b) =>
+      Number(b.isLeech) - Number(a.isLeech) ||
+      b.maxLapses - a.maxLapses ||
+      (b.maxDifficulty ?? 0) - (a.maxDifficulty ?? 0) ||
+      (a.minStability ?? 1e9) - (b.minStability ?? 1e9) ||
+      b.id - a.id,
+  );
+  return out.slice(0, limit);
 }

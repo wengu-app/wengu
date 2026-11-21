@@ -533,6 +533,151 @@ describe("statistics, media, export of one deck", () => {
   });
 });
 
+describe("visual presentations", () => {
+  const sampleManifest = (id: string, title = "Sample Visual") => ({
+    id,
+    title,
+    apiVersion: 1 as const,
+    libraries: ["three" as const],
+    knowledgePoints: ["test.kp"],
+    sources: [{ title: "Unit Test" }],
+    modes: ["review" as const],
+  });
+
+  it("attaches, updates (upserts), prioritizes in study(), removes, and undoes completely", async () => {
+    const { engine, deck } = await freshCollection(0);
+    const revNt = engine.createStockNoteType("basic-reversed");
+    const { id: kpId, itemIds } = engine.addKnowledgePoint({
+      noteTypeId: revNt,
+      deckId: deck,
+      fields: ["Front Q", "Back A"],
+    });
+    expect(itemIds).toHaveLength(2);
+    const [item0, item1] = itemIds as [number, number];
+
+    // Before attaching: Anki template is primary.
+    expect(engine.study(deck).card!.presentation.kind).toBe("anki-template");
+    expect(engine.listPresentations(kpId)).toEqual([]);
+
+    // 1. Attach KP-wide visual component.
+    const r1 = engine.setVisualPresentation({
+      kpId,
+      manifest: sampleManifest("viz.kp", "KP Visual"),
+      source: "export function mount() {}",
+      props: { label: "alpha" },
+    });
+    expect(r1.replaced).toBe(false);
+    expect(r1.undoStepId).toBeGreaterThan(0);
+    expect(engine.undoInfo()).toEqual({ label: "Set visual card", code: "set-visual" });
+
+    let studied = engine.study(deck).card!;
+    expect(studied.presentation.kind).toBe("visual-component");
+    if (studied.presentation.kind === "visual-component") {
+      expect(studied.presentation.manifest.title).toBe("KP Visual");
+      expect(studied.presentation.props).toEqual({ label: "alpha" });
+    }
+    expect(studied.presentations.map((p) => p.kind)).toEqual(["visual-component", "anki-template"]);
+
+    // 2. Attach item-specific visual presentation on item0 -> takes precedence over KP-wide for item0.
+    const r2 = engine.setVisualPresentation({
+      kpId,
+      reviewItemId: item0,
+      manifest: sampleManifest("viz.item0", "Item 0 Visual"),
+      source: "export function mount() { return () => {}; }",
+      props: { item: 0 },
+    });
+    expect(r2.replaced).toBe(false);
+    expect(r2.id).not.toBe(r1.id);
+    expect(engine.listPresentations(kpId)).toHaveLength(2);
+    studied = engine.study(deck).card!;
+    expect(studied.item.id).toBe(item0);
+    expect(studied.presentation.kind).toBe("visual-component");
+    if (studied.presentation.kind === "visual-component") {
+      expect(studied.presentation.manifest.id).toBe("viz.item0");
+    }
+
+    // 3. Upsert existing item0 visual presentation, then undo restores previous payload.
+    const r3 = engine.setVisualPresentation({
+      kpId,
+      reviewItemId: item0,
+      manifest: sampleManifest("viz.item0", "Item 0 Updated"),
+      source: "export function mount(root) { root.textContent = 'v2'; }",
+      props: { item: 2 },
+    });
+    expect(r3.replaced).toBe(true);
+    expect(r3.id).toBe(r2.id);
+    if (engine.study(deck).card!.presentation.kind === "visual-component") {
+      expect((engine.study(deck).card!.presentation as { manifest: { title: string } }).manifest.title).toBe("Item 0 Updated");
+    }
+    expect(engine.undo()!.code).toBe("set-visual");
+    if (engine.study(deck).card!.presentation.kind === "visual-component") {
+      expect((engine.study(deck).card!.presentation as { manifest: { title: string } }).manifest.title).toBe("Item 0 Visual");
+    }
+
+    // Undo removing item0-specific visual card -> falls back to KP-wide visual card.
+    expect(engine.removeVisualPresentation({ kpId, reviewItemId: item0 })).toBe(1);
+    expect(engine.undoInfo()?.code).toBe("remove-visual");
+    expect(engine.listPresentations(kpId)).toHaveLength(1);
+    if (engine.study(deck).card!.presentation.kind === "visual-component") {
+      expect((engine.study(deck).card!.presentation as { manifest: { id: string } }).manifest.id).toBe("viz.kp");
+    }
+    // Redo/undo restore item0 visual card:
+    expect(engine.undo()!.code).toBe("remove-visual");
+    expect(engine.listPresentations(kpId)).toHaveLength(2);
+
+    // 4. Deleting the knowledge point deletes presentations, and undoing restores them too.
+    expect(engine.deleteKnowledgePoints([kpId])).toBe(1);
+    expect(engine.listPresentations(kpId)).toEqual([]);
+    expect(engine.undo()!.code).toBe("delete");
+    expect(engine.listPresentations(kpId)).toHaveLength(2);
+    void item1;
+  });
+
+  it("queries weak notes / leeches sorted by severity and filtered by hasVisual and deckId", async () => {
+    const { engine, clock, deck } = await freshCollection(0);
+    const otherDeck = engine.createDeck("OtherWeak");
+    const nt = engine.listNoteTypes()[0]!.id;
+
+    const kpEasy = engine.addKnowledgePoint({ noteTypeId: nt, deckId: deck, fields: ["Easy Note", "ok"] });
+    const kpLapsed = engine.addKnowledgePoint({ noteTypeId: nt, deckId: deck, fields: ["Lapsed Note", "hard"] });
+    const kpVisualLeech = engine.addKnowledgePoint({
+      noteTypeId: nt,
+      deckId: otherDeck,
+      fields: ["Leech With Visual", "viz"],
+      tags: ["leech"],
+    });
+
+    // Attach visual presentation to the third note.
+    engine.setVisualPresentation({
+      kpId: kpVisualLeech.id,
+      manifest: sampleManifest("viz.leech", "Leech Visual"),
+      source: "export function mount() {}",
+    });
+
+    // Graduate easy note smoothly (no lapses).
+    engine.answer({ itemId: kpEasy.itemIds[0]!, rating: 4, takenMs: 500, deckId: deck });
+    // Graduate kpLapsed then lapse it twice across review days.
+    engine.answer({ itemId: kpLapsed.itemIds[0]!, rating: 4, takenMs: 500, deckId: deck });
+    for (let i = 0; i < 2; i++) {
+      clock.advance(20 * DAY);
+      engine.answer({ itemId: kpLapsed.itemIds[0]!, rating: 1, takenMs: 500, deckId: deck });
+      clock.advance(DAY);
+      engine.answer({ itemId: kpLapsed.itemIds[0]!, rating: 3, takenMs: 500, deckId: deck });
+    }
+
+    const allWeak = engine.listWeakNotes();
+    expect(allWeak.map((r) => r.id)).toEqual([kpVisualLeech.id, kpLapsed.id]);
+    expect(allWeak[0]).toMatchObject({ id: kpVisualLeech.id, isLeech: true, hasVisual: true });
+    expect(allWeak[1]).toMatchObject({ id: kpLapsed.id, maxLapses: 2, hasVisual: false });
+
+    const missingVisual = engine.listWeakNotes({ hasVisual: false });
+    expect(missingVisual.map((r) => r.id)).toEqual([kpLapsed.id]);
+
+    const onlyDeck = engine.listWeakNotes({ deckId: deck });
+    expect(onlyDeck.map((r) => r.id)).toEqual([kpLapsed.id]);
+  });
+});
+
 function normaliseForCompare(p: Awaited<ReturnType<Engine["exportAnki"]>>) {
   return { ...p, warnings: [], media: p.media.map((m) => m.name).sort() };
 }

@@ -17,7 +17,9 @@ export default defineConfig({
     headless: true,
     viewport: { width: 1200, height: 820 },
     acceptDownloads: true,
-    launchOptions: { args: ["--autoplay-policy=no-user-gesture-required"] },
+    launchOptions: {
+      args: ["--autoplay-policy=no-user-gesture-required", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"],
+    },
   },
   webServer: {
     command: `node scripts/serve.mjs dist ${PORT} /wengu/`,

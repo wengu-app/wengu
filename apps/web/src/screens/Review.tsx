@@ -1,10 +1,12 @@
 import { DesktopUpdate } from "../ui/DesktopUpdate.tsx";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { QueueCounts, Rating, RatingName, ReviewCard, Stats, StudyState } from "@wengu/core";
+import type { Presentation, QueueCounts, Rating, RatingName, ReviewCard, Stats, StudyState, VisualPresentation } from "@wengu/core";
+import type { ShortcutKey } from "@wengu/runtime";
 
 import { CardFrame } from "../card/CardFrame.tsx";
+import { VisualCard } from "../card/VisualCard.tsx";
 import type { FrameController } from "../card/frameController.ts";
-import { frameCard, prepareFor, reasonText, templateOf } from "../card/prepare.ts";
+import { ankiTemplateOf, frameCard, prepareFor, reasonText, visualOf } from "../card/prepare.ts";
 import type { FrameKey } from "../frame/protocol.ts";
 import { useApp } from "../lib/app.tsx";
 import type { PreparedCard } from "../lib/cardPrep.ts";
@@ -29,9 +31,36 @@ const RATINGS: { rating: Rating; name: RatingName; key: MessageKey }[] = [
 
 type View =
   | { kind: "loading" }
-  | { kind: "card"; card: ReviewCard; prepared: PreparedCard; side: "question" | "answer"; counts: QueueCounts; undoLabel: string | null }
+  | {
+      kind: "card";
+      cardKey: number;
+      card: ReviewCard;
+      prepared: PreparedCard | null;
+      visual: VisualPresentation | null;
+      textFallback: boolean;
+      side: "question" | "answer";
+      counts: QueueCounts;
+      undoLabel: string | null;
+    }
   | { kind: "done"; counts: QueueCounts; nextLearningDueAt: number | null; undoLabel: string | null; stats: Stats | null }
   | { kind: "error"; message: string };
+
+const SHORTCUT_KEY_MAP: Partial<Record<ShortcutKey, string>> = {
+  Space: " ",
+  Enter: "Enter",
+  Digit1: "1",
+  Digit2: "2",
+  Digit3: "3",
+  Digit4: "4",
+  KeyR: "r",
+  KeyE: "e",
+  KeyZ: "z",
+};
+
+function shortcutToFrameKey(code: ShortcutKey): FrameKey | null {
+  const key = SHORTCUT_KEY_MAP[code];
+  return key ? { key, code, ctrlKey: false, metaKey: false, altKey: false, shiftKey: false } : null;
+}
 
 function queueOf(card: ReviewCard): keyof QueueCounts {
   const s = card.item.state;
@@ -51,13 +80,14 @@ export function Review({ deckId, onExit }: { deckId: number | null; onExit(): vo
   const [ctlReady, setCtlReady] = useState(false);
 
   const ctl = useRef<FrameController | null>(null);
+  const cardKeySeq = useRef(0);
   const viewRef = useRef(view);
   viewRef.current = view;
   const busy = useRef(false);
   const typed = useRef("");
   const shownAt = useRef(0);
   const history = useRef<ReviewCard[]>([]);
-  const pendingLatency = useRef<{ seq: number; t0: number } | null>(null);
+  const pendingLatency = useRef<{ seq: number; t0: number; kind: "text" | "visual" } | null>(null);
   const audio = useMemo(() => new AudioPlayer(media), [media]);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
@@ -66,23 +96,68 @@ export function Review({ deckId, onExit }: { deckId: number | null; onExit(): vo
 
   useEffect(() => () => audio.stop(), [audio]);
 
-  /** Shows a card on the frame. `t0`: when the user rated the previous card (latency measurement). */
+  /** Shows a card on the frame (or interactive visual sandbox). `t0`: when the user rated the previous card. */
   const showCard = useCallback(
-    async (card: ReviewCard, counts: QueueCounts, undoLabel: string | null, side: "question" | "answer" = "question", t0?: number) => {
+    async (
+      card: ReviewCard,
+      counts: QueueCounts,
+      undoLabel: string | null,
+      side: "question" | "answer" = "question",
+      t0?: number,
+      textFallback = false,
+    ) => {
       const c = ctl.current;
-      const tpl = templateOf(card.presentation);
+      const visual = visualOf(card);
+      const tpl = ankiTemplateOf(card);
+      if (!visual && (!c || !tpl)) {
+        setView({ kind: "error", message: `unsupported presentation: ${card.presentation.kind}` });
+        return;
+      }
+      typed.current = "";
+      audio.stop();
+      if (document.activeElement instanceof HTMLElement && document.activeElement.closest(".review-bar")) {
+        document.activeElement.blur();
+      }
+      const useVisual = Boolean(visual && !textFallback);
+      if (useVisual) {
+        c?.clear();
+        const stage = document.querySelector<HTMLElement>(".review-stage");
+        if (stage) delete stage.dataset.shownSide;
+        pendingLatency.current = t0 !== undefined ? { seq: 0, t0, kind: "visual" } : null;
+        shownAt.current = performance.now();
+        setView({
+          kind: "card",
+          cardKey: ++cardKeySeq.current,
+          card,
+          prepared: null,
+          visual,
+          textFallback: false,
+          side,
+          counts,
+          undoLabel,
+        });
+        return;
+      }
       if (!c || !tpl) {
         setView({ kind: "error", message: `unsupported presentation: ${card.presentation.kind}` });
         return;
       }
       const prepared = prepareFor(appRef.current, settingsRef.current, t, tpl, card.knowledgePoint.noteTypeId, card.knowledgePoint.fields, card.item.ord);
       const files = prepared.media.length ? await media.get(prepared.media) : {};
-      typed.current = "";
-      audio.stop();
       const seq = await c.show(frameCard(prepared, files, side));
-      if (t0 !== undefined) pendingLatency.current = { seq, t0 };
+      if (t0 !== undefined) pendingLatency.current = { seq, t0, kind: "text" };
       shownAt.current = performance.now();
-      setView({ kind: "card", card, prepared, side, counts, undoLabel });
+      setView({
+        kind: "card",
+        cardKey: ++cardKeySeq.current,
+        card,
+        prepared,
+        visual,
+        textFallback: Boolean(visual && textFallback),
+        side,
+        counts,
+        undoLabel,
+      });
       if (settingsRef.current.autoplay) void audio.play(side === "question" ? prepared.questionAv : prepared.answerAv);
     },
     [media, audio, t],
@@ -137,20 +212,62 @@ export function Review({ deckId, onExit }: { deckId: number | null; onExit(): vo
     if (lastModeKey.current === modeKey) return;
     lastModeKey.current = modeKey;
     const v = viewRef.current;
-    if (v.kind === "card") void showCard(v.card, v.counts, v.undoLabel, v.side);
+    if (v.kind === "card" && (!v.visual || v.textFallback)) void showCard(v.card, v.counts, v.undoLabel, v.side, undefined, v.textFallback);
   }, [modeKey, showCard]);
 
   // ---------------------------------------------------------------------------------------- actions
 
   const reveal = useCallback(() => {
     const v = viewRef.current;
-    if (v.kind !== "card" || v.side !== "question" || !ctl.current) return;
+    if (v.kind !== "card" || v.side !== "question") return;
+    if (v.visual && !v.textFallback) {
+      setView({ ...v, side: "answer" });
+      const stage = document.querySelector<HTMLElement>(".review-stage");
+      if (stage) stage.dataset.shownSide = "answer";
+      return;
+    }
+    if (!ctl.current || !v.prepared) return;
     const p = v.prepared;
     const compare = p.typeSpec && p.expected !== null ? compareAnswer(typed.current, p.expected, p.typeSpec.nc).html : null;
     ctl.current.reveal(compare);
     setView({ ...v, side: "answer" });
     if (settingsRef.current.autoplay) void audio.play(p.answerAv);
   }, [audio]);
+
+  const toggleTextFallback = useCallback(async () => {
+    const v = viewRef.current;
+    if (v.kind !== "card" || !v.visual) return;
+    const nextFallback = !v.textFallback;
+    if (nextFallback) {
+      const tpl = ankiTemplateOf(v.card);
+      const c = ctl.current;
+      if (!tpl || !c) return;
+      const prepared =
+        v.prepared ??
+        prepareFor(appRef.current, settingsRef.current, t, tpl, v.card.knowledgePoint.noteTypeId, v.card.knowledgePoint.fields, v.card.item.ord);
+      const files = prepared.media.length ? await media.get(prepared.media) : {};
+      typed.current = "";
+      audio.stop();
+      if (document.activeElement instanceof HTMLElement && document.activeElement.closest(".review-bar")) {
+        document.activeElement.blur();
+      }
+      await c.show(frameCard(prepared, files, v.side));
+      setView((cur) =>
+        cur.kind === "card" && cur.cardKey === v.cardKey
+          ? { ...cur, prepared, textFallback: true }
+          : cur,
+      );
+      return;
+    }
+    ctl.current?.clear();
+    const stage = document.querySelector<HTMLElement>(".review-stage");
+    if (stage) delete stage.dataset.shownSide;
+    setView((cur) =>
+      cur.kind === "card" && cur.cardKey === v.cardKey
+        ? { ...cur, textFallback: false }
+        : cur,
+    );
+  }, [media, audio, t]);
 
   const rate = useCallback(
     async (rating: Rating) => {
@@ -236,7 +353,7 @@ export function Review({ deckId, onExit }: { deckId: number | null; onExit(): vo
 
   const replay = useCallback(() => {
     const v = viewRef.current;
-    if (v.kind !== "card") return;
+    if (v.kind !== "card" || !v.prepared) return;
     void audio.play(v.side === "question" ? v.prepared.questionAv : v.prepared.answerAv);
   }, [audio]);
 
@@ -244,11 +361,23 @@ export function Review({ deckId, onExit }: { deckId: number | null; onExit(): vo
     const v = viewRef.current;
     setEditing(null);
     if (v.kind !== "card") return;
-    const [presentation, kp] = await Promise.all([db.renderItem(v.card.item.id), db.getKnowledgePoint(v.card.knowledgePoint.id)]);
+    const [rendered, kp, visuals] = await Promise.all([
+      db.renderItem(v.card.item.id),
+      db.getKnowledgePoint(v.card.knowledgePoint.id),
+      db.listPresentations(v.card.knowledgePoint.id),
+    ]);
     media.invalidate();
     if (!kp) return void load();
-    const card: ReviewCard = { ...v.card, presentation, knowledgePoint: { ...v.card.knowledgePoint, fields: kp.fields, tags: kp.tags } };
-    await showCard(card, v.counts, "Edit", v.side);
+    const visual = visuals.find((p) => p.reviewItemId === v.card.item.id) ?? visuals.find((p) => p.reviewItemId === null) ?? null;
+    const presentation: Presentation = visual ?? rendered;
+    const presentations: Presentation[] = visual ? [visual, rendered] : [rendered];
+    const card: ReviewCard = {
+      ...v.card,
+      presentation,
+      presentations,
+      knowledgePoint: { ...v.card.knowledgePoint, fields: kp.fields, tags: kp.tags },
+    };
+    await showCard(card, v.counts, "Edit", v.side, undefined, v.textFallback);
   }, [db, media, showCard, load]);
 
   // ---------------------------------------------------------------------------------------- keyboard
@@ -343,7 +472,7 @@ export function Review({ deckId, onExit }: { deckId: number | null; onExit(): vo
       },
       onPlay(side, index) {
         const v = viewRef.current;
-        if (v.kind !== "card") return;
+        if (v.kind !== "card" || !v.prepared) return;
         const tag = (side === "q" ? v.prepared.questionAv : v.prepared.answerAv)[index];
         if (tag) void audio.play([tag]);
       },
@@ -353,12 +482,30 @@ export function Review({ deckId, onExit }: { deckId: number | null; onExit(): vo
     };
   }, [audio]);
 
+  const handleVisualReady = useCallback(() => {
+    const stage = document.querySelector<HTMLElement>(".review-stage");
+    const v = viewRef.current;
+    if (stage && v.kind === "card") stage.dataset.shownSide = v.side;
+    const p = pendingLatency.current;
+    if (p && p.kind === "visual") {
+      window.__wenguPerf?.answerToNext.push(performance.now() - p.t0);
+      pendingLatency.current = null;
+    }
+  }, []);
+
+  const handleVisualShortcut = useCallback((code: ShortcutKey) => {
+    if (document.querySelector("dialog[open]")) return;
+    const fk = shortcutToFrameKey(code);
+    if (fk) onKeyRef.current(fk);
+  }, []);
+
   // ---------------------------------------------------------------------------------------- render
 
   const counts = view.kind === "card" || view.kind === "done" ? view.counts : null;
   const remaining = counts ? counts.new + counts.learning + counts.review : 0;
   const progress = answered + remaining > 0 ? answered / (answered + remaining) : 0;
   const card = view.kind === "card" ? view.card : null;
+  const showingVisual = view.kind === "card" && Boolean(view.visual && !view.textFallback);
   const whyOpen = settings.whyOpen && view.kind === "card";
   const ntId = card?.knowledgePoint.noteTypeId;
   const ntMode: NoteTypeMode = ntId !== undefined ? (settings.noteTypeModes[String(ntId)] ?? "auto") : "auto";
@@ -403,20 +550,36 @@ export function Review({ deckId, onExit }: { deckId: number | null; onExit(): vo
         )}
         {view.kind === "card" && (
           <>
-            <Menu
-              className="mode-menu"
-              label={t("review.mode.switch")}
-              trigger={
-                <span className="chip" data-testid="mode-chip" data-mode={view.prepared.decision.mode}>
-                  {t(view.prepared.decision.mode === "wengu" ? "review.mode.wengu" : "review.mode.original")}
-                </span>
-              }
-              items={[
-                { label: `${t("settings.nt.auto")}${ntMode === "auto" ? " ✓" : ""}`, onSelect: () => setNtMode("auto") },
-                { label: `${t("review.mode.wengu")}${ntMode === "wengu" ? " ✓" : ""}`, onSelect: () => setNtMode("wengu") },
-                { label: `${t("review.mode.original")}${ntMode === "original" ? " ✓" : ""}`, onSelect: () => setNtMode("original") },
-              ]}
-            />
+            {view.visual && (
+              <button
+                type="button"
+                className={`chip visual-toggle ${!view.textFallback ? "is-visual" : ""}`}
+                onClick={(e) => {
+                  if (e.detail > 0) e.currentTarget.blur();
+                  void toggleTextFallback();
+                }}
+                data-testid="visual-toggle"
+                title={t(view.textFallback ? "review.visual.toVisual" : "review.visual.toText")}
+              >
+                {t(view.textFallback ? "review.visual.toVisual" : "review.visual.toText")}
+              </button>
+            )}
+            {(!view.visual || view.textFallback) && view.prepared && (
+              <Menu
+                className="mode-menu"
+                label={t("review.mode.switch")}
+                trigger={
+                  <span className="chip" data-testid="mode-chip" data-mode={view.prepared.decision.mode}>
+                    {t(view.prepared.decision.mode === "wengu" ? "review.mode.wengu" : "review.mode.original")}
+                  </span>
+                }
+                items={[
+                  { label: `${t("settings.nt.auto")}${ntMode === "auto" ? " ✓" : ""}`, onSelect: () => setNtMode("auto") },
+                  { label: `${t("review.mode.wengu")}${ntMode === "wengu" ? " ✓" : ""}`, onSelect: () => setNtMode("wengu") },
+                  { label: `${t("review.mode.original")}${ntMode === "original" ? " ✓" : ""}`, onSelect: () => setNtMode("original") },
+                ]}
+              />
+            )}
             <Menu
               label={t("review.flag")}
               trigger={<Icon name="flag" className={`flag-${view.card.item.flag}`} />}
@@ -431,7 +594,10 @@ export function Review({ deckId, onExit }: { deckId: number | null; onExit(): vo
               type="button"
               className={`icon-btn ${settings.whyOpen ? "is-on" : ""}`}
               aria-pressed={settings.whyOpen}
-              onClick={() => updateSettings((s) => ({ whyOpen: !s.whyOpen }))}
+              onClick={(e) => {
+                if (e.detail > 0) e.currentTarget.blur();
+                updateSettings((s) => ({ whyOpen: !s.whyOpen }));
+              }}
               title={`${t("review.why")} (I)`}
               aria-label={t("review.why")}
               data-testid="why-toggle"
@@ -448,7 +614,7 @@ export function Review({ deckId, onExit }: { deckId: number | null; onExit(): vo
             { label: t("review.edit"), hint: "E", disabled: !card, onSelect: () => card && setEditing(card.knowledgePoint.id) },
             { label: t("review.suspend"), hint: "@", disabled: !card, onSelect: () => void act("suspend") },
             { label: t("review.bury"), hint: "-", disabled: !card, onSelect: () => void act("bury") },
-            { label: t("review.replay"), hint: "R", disabled: view.kind !== "card" || (!view.prepared.questionAv.length && !view.prepared.answerAv.length), onSelect: replay },
+            { label: t("review.replay"), hint: "R", disabled: view.kind !== "card" || !view.prepared || (!view.prepared.questionAv.length && !view.prepared.answerAv.length), onSelect: replay },
             { label: t("review.shortcuts"), hint: "?", onSelect: () => setHelpOpen(true) },
           ]}
         />
@@ -458,9 +624,20 @@ export function Review({ deckId, onExit }: { deckId: number | null; onExit(): vo
       <div className="review-body">
         <div className="review-stage">
           <div className={`paper ${view.kind === "card" ? "" : "is-hidden"}`}>
-            <CardFrame onController={onController} className={view.kind === "card" ? "" : "is-hidden"} />
+            <CardFrame onController={onController} className={view.kind === "card" && !showingVisual ? "" : "is-hidden"} />
+            {showingVisual && view.visual && (
+              <VisualCard
+                key={view.cardKey}
+                presentation={view.visual}
+                phase={view.side === "answer" ? "reveal" : "question"}
+                onRequestReveal={reveal}
+                onShortcut={handleVisualShortcut}
+                onReady={handleVisualReady}
+                onSwitchToText={() => void toggleTextFallback()}
+              />
+            )}
           </div>
-          {view.kind === "card" && view.prepared.decision.mode === "original" && view.prepared.decision.reason.kind !== "default" && (
+          {view.kind === "card" && !showingVisual && view.prepared?.decision.mode === "original" && view.prepared.decision.reason.kind !== "default" && (
             <p className="mode-note" data-testid="mode-note">
               {t("review.mode.reason", { reason: reasonText(view.prepared.decision.reason, t) })}
             </p>
