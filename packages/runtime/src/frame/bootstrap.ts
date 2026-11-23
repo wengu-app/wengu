@@ -204,6 +204,7 @@ import { tokensToCssVariables, type Theme } from '../tokens.ts';
     }
     if (current !== slot) return;
     send({ v: PROTOCOL_VERSION, type: 'ready', mountMs: now() - startedAt });
+    measure();
     queueMeasure();
   };
 

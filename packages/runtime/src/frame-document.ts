@@ -45,10 +45,10 @@ export function buildFrameDocument(options: FrameDocumentOptions = {}): string {
 <style>
 /* No scrollbar: the host sizes the iframe to the content, and a transient scrollbar while it does would change the
    content width and reflow the component. */
-html,body{margin:0;padding:0}
+html,body{margin:0;padding:0;height:100%}
 html{scrollbar-width:none}
-body{background:var(--wg-color-surface,transparent);color:var(--wg-color-text,inherit);font-family:var(--wg-font-sans,system-ui,sans-serif);font-size:var(--wg-font-size-md,15px);line-height:var(--wg-line-height,1.5);-webkit-font-smoothing:antialiased}
-#wg-root{display:flow-root}
+body{min-height:100%;display:flex;flex-direction:column;background:var(--wg-color-surface,transparent);color:var(--wg-color-text,inherit);font-family:var(--wg-font-sans,system-ui,sans-serif);font-size:var(--wg-font-size-md,15px);line-height:var(--wg-line-height,1.5);-webkit-font-smoothing:antialiased}
+#wg-root{flex:1;min-height:100%;display:flex;flex-direction:column}
 </style>
 <script>${script}</script>
 </head><body><div id="wg-root"></div></body></html>`;

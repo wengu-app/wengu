@@ -13,6 +13,10 @@ const STYLE_ID = 'wg-card-primitive-style';
 const CARD_CSS = `
 .wg-card {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
@@ -29,33 +33,39 @@ const CARD_CSS = `
 }
 .wg-card-stage {
   position: relative;
+  flex: 1 1 auto;
   width: 100%;
-  height: 100%;
+  min-height: 280px;
+  overflow: hidden;
 }
 .wg-card-prompt {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
+  flex: none;
+  position: relative;
   z-index: 4;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 16px 24px 12px;
+  gap: 5px;
+  padding: 18px 24px 12px;
   text-align: center;
-  pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--wg-color-surface) 96%, transparent) 0%,
-    color-mix(in srgb, var(--wg-color-surface) 88%, transparent) 72%,
-    transparent 100%
-  );
+  background: color-mix(in srgb, var(--wg-color-surface) 92%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--wg-color-border) 48%, transparent);
   transition: opacity var(--wg-motion-base) var(--wg-motion-easing),
     transform var(--wg-motion-base) var(--wg-motion-easing);
 }
 .wg-card-prompt[hidden] {
   display: none;
+}
+.wg-card-footer {
+  flex: none;
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 20px 18px;
 }
 .wg-card-kicker {
   display: inline-flex;
@@ -99,28 +109,29 @@ const CARD_CSS = `
 .wg-card-feedback {
   --fb-c: var(--wg-color-border);
   --fb-bg: var(--wg-color-surface-raised);
-  position: absolute;
-  left: 50%;
-  bottom: 18px;
-  transform: translate(-50%, 10px);
+  position: relative;
+  transform: translateY(6px);
   opacity: 0;
   z-index: 5;
-  pointer-events: none;
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  max-width: min(620px, calc(100% - 36px));
-  padding: 11px 16px;
+  width: 100%;
+  max-width: min(680px, 100%);
+  padding: 12px 16px;
   border-radius: 16px;
   background: var(--fb-bg);
   color: var(--wg-color-text);
   font-size: 13.5px;
-  line-height: 1.45;
+  line-height: 1.48;
   box-shadow:
     inset 0 0 0 2px var(--fb-c),
     0 3px 0 color-mix(in srgb, var(--fb-c) 82%, #000);
   transition: opacity var(--wg-motion-base) var(--wg-motion-easing),
     transform var(--wg-motion-base) var(--wg-motion-easing);
+}
+.wg-card-feedback[hidden] {
+  display: none;
 }
 .wg-card-feedback[data-tone="success"] {
   --fb-c: var(--wg-color-success);
@@ -136,7 +147,7 @@ const CARD_CSS = `
 }
 .wg-card-feedback.show {
   opacity: 1;
-  transform: translate(-50%, 0);
+  transform: translateY(0);
   pointer-events: auto;
 }
 .wg-card-feedback-badge {
@@ -201,6 +212,14 @@ const CARD_CSS = `
   justify-content: center;
   width: max-content;
   max-width: calc(100% - 32px);
+}
+.wg-card-footer > .wg-choice-row {
+  position: static;
+  left: auto;
+  bottom: auto;
+  transform: none;
+  width: 100%;
+  max-width: 100%;
 }
 .wg-choice-row[hidden] {
   display: none;
@@ -339,6 +358,7 @@ export interface FeedbackOptions {
 export interface CardShellHandle {
   readonly root: HTMLDivElement;
   readonly stage: HTMLDivElement;
+  readonly footer: HTMLDivElement;
   setKicker(text: string): void;
   setPrompt(title: string, subtitle?: string): void;
   showFeedback(options: FeedbackOptions): void;
@@ -355,11 +375,10 @@ export function createCardShell(
 ): CardShellHandle {
   ensureCardStyle();
 
-  const height = options.height ?? 440;
+  const height = options.height ?? 520;
   const cardEl = document.createElement('div');
   cardEl.className = 'wg-card';
   cardEl.dataset.phase = ctx.phase;
-  cardEl.style.height = `${height}px`;
   cardEl.style.minHeight = `${height}px`;
 
   const stage = document.createElement('div');
@@ -376,9 +395,13 @@ export function createCardShell(
   promptSub.className = 'wg-card-prompt-sub';
   promptEl.append(promptKicker, promptTitle, promptSub);
 
+  const footer = document.createElement('div');
+  footer.className = 'wg-card-footer';
+
   const feedbackEl = document.createElement('div');
   feedbackEl.className = 'wg-card-feedback';
   feedbackEl.dataset.tone = 'neutral';
+  feedbackEl.hidden = true;
   const feedbackBadge = document.createElement('span');
   feedbackBadge.className = 'wg-card-feedback-badge';
   const feedbackText = document.createElement('div');
@@ -388,11 +411,13 @@ export function createCardShell(
   feedbackBody.className = 'wg-card-feedback-body';
   feedbackText.append(feedbackTitle, feedbackBody);
   feedbackEl.append(feedbackBadge, feedbackText);
+  footer.append(feedbackEl);
 
   const hintEl = document.createElement('div');
   hintEl.className = 'wg-card-hint';
+  stage.append(hintEl);
 
-  cardEl.append(stage, promptEl, feedbackEl, hintEl);
+  cardEl.append(promptEl, stage, footer);
   root.append(cardEl);
 
   const updatePromptVisibility = () => {
@@ -423,11 +448,13 @@ export function createCardShell(
     const cleanBody = body?.trim() ?? '';
     feedbackBody.textContent = cleanBody;
     feedbackBody.hidden = cleanBody.length === 0;
-    requestAnimationFrame(() => feedbackEl.classList.add('show'));
+    feedbackEl.hidden = false;
+    feedbackEl.classList.add('show');
   };
 
   const hideFeedback = () => {
     feedbackEl.classList.remove('show');
+    feedbackEl.hidden = true;
   };
 
   const setHint = (text: string) => {
@@ -456,6 +483,7 @@ export function createCardShell(
   return {
     root: cardEl,
     stage,
+    footer,
     setKicker,
     setPrompt,
     showFeedback,
